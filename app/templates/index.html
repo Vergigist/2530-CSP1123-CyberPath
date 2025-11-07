@@ -1,27 +1,27 @@
 <!DOCTYPE html>
 <html>
-    <head>
+<head>
     <title>CyberPath</title>
     <meta charset="UTF-8" />
 
     <!-- Leaflet CSS -->
     <link
-    rel="stylesheet"
-    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
-    crossorigin=""
+        rel="stylesheet"
+        href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+        crossorigin=""
     />
 
     <!-- Leaflet JS -->
     <script
-    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
-    crossorigin="">
+        src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+        crossorigin="">
     </script>
 
     <link
-    rel="stylesheet"
-    href="{{ url_for('static', filename='style.css') }}"
+        rel="stylesheet"
+        href="{{ url_for('static', filename='style.css') }}"
     />
 </head>
 
@@ -29,26 +29,73 @@
     <div id="content">
         <!-- Sidebar -->
         <div id="sidebar" class="sidebar">
-        <h2>Cyberpath : MMU Smart <br />Campus Navigator</h2>
-        <ul>
-            <li>Faculty</li>
-            <li>Cafe</li>
-            <li>Lecture Rooms</li>
-            <li>Lab Rooms</li>
-        </ul>
-    </div>
+            <div class = "sidebar-top">
+                <h2>Cyberpath : MMU Smart <br/>Campus Navigator</h2>
+                <ul>
+                    <li>Faculty</li>
+                    <li>Cafe</li>
+                    <li>Lecture Rooms</li>
+                    <li>Lab Rooms</li>
+                </ul>
+            </div>
 
-    <!-- Buttons -->
-    <button id="toggleBtn">☰</button>
-    <button id="centerBtn">Recentralize</button>
+            <button id="adminBtn" class="sidebar-btn">Admin Sign In/Sign Up</button>
+        </div>
 
-    <!-- Map container -->
-    <div id="map-container">
-        <div id="map"></div>
-    </div>
-    
-    <!-- Chatbot -->
-    <div id="chatbot-icon">💬</div>
+        <!-- Buttons -->
+        <button id="toggleBtn">☰</button>
+        <button id="centerBtn">Recentralize</button>
+
+        <!-- Map container -->
+        <div id="map-container">
+            <div id="map"></div>
+            <div id="coords-display">Click on the map to get coordinates</div>
+        </div>
+
+        <!-- Chatbot -->
+        <div id="chatbot-icon">💬</div>
+
+        <!-- Admin Sign In/Sign Up Popup -->
+        <div id="adminPopup" class="popup-overlay">
+            <div class="popup-content">
+                <span id="closePopup" class="close-btn">&times;</span>
+
+                <!-- Tabs -->
+                <div class="tab-header">
+                    <button class="tab-btn active" data-tab="signin">Sign In</button>
+                    <button class="tab-btn" data-tab="signup">Sign Up</button>
+                </div>
+
+                <!-- Sign In Form -->
+                <form id="signinForm" class="tab-form active">
+                    <label for="signinEmail">Email:</label>
+                    <input type="email" id="signinEmail" name="signinEmail" required>
+
+                    <label for="signinPassword">Password:</label>
+                    <input type="password" id="signinPassword" name="signinPassword" required>
+
+                    <button type="submit">Sign In</button>
+                </form>
+
+                <!-- Sign Up Form -->
+                <form id="signupForm" class="tab-form">
+                    
+                    <!--
+                    <label for="signupUsername">Username:</label>
+                    <input type="text" id="signupUsername" name="signupUsername" required>
+                    -->
+
+                    <label for="signupEmail">Email:</label>
+                    <input type="email" id="signupEmail" name="signupEmail" required>
+
+                    <label for="signupPassword">Password:</label>
+                    <input type="password" id="signupPassword" name="signupPassword" required>
+
+                    <button type="submit">Sign Up</button>
+                </form>
+
+            </div>
+        </div>
     </div>
 
     <script src="{{ url_for('static', filename='script.js') }}"></script>
