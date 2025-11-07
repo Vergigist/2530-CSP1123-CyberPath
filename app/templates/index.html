@@ -1,55 +1,56 @@
 <!DOCTYPE html>
 <html>
-<head>
+    <head>
     <title>CyberPath</title>
-    <meta charset="UTF-8">
+    <meta charset="UTF-8" />
 
-    <!-- Leaflet Map CSS -->
+    <!-- Leaflet CSS -->
     <link
-        rel="stylesheet"
-        href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
-        crossorigin=""
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+    crossorigin=""
     />
 
     <!-- Leaflet JS -->
     <script
-        src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
-        crossorigin="">
+    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+    crossorigin="">
     </script>
 
-    <!-- Custom Styles -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link
+    rel="stylesheet"
+    href="{{ url_for('static', filename='style.css') }}"
+    />
 </head>
+
 <body>
     <div id="content">
         <!-- Sidebar -->
         <div id="sidebar" class="sidebar">
-            
-            
-            <h2>CyberPath: MMU Smart <br>Campus Navigator</h2>
-            <ul>
-                <li>Faculty</li>
-                <li>Cafe</li>
-                <li>Lecture Rooms</li>
-                <li>Lab Rooms</li>
-            </ul>
-        </div>
-
-        <button id="toggleBtn">☰</button>
-        <button id="centerBtn">Recentralize</button>
-
-        <!-- Map Container -->
-        <div id="map-container">
-            <div id="map"></div>
-        </div>
-
-        <!-- Chatbot Icon -->
-        <div id="chatbot-icon">💬</div>
+        <h2>Cyberpath : MMU Smart <br />Campus Navigator</h2>
+        <ul>
+            <li>Faculty</li>
+            <li>Cafe</li>
+            <li>Lecture Rooms</li>
+            <li>Lab Rooms</li>
+        </ul>
     </div>
 
-    <!-- Custom Script -->
+    <!-- Buttons -->
+    <button id="toggleBtn">☰</button>
+    <button id="centerBtn">Recentralize</button>
+
+    <!-- Map container -->
+    <div id="map-container">
+        <div id="map"></div>
+    </div>
+    
+    <!-- Chatbot -->
+    <div id="chatbot-icon">💬</div>
+    </div>
+
     <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
 </html>

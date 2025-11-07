@@ -1,38 +1,37 @@
 // Initialise Map
 var map = L.map('map').setView([2.928, 101.64192], 16);
 
-// Add OpenStreetMap layer (watermark)
+// Add OpenStreetMap layer
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '&copy; OpenStreetMap contributors'
 }).addTo(map);
 
-// Remove default zoom controls for a cleaner UI
+// Remove default zoom controls for cleaner look
 map.removeControl(map.zoomControl);
 
-// Cache DOM elements
+// Elements
 const content = document.getElementById('content');
 const sidebar = document.getElementById('sidebar');
-const mapContainer = document.getElementById('map-container');
 const toggleBtn = document.getElementById('toggleBtn');
 const centerBtn = document.getElementById('centerBtn');
 
-// Handle sidebar toggle
+// Sidebar toggle
 toggleBtn.addEventListener('click', () => {
-    // Toggle sidebar open/close
-    const isOpen = content.classList.toggle('sidebar-open');
+    content.classList.toggle('sidebar-open');
+    sidebar.classList.toggle('active');
 
-    // Resize map after transition (ensure no white gap)
+  // Fix map size after animation
     setTimeout(() => {
         map.invalidateSize();
     }, 310);
 });
 
-// Handle recenter button
+// Center button
 centerBtn.addEventListener('click', () => {
     map.setView([2.928, 101.64192], 16);
 });
 
-// Also fix map size after transition animation finishes
+// Ensure map resizes properly after sidebar animation
 sidebar.addEventListener('transitionend', () => {
     map.invalidateSize();
 });
