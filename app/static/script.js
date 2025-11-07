@@ -1,36 +1,38 @@
-//Initialise Map
-var map = L.map('map').setView([2.927, 101.64192], 17);
+// Initialise Map
+var map = L.map('map').setView([2.928, 101.64192], 16);
 
-//Water mark
+// Add OpenStreetMap layer (watermark)
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '&copy; OpenStreetMap contributors'
 }).addTo(map);
 
-// Reference elements once, globally
+// Remove default zoom controls for a cleaner UI
+map.removeControl(map.zoomControl);
+
+// Cache DOM elements
+const content = document.getElementById('content');
 const sidebar = document.getElementById('sidebar');
 const mapContainer = document.getElementById('map-container');
-const centerBtn = document.getElementById('centerBtn');
 const toggleBtn = document.getElementById('toggleBtn');
+const centerBtn = document.getElementById('centerBtn');
 
-// Center button
-centerBtn.addEventListener('click', function() {
-    map.setView([2.927, 101.64192], 17);
-});
+// Handle sidebar toggle
+toggleBtn.addEventListener('click', () => {
+    // Toggle sidebar open/close
+    const isOpen = content.classList.toggle('sidebar-open');
 
-// Sidebar toggle
-toggleBtn.addEventListener('click', function() {
-    sidebar.classList.toggle('active');
-    mapContainer.classList.toggle('sidebar-open');
-
-  // Ensure map resizes after animation (fallback)
+    // Resize map after transition (ensure no white gap)
     setTimeout(() => {
-    map.invalidateSize();
+        map.invalidateSize();
     }, 310);
 });
 
-// Wait until the sidebar transition ends, then fix map size
+// Handle recenter button
+centerBtn.addEventListener('click', () => {
+    map.setView([2.928, 101.64192], 16);
+});
+
+// Also fix map size after transition animation finishes
 sidebar.addEventListener('transitionend', () => {
     map.invalidateSize();
 });
-
-map.removeControl(map.zoomControl);

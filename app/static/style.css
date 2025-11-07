@@ -1,93 +1,117 @@
-body {
-    font-family: Arial, sans-serif;
+/* reset for layout */
+* { box-sizing: border-box; }
+
+/* make sure nothing globally forces buttons to full width */
+button { width: auto; display: inline-flex; align-items: center; justify-content: center; }
+
+/* full page layout */
+html, body, #content, #map-container, #map {
+    width: 100%;
+    height: 100%;
     margin: 0;
     padding: 0;
-    text-align: center;
 }
 
+/* content wrapper */
 #content {
     position: relative;
-    width: 100%;
-    height: 100vh;
-    display:flex;
     overflow: hidden;
-}   
-
-
-#map {
-    height: 100%;
-    width: 100%;
 }
 
+/* sidebar (off-screen) */
+#sidebar {
+    position: fixed;
+    top: 0;
+  left: -250px;           /* hidden by default */
+    width: 250px;
+    height: 100%;
+    background: #fff;
+    box-shadow: 2px 0 5px rgba(0,0,0,0.25);
+    transition: left 0.30s ease;
+    z-index: 2000;
+    overflow-y: auto;
+}
+
+/* open state on the parent will set sidebar visible */
+#content.sidebar-open #sidebar {
+    left: 0;
+}
+
+/* map container slides right when sidebar is open */
+#map-container {
+    width: 100%;
+    height: 100%;
+    transition: transform 0.30s ease;
+}
+
+#content.sidebar-open #map-container {
+    transform: translateX(250px);
+}
+
+/* map element */
+#map {
+    width: 100%;
+    height: 100%;
+}
+
+/* toggle button — fixed, small, not stretch */
+#toggleBtn {
+    position: fixed;
+    top: 15px;
+    left: 15px;
+    z-index: 3000;
+    background: #fff;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+    border-radius: 6px;
+    padding: 6px 10px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.16);
+    transition: left 0.30s ease;
+    width: auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* move button right when sidebar-open class is present */
+#content.sidebar-open #toggleBtn {
+    left: 265px; /* 250 (sidebar width) + small gap */
+}
+
+/* center/recentralize button — fixed and moves with sidebar */
 #centerBtn {
-    position: absolute;
+    position: fixed;
     top: 60px;
-    left: 50px;
-    z-index: 1000; /* make sure it's above the map */
-    background-color: white;
+    left: 15px;
+    z-index: 3000;
+    background: white;
     border: 1px solid #ccc;
     padding: 6px 10px;
     border-radius: 6px;
     cursor: pointer;
+    transition: left 0.30s ease;
 }
 
-.sidebar {
-    width: 250px;
-    height: 100%;
-    background: white;
-    box-shadow: 2px 0 10px rgba(0,0,0,0.1);
-    padding: 20px;
-    transform: translateX(-100%);
-    transition: transform 0.3s ease;
-    z-index: 1000;
-    position: absolute;
-    top: 0;
-    left: 0;
+/* move center button when sidebar open */
+#content.sidebar-open #centerBtn {
+    left: 265px;
 }
 
-.sidebar.active {
-    transform: translateX(0);
-}
-
-#map-container {
-    flex: 1;
-    position: relative;
-    transition: transform 0.3s ease;
-}
-
-#map-container.sidebar.active{
-    transition: transform 0.3s ease;
-}
-
-#toggleBtn {
-    position: absolute;
-    top: 10px;
-    left: 50px;
-    z-index: 1100;
-    background: white;
-    border: none;
-    font-size: 24px;
-    cursor: pointer;
-    border-radius: 6px;
-    padding: 4px 10px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-}
-
+/* chatbot icon stays fixed */
 #chatbot-icon {
-    position: absolute;
-    bottom: 25px;
-    right: 25px;
-    background-color: #007bff;
-    color: white;
-    font-size: 22px;
-    padding: 15px;
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: #fff;
     border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
     cursor: pointer;
-    box-shadow: 0 3px 10px rgba(0,0,0,0.3);
-    transition: background-color 0.2s;
-    z-index: 1100;
-}
-
-#chatbot-icon:hover {
-    background-color: #0056b3;
+    z-index: 3000;
 }
