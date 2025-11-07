@@ -13,13 +13,11 @@
 #         username = request.form["username"]
 #         password = request.form["password"]
 
-#         # Checking if admin already exist
 #         existing = User.query.filter_by(username=username).first()
 #         if existing:
 #             flash("Username already exists.")
 #             return redirect(url_for("admin.signup"))
 
-#         # Creating new admin
 #         new_user = User(username=username, password=password)
 #         db.session.add(new_user)
 #         db.session.commit()
