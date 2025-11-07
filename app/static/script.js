@@ -1,5 +1,5 @@
 //Initialise Map
-var map = L.map('map').setView([2.926, 101.64192], 16);
+var map = L.map('map').setView([2.927, 101.64192], 17);
 
 //Water mark
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -14,7 +14,7 @@ const toggleBtn = document.getElementById('toggleBtn');
 
 // Center button
 centerBtn.addEventListener('click', function() {
-    map.setView([2.926, 101.64192], 16);
+    map.setView([2.927, 101.64192], 17);
 });
 
 // Sidebar toggle
@@ -32,3 +32,5 @@ toggleBtn.addEventListener('click', function() {
 sidebar.addEventListener('transitionend', () => {
     map.invalidateSize();
 });
+
+map.removeControl(map.zoomControl);

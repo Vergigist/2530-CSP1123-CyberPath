@@ -52,7 +52,11 @@ body {
 #map-container {
     flex: 1;
     position: relative;
-    transition: none;
+    transition: transform 0.3s ease;
+}
+
+#map-container.sidebar.active{
+    transition: transform 0.3s ease;
 }
 
 #toggleBtn {
