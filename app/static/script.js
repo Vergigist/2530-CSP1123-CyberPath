@@ -66,3 +66,21 @@ map.on('click', function(e) {
     const lng = e.latlng.lng.toFixed(6);
     coordsDisplay.textContent = `Latitude: ${lat}, Longitude: ${lng}`;
 });
+
+//Admin dashboard
+const adminSidebar = document.getElementById("adminSidebar");
+const adminToggleBtn = document.getElementById("adminToggleBtn");
+
+// Toggle admin sidebar visibility
+adminToggleBtn.addEventListener("click", () => {
+    adminSidebar.classList.toggle("active");
+    adminToggleBtn.classList.toggle("shifted");
+});
+
+// Show admin button only after login
+function showAdminControls() {
+    adminToggleBtn.style.display = "block";
+}
+
+// Example: call after admin login is verified
+//showAdminControls();
