@@ -45,6 +45,7 @@
         <!-- Buttons -->
         <button id="toggleBtn">☰</button>
         <button id="centerBtn">Recentralize</button>
+        <button id="gpsButton" style=>📍 Find My Location</button>
 
         <!-- Map container -->
         <div id="map-container">
@@ -112,6 +113,7 @@
         </div>
     </div>
 
+    <script src="{{ url_for('static', filename='gps.js') }}"></script>
     <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
 </html>
