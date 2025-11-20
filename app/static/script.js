@@ -84,3 +84,7 @@ function showAdminControls() {
 
 // Example: call after admin login is verified
 //showAdminControls();
+
+// GPS Connection 
+const gpsButton = document.getElementById("gpsButton");
+gpsButton.addEventListener("click", gps.findCurrentLocation);
