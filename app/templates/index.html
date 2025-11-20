@@ -61,14 +61,43 @@
             <h2>Admin Dashboard</h2>
             <div class="admin-controls">
                 <button class="admin-btn" id="addLocationBtn">Add Location</button>
+                <div id="addLocationForm" class="admin-form hidden">
+
+                    <label>Name:</label> <br>
+                    <input type="text" id="locName">
+
+                    <label>Description:</label>
+                    <textarea id="locDesc"></textarea> <br>
+
+                    <label>Location (lat, lng):</label>
+                    <input type="text" id="locCoords" placeholder="Click map or type manually">
+                    <button id="pickFromMapBtn">Pick From Map</button>
+
+                    <button id="saveLocationBtn" class="admin-btn":>Save</button>
+                    <button id="closeLocationFormBtn" class="admin-btn":>Close</button>
+                </div>
+
                 <button class="admin-btn" id="editLocationBtn">Edit Location</button>
                 <button class="admin-btn" id="deleteLocationBtn">Delete Location</button>
                 <button class="admin-btn" id="viewAllBtn">View All Locations</button>
+                <!-- Popup container -->
+                <div id="viewLocationPopup" class="popup hidden">
+                    <div class="popup-content">
+                        <span id="closePopup" class="close-btn">&times;</span>
+                        <!-- Search bar -->
+                        <input type="text" id="searchLocation" class="popup-search" placeholder="Search locations...">
+                        <!-- Scrollable location list -->
+                        <div id="locationList" class="popup-list">
+                            <!-- Items will appear here -->
+                        </div>
+                    </div>
+                </div>
+
             </div>
         </div>
                 
-        <!-- Toggle admin dashboard                          remove this part to display for now -->
-        <button id="adminToggleBtn" class="admin-toggle-btn" style="display: none;">☰ Admin</button>
+        <!-- Toggle admin dashboard                          remove this part to display for now || style="display: none;"-->
+        <button id="adminToggleBtn" class="admin-toggle-btn" >☰ Admin</button>
 
         <!-- Admin Sign In/Sign Up Popup -->
         <div id="adminPopup" class="popup-overlay">
