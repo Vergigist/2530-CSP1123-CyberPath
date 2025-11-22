@@ -53,6 +53,12 @@ def signin():
     else:
         flash("Invalid email or password!", "error")
         return redirect(url_for("index"))
+    
+@app.route("/signout", methods=["POST"])
+def signout():
+    session.pop("admin_logged_in", None)
+    flash("Logged out successfully!", "success")
+    return redirect(url_for("index"))
 
 
 # DEBUG route — view all users
