@@ -88,3 +88,87 @@ function showAdminControls() {
 // GPS Connection 
 const gpsButton = document.getElementById("gpsButton");
 gpsButton.addEventListener("click", gps.findCurrentLocation);
+
+
+// Add location form elements
+const addLocationBtn = document.getElementById("addLocationBtn");
+const addLocationForm = document.getElementById("addLocationForm");
+const pickFromMapBtn = document.getElementById("pickFromMapBtn");
+const locCoordsInput = document.getElementById("locCoords");
+
+let pickMode = false;
+
+// Show form when click "Add Location"
+addLocationBtn.addEventListener("click", () => {
+    addLocationForm.classList.remove("hidden");
+});
+
+//Start picking coordinates
+pickFromMapBtn.addEventListener("click", () => {
+    addLocationForm.classList.add("hidden");   // hide form
+    pickMode = true;                           // enable picking mode
+//    alert("Click anywhere on the map to pick a location.");
+});
+
+//Close form button
+closeLocationFormBtn.addEventListener("click", () => {
+    addLocationForm.classList.add("hidden");
+    pickMode = false;
+});
+
+//Map click handler
+map.on("click", function (e) {
+    if (!pickMode) return;
+
+    const lat = e.latlng.lat.toFixed(6);
+    const lng = e.latlng.lng.toFixed(6);
+
+    // Fill input box
+    locCoordsInput.value = `${lat}, ${lng}`;
+
+    // Stop pick mode
+    pickMode = false;
+
+    // Show the form again
+    addLocationForm.classList.remove("hidden");
+});
+
+//View All Location
+const viewAllBtn = document.getElementById("viewAllBtn");
+const popup = document.getElementById("viewLocationPopup");
+const closePopupBtn = document.getElementById("closePopup");
+const searchInput = document.getElementById("searchLocation");
+const locationList = document.getElementById("locationList");
+
+// Open popup
+viewAllBtn.addEventListener("click", () => {
+    popup.classList.remove("hidden");
+});
+
+// Close popup
+closePopupBtn.addEventListener("click", () => {
+    popup.classList.add("hidden");
+});
+
+// Search input (currently skeleton, no data yet)
+searchInput.addEventListener("input", () => {
+    const filter = searchInput.value.toLowerCase();
+    [...locationList.children].forEach(item => {
+        item.style.display = item.textContent.toLowerCase().includes(filter)
+            ? "block"
+            : "none";
+    });
+});     
+
+// Skeleton: add sample items to visualize scroll
+for (let i = 1; i <= 5; i++) {
+    const item = document.createElement("div");
+    item.textContent = `Location ${i}`;
+    locationList.appendChild(item);
+}
+
+for (let i = 6; i <= 10; i++) {
+    const item = document.createElement("div");
+    item.textContent = `Apple ${i}`;
+    locationList.appendChild(item);
+}
