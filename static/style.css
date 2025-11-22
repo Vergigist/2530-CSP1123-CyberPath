@@ -287,6 +287,10 @@ html, body, #content, #map-container, #map {
     background: #666;
 }
 
+.hidden {
+    display: none;
+}
+
 .popup {
     position: relative;
     top: 0; 
