@@ -26,6 +26,18 @@
 </head>
 
 <body>
+    <body>
+    <div id="flash-messages">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="flash-container">
+          {% for category, message in messages %}
+            <div class="flash {{ category }}">{{ message }}</div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+    </div>
     <div id="content">
         <!-- Sidebar -->
         <div id="sidebar" class="sidebar">
@@ -92,12 +104,13 @@
                         </div>
                     </div>
                 </div>
-
             </div>
         </div>
                 
-        <!-- Toggle admin dashboard                          remove this part to display for now || style="display: none;"-->
-        <button id="adminToggleBtn" class="admin-toggle-btn" >☰ Admin</button>
+        <!-- Toggle admin dashboard button -->
+            {% if session.get('admin_logged_in') %}
+                <button id="adminToggleBtn" class="admin-toggle-btn">☰ Admin</button>
+            {% endif %}
 
         <!-- Admin Sign In/Sign Up Popup -->
         <div id="adminPopup" class="popup-overlay">
@@ -111,29 +124,24 @@
                 </div>
 
                 <!-- Sign In Form -->
-                <form id="signinForm" class="tab-form active">
+                <form id="signinForm" class="tab-form active"  action="/signin" method="POST" >
                     <label for="signinEmail">Email:</label>
-                    <input type="email" id="signinEmail" name="signinEmail" required>
+                    <input type="email" id="signinEmail" name="email" required>
 
-                    <label for="signinPassword">Password:</label>
-                    <input type="password" id="signinPassword" name="signinPassword" required>
+                    <label for="password">Password:</label>
+                    <input type="password" id="signinPassword" name="password" required>
 
                     <button type="submit">Sign In</button>
                 </form>
 
                 <!-- Sign Up Form -->
-                <form id="signupForm" class="tab-form">
-                    
-                    <!--
-                    <label for="signupUsername">Username:</label>
-                    <input type="text" id="signupUsername" name="signupUsername" required>
-                    -->
-
-                    <label for="signupEmail">Email:</label>
-                    <input type="email" id="signupEmail" name="signupEmail" required>
+                <form id="signupForm" class="tab-form"  action="/signup" method="POST">
+                  
+                    <label for="email">Email:</label>
+                    <input type="email" id="signupEmail" name="email" required>
 
                     <label for="signupPassword">Password:</label>
-                    <input type="password" id="signupPassword" name="signupPassword" required>
+                    <input type="password" id="signupPassword" name="password" required>
 
                     <button type="submit">Sign Up</button>
                 </form>
@@ -144,5 +152,7 @@
 
     <script src="{{ url_for('static', filename='gps.js') }}"></script>
     <script src="{{ url_for('static', filename='script.js') }}"></script>
+
+
 </body>
 </html>

@@ -287,11 +287,6 @@ html, body, #content, #map-container, #map {
     background: #666;
 }
 
-.hidden {
-    display: none;
-}
-
-
 .popup {
     position: relative;
     top: 0; 
@@ -344,4 +339,35 @@ html, body, #content, #map-container, #map {
 .popup-list div {
     padding: 6px 4px;
     border-bottom: 1px solid #eee;
+}
+
+.flash-container {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 9999;
+}
+
+.flash {
+    padding: 12px 20px;
+    margin-bottom: 10px;
+    border-radius: 8px;
+    font-size: 16px;
+    color: white;
+    animation: fadeOut 3s forwards;
+}
+
+.flash.success {
+    background-color: #28a745;
+}
+
+.flash.error {
+    background-color: #dc3545;
+}
+
+@keyframes fadeOut {
+    0% { opacity: 1; }
+    70% { opacity: 1; }
+    100% { opacity: 0; }
 }

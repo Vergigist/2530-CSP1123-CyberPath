@@ -89,7 +89,6 @@ function showAdminControls() {
 const gpsButton = document.getElementById("gpsButton");
 gpsButton.addEventListener("click", gps.findCurrentLocation);
 
-
 // Add location form elements
 const addLocationBtn = document.getElementById("addLocationBtn");
 const addLocationForm = document.getElementById("addLocationForm");
