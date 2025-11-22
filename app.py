@@ -66,5 +66,3 @@ if __name__ == "__main__":
     app.run(debug=True)
 
 
-#session.pop("admin_logged_in", None) for logging out
-
