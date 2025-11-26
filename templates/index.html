@@ -74,19 +74,20 @@
             <div class="admin-controls">
                 <button class="admin-btn" id="addLocationBtn">Add Location</button>
                 <div id="addLocationForm" class="admin-form hidden">
+                    <form id="markerForm" action="/add-marker" method="POST">
+                        <label>Name:</label> <br>
+                        <input type="text" id="locName" name="name">
 
-                    <label>Name:</label> <br>
-                    <input type="text" id="locName">
+                        <label>Description:</label>
+                        <textarea id="locDesc" name="description"></textarea> <br>
 
-                    <label>Description:</label>
-                    <textarea id="locDesc"></textarea> <br>
+                        <label>Location (lat, lng):</label>
+                        <input type="text" id="locCoords" name="coords" placeholder="Click map or type manually">
+                        <button type="button" id="pickFromMapBtn">Pick From Map</button>
 
-                    <label>Location (lat, lng):</label>
-                    <input type="text" id="locCoords" placeholder="Click map or type manually">
-                    <button id="pickFromMapBtn">Pick From Map</button>
-
-                    <button id="saveLocationBtn" class="admin-btn":>Save</button>
-                    <button id="closeLocationFormBtn" class="admin-btn":>Close</button>
+                        <button type="submit" id="saveLocationBtn" class="admin-btn">Save</button>
+                        <button type="button" id="closeLocationFormBtn" class="admin-btn">Close</button>
+                    </form>
                 </div>
 
                 <button class="admin-btn" id="editLocationBtn">Edit Location</button>
