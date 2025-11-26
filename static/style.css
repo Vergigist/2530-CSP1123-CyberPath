@@ -311,3 +311,92 @@ html, body, #content, #map-container, #map {
 .admin-toggle-btn:hover {
     background: #666;
 }
+
+.hidden {
+    display: none;
+}
+
+.popup {
+    position: relative;
+    top: 0; 
+    left: 0;
+    width: 100%; 
+    height: 100%;
+    background: rgba(0,0,0,0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+}
+
+.popup.hidden {
+    display: none;
+}
+
+/* Popup content */
+.popup-content {
+    background: #fff;
+    width: 400px;
+    max-height: 70%;
+    border-radius: 8px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 0 15px rgba(0,0,0,0.3);
+    position: relative;
+}
+
+/* Search bar */
+.popup-search {
+    width: 100%;
+    padding: 8px;
+    margin-bottom: 10px;
+    font-size: 14px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+/* Scrollable list */
+.popup-list {
+    overflow-y: auto;
+    flex-grow: 1;
+    border-top: 1px solid #eee;
+    padding-top: 10px;
+}
+
+/* Individual item skeleton */
+.popup-list div {
+    padding: 6px 4px;
+    border-bottom: 1px solid #eee;
+}
+
+.flash-container {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 9999;
+}
+
+.flash {
+    padding: 12px 20px;
+    margin-bottom: 10px;
+    border-radius: 8px;
+    font-size: 16px;
+    color: white;
+    animation: fadeOut 3s forwards;
+}
+
+.flash.success {
+    background-color: #28a745;
+}
+
+.flash.error {
+    background-color: #dc3545;
+}
+
+@keyframes fadeOut {
+    0% { opacity: 1; }
+    70% { opacity: 1; }
+    100% { opacity: 0; }
+}
