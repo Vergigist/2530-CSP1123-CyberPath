@@ -18,11 +18,17 @@ function makeGPS() {
 
                     window.userLocation = {latitude: lat, longitude: long};
                 },
-                function (error) {
-                    console.error("Error while tracking location: ", error);
-                    alert ("Error occurred while tracking location.");
+                function (gpsError) {
+                    if (gpsError.code === gpsError.PERMISSION_DENIED) {
+                        alert("📍 You blocked location access. Please allow GPS in your browser settings.");
+                    } else if (gpsError.code === gpsError.POSITION_UNAVAILABLE) {
+                        alert("📍 Location information is unavailable. Please try again later.");
+                    } else if (gpsError.code === gpsError.TIMEOUT) {
+                    } else {
+                        alert("📍 An unknown error occurred while trying to get your location.");
+                    } 
                 },
-                { enableHighAccuracy: true, maximumAge: 5000, timeout: 10000 }
+                { enableHighAccuracy: true, maximumAge: 10000, timeout: 30000 }
             );
         }
     }
@@ -37,7 +43,7 @@ function makeGPS() {
                     if (!window.userLocationMarker) {
                         const userLocationIcon = L.divIcon({
                             className: "userLocationIcon",
-                            html: '<div style="font-size: 25px;">🚶</div>',
+                            html: '<div class="blue-circle"</div>',
                             iconSize: [30, 30],
                             iconAnchor: [15, 30]
                         });

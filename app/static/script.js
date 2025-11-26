@@ -71,11 +71,14 @@ map.on('click', function(e) {
 const adminSidebar = document.getElementById("adminSidebar");
 const adminToggleBtn = document.getElementById("adminToggleBtn");
 
-// Toggle admin sidebar visibility
-adminToggleBtn.addEventListener("click", () => {
-    adminSidebar.classList.toggle("active");
-    adminToggleBtn.classList.toggle("shifted");
-});
+// Only add event listeners if admin toggle button exists (user is logged in)
+if (adminToggleBtn && adminSidebar) {
+    // Toggle admin sidebar visibility
+    adminToggleBtn.addEventListener("click", () => {
+        adminSidebar.classList.toggle("active");
+        adminToggleBtn.classList.toggle("shifted");
+    });
+}
 
 // Show admin button only after login
 function showAdminControls() {

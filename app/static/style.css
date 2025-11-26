@@ -137,6 +137,31 @@ html, body, #content, #map-container, #map {
     background-color: #0056b3;
 }
 
+.blue-circle {
+    width: 16px;
+    height: 16px;
+    background-color: #007bff;
+    border: 2px solid white;
+    border-radius: 50%;
+    box-shadow: 0 0 0 0 rgba(0, 123, 255, 0.7);
+    animation: pulse-centered 2s infinite;
+    position: relative;
+}
+
+@keyframes pulse-centered {
+    0% {
+        box-shadow: 0 0 0 0 rgba(0, 123, 255, 0.7);
+        transform: scale(1);
+    }
+    70% {
+        box-shadow: 0 0 0 10px rgba(0, 123, 255, 0);
+        transform: scale(1);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(0, 123, 255, 0);
+        transform: scale(1);
+    }
+}
 
 /* admin login sidebar */
 .sidebar-btn {
