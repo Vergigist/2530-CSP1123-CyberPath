@@ -93,7 +93,6 @@ addLocationBtn.addEventListener("click", () => {
 });
 
 pickFromMapBtn.addEventListener("click", () => {
-    addLocationForm.classList.add("hidden");
     pickMode = true;
 });
 
