@@ -208,7 +208,6 @@ editFormClose.addEventListener("click", () => {
 
 document.getElementById("editPickFromMapBtn").addEventListener("click", () => {
     pickMode = true;
-    editFormPopup.classList.add("hidden");
 });
 
 //Delete location
