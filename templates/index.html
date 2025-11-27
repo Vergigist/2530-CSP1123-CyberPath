@@ -72,6 +72,7 @@
         <div id="adminSidebar" class="admin-sidebar" >
             <h2>Admin Dashboard</h2>
             <div class="admin-controls">
+                <!--Add location container-->
                 <button class="admin-btn" id="addLocationBtn">Add Location</button>
                 <div id="addLocationForm" class="admin-form hidden">
                     <form id="markerForm" action="/add-marker" method="POST">
@@ -90,10 +91,64 @@
                     </form>
                 </div>
 
+                <!--Edit location container-->
                 <button class="admin-btn" id="editLocationBtn">Edit Location</button>
+                <div id="editLocationListPopup" class="popup hidden">
+                    <div class="popup-content">
+                        <span class="close-btn" id="closeEditListPopup">&times;</span>
+                        <input type="text" id="searchEditLocation" class="popup-search" placeholder="Search location...">
+                        <div id="editLocationList" class="popup-list">
+                            <!-- Example skeleton items (remove later) -->
+                            <div class="location-item">
+                                <span class="location-name">Sample Location 1</span>
+                                <button class="edit-item-btn">Edit</button>
+                            </div>
+                            <div class="location-item">
+                                <span class="location-name">Sample Location 2</span>
+                                <button class="edit-item-btn">Edit</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- EDIT FORM POPUP IN CENTER -->
+                <div id="editLocationFormPopup" class="popup hidden">
+                    <div class="popup-content">
+                        <span class="close-btn" id="closeEditFormPopup">&times;</span>
+                        <h3>Edit Location</h3>
+
+                        <label>Name:</label>
+                        <input type="text" id="editLocName">
+
+
+                        <label>Description:</label>
+                        <textarea id="editLocDesc"></textarea>
+
+                        <label>Location (lat, lng):</label>
+                        <input type="text" id="editLocCoords" placeholder="Click map or type manually">
+
+                        <button id="editPickFromMapBtn" class="admin-btn">Pick From Map</button>
+
+                        <button id="saveEditedLocationBtn" class="admin-btn">Save Changes</button>
+                    </div>
+                </div>
+
+                <!--Delete location container-->
                 <button class="admin-btn" id="deleteLocationBtn">Delete Location</button>
+                <div id="deleteLocationPopup" class="popup hidden">
+                    <div class="popup-content">
+                        <span id="closeDeletePopup" class="close-btn">&times;</span>
+
+                        <!-- Search bar -->
+                        <input type="text" id="searchDeleteLocation" class="popup-search" placeholder="Search locations...">
+
+                        <!-- Scrollable list -->
+                        <div id="deleteLocationList" class="popup-list"></div>
+                    </div>
+                </div>
+                
+                <!-- View location container -->
                 <button class="admin-btn" id="viewAllBtn">View All Locations</button>
-                <!-- Popup container -->
                 <div id="viewLocationPopup" class="popup hidden">
                     <div class="popup-content">
                         <span id="closePopup" class="close-btn">&times;</span>
@@ -105,6 +160,7 @@
                         </div>
                     </div>
                 </div>
+
             </div>
         </div>
                 
@@ -116,7 +172,7 @@
         <!-- Admin Sign In/Sign Up Popup -->
         <div id="adminPopup" class="popup-overlay">
             <div class="popup-content">
-                <span id="closePopup" class="close-btn">&times;</span>
+                <span id="closePopup" class="close-btn"></span>
 
                 <!-- Tabs -->
                 <div class="tab-header">

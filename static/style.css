@@ -400,3 +400,35 @@ html, body, #content, #map-container, #map {
     70% { opacity: 1; }
     100% { opacity: 0; }
 }
+
+.location-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 0;
+    border-bottom: 1px solid #eee;
+}
+
+.edit-item-btn {
+    padding: 4px 8px;
+    background: #444;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+.edit-item-btn:hover { background: #666; }
+
+.delete-item-btn {
+    float: right;
+    background: #b30000;
+    color: white;
+    border: none;
+    padding: 4px 6px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.delete-item-btn:hover {
+    background: #e60000;
+}
