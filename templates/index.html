@@ -50,8 +50,15 @@
                     <li>Lab Rooms</li>
                 </ul>
             </div>
-
+            {% if not session.get("admin_logged_in") %}
             <button id="adminBtn" class="sidebar-btn">Admin Sign In/Sign Up</button>
+            {% endif %}
+            {% if session.get("admin_logged_in") %}
+            <form  action="/signout" method="POST">
+                <button type ="submit" id="adminBtn" class="sidebar-btn">Admin Sign Out</button>
+            </form>
+            {% endif %}
+            
         </div>
 
         <!-- Buttons -->
@@ -128,7 +135,6 @@
                         <input type="text" id="editLocCoords" placeholder="Click map or type manually">
 
                         <button id="editPickFromMapBtn" class="admin-btn">Pick From Map</button>
-
                         <button id="saveEditedLocationBtn" class="admin-btn">Save Changes</button>
                     </div>
                 </div>
@@ -170,6 +176,7 @@
             {% endif %}
 
         <!-- Admin Sign In/Sign Up Popup -->
+        {% if not session.get("admin_logged_in") %}
         <div id="adminPopup" class="popup-overlay">
             <div class="popup-content">
                 <span id="closePopup" class="close-btn"></span>
@@ -205,6 +212,7 @@
 
             </div>
         </div>
+        {% endif %}
     </div>
 
     <script src="{{ url_for('static', filename='gps.js') }}"></script>

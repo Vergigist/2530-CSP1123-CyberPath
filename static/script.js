@@ -157,6 +157,7 @@ function openLocationPopup(mode) {
     popup.classList.remove("hidden");
     locationList.innerHTML = "";
 
+    // Sample data here @jack
     const sampleData = [
         { id: 1, name: "Location 1" },
         { id: 2, name: "Apple 2" },
