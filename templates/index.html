@@ -19,6 +19,13 @@
         crossorigin="">
     </script>
 
+<!-- Leaflet Routing Machine CSS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.0/dist/leaflet-routing-machine.css" />
+
+<!-- Leaflet Routing Machine JS -->
+<script src="https://unpkg.com/leaflet-routing-machine@3.2.0/dist/leaflet-routing-machine.js"></script>
+
+
     <link
         rel="stylesheet"
         href="{{ url_for('static', filename='style.css') }}"
@@ -64,7 +71,8 @@
         <!-- Buttons -->
         <button id="toggleBtn">☰</button>
         <button id="centerBtn">Recentralize</button>
-        <button id="gpsButton" style=>📍 Find My Location</button>
+        <button id="gpsButton">📍 Find My Location</button>
+        <button id="userRemoveRouteButton">Clear Route</button>
 
         <!-- Map container -->
         <div id="map-container">
@@ -215,6 +223,7 @@
         {% endif %}
     </div>
 
+    <script src="{{ url_for('static', filename='routing.js') }}"></script>
     <script src="{{ url_for('static', filename='gps.js') }}"></script>
     <script src="{{ url_for('static', filename='script.js') }}"></script>
 

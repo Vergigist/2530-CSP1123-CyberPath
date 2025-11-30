@@ -104,12 +104,29 @@ html, body, #content, #map-container, #map {
     transition: left 0.3s ease;
 }
 
+#userRemoveRouteButton {
+    position: absolute;
+    top: 140px;
+    left: 20px;
+    z-index: 1100;
+    background: white;
+    border: 1px solid #ccc;
+    padding: 6px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: left 0.3s ease;
+}
+
 #content.sidebar-open #toggleBtn,
 #content.sidebar-open #centerBtn {
     left: 270px;
 }
 
 #content.sidebar-open #gpsButton {
+    left: 270px;
+}
+
+#content.sidebar-open #userRemoveRouteButton {
     left: 270px;
 }
 
