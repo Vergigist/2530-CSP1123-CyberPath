@@ -56,6 +56,12 @@ map.on('click', function(e) {
     const lat = e.latlng.lat.toFixed(6);
     const lng = e.latlng.lng.toFixed(6);
     coordsDisplay.textContent = `Latitude: ${lat}, Longitude: ${lng}`;
+    
+    const routeHere = confirm("Start pathing to this location? (" + lat + ", " + lng + ")?");
+    if (routeHere) {
+        router.createRoute(parseFloat(lat), parseFloat(lng));
+    }
+
 });
 
 
@@ -78,6 +84,10 @@ function showAdminControls() {
 // GPS
 const gpsButton = document.getElementById("gpsButton");
 gpsButton.addEventListener("click", gps.findCurrentLocation);
+
+//Clear Route
+const userRemoveRouteButton = document.getElementById("userRemoveRouteButton");
+userRemoveRouteButton.addEventListener("click", router.userRemoveRoute);
 
 
 // Add location form
