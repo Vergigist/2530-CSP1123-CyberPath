@@ -93,7 +93,7 @@ html, body, #content, #map-container, #map {
 
 #gpsButton {
     position: absolute;
-    top: 110px;
+    top: 100px;
     left: 20px;
     z-index: 1100;
     background: white;
