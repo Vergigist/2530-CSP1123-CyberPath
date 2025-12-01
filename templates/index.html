@@ -60,11 +60,6 @@
             {% if not session.get("admin_logged_in") %}
             <button id="adminBtn" class="sidebar-btn">Admin Sign In/Sign Up</button>
             {% endif %}
-            {% if session.get("admin_logged_in") %}
-            <form  action="/signout" method="POST">
-                <button type ="submit" id="adminBtn" class="sidebar-btn">Admin Sign Out</button>
-            </form>
-            {% endif %}
             
         </div>
 
@@ -174,7 +169,11 @@
                         </div>
                     </div>
                 </div>
-
+                {% if session.get("admin_logged_in") %}
+                    <form action="/signout" method="POST">
+                        <button type ="submit" id="adminBtn" class="sidebar-btn">Admin Sign Out</button>
+                    </form>
+                {% endif %}
             </div>
         </div>
                 
