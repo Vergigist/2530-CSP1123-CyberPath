@@ -58,7 +58,7 @@
                 </ul>
             </div>
             {% if not session.get("admin_logged_in") %}
-            <button id="adminBtn" class="sidebar-btn">Admin Sign In/Sign Up</button>
+            <button id="adminBtn" class="sign-inup">Admin Sign In/Sign Up</button>
             {% endif %}
             
         </div>
@@ -76,15 +76,15 @@
         </div>
 
         <!-- Chatbot -->
-        <div id="chatbot-icon">💬</div>
+        <div class="icon">💬</div>
 
         <!-- Toggle admin sidebar -->
         <div id="adminSidebar" class="admin-sidebar" >
-            <h2>Admin Dashboard</h2>
             <div class="admin-controls">
+                <h2>Admin Dashboard</h2>
                 <!--Add location container-->
                 <button class="admin-btn" id="addLocationBtn">Add Location</button>
-                <div id="addLocationForm" class="admin-form hidden">
+                <div id="addLocationForm" class="popup hidden">
                     <form id="markerForm" action="/add-marker" method="POST">
                         <label>Name:</label> <br>
                         <input type="text" id="locName" name="name">
@@ -169,14 +169,17 @@
                         </div>
                     </div>
                 </div>
+            </div>
+            <div id="signout-profile">
                 {% if session.get("admin_logged_in") %}
-                    <form action="/signout" method="POST">
-                        <button type ="submit" id="adminBtn" class="sidebar-btn">Admin Sign Out</button>
-                    </form>
+                <form action="/signout" method="POST">
+                    <button type ="submit" id="adminBtn" class="sign-out">Admin Sign Out</button>
+                </form>
                 {% endif %}
+                <div class="icon">👤</div>
             </div>
         </div>
-                
+
         <!-- Toggle admin dashboard button -->
             {% if session.get('admin_logged_in') %}
                 <button id="adminToggleBtn" class="admin-toggle-btn">☰ Admin</button>
