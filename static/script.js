@@ -32,10 +32,10 @@ sidebar.addEventListener('transitionend', () => {
 // Admin 
 const adminBtn = document.getElementById('adminBtn');
 const adminPopup = document.getElementById('adminPopup');
-const closePopup = document.getElementById('closePopup');
+const closePopupAdmin = document.getElementById('closePopup');
 
 adminBtn.addEventListener('click', () => adminPopup.style.display = 'flex');
-closePopup.addEventListener('click', () => adminPopup.style.display = 'none');
+closePopupAdmin.addEventListener('click', () => adminPopup.style.display = 'none');
 window.addEventListener('click', (e) => { if(e.target === adminPopup) adminPopup.style.display = 'none'; });
 
 const tabs = document.querySelectorAll('.tab-btn');
@@ -62,6 +62,24 @@ map.on('click', function(e) {
         router.createRoute(parseFloat(lat), parseFloat(lng));
     }
 
+});
+
+// Forgot Password
+const forgotPasswordBtn = document.getElementById("forgotPasswordBtn");
+const forgotPasswordPopup = document.getElementById("forgotPasswordPopup");
+const closeForgotPasswordPopup = document.getElementById("closeForgotPasswordPopup");
+
+// The sign-in/sign-up popup
+const authPopup = document.getElementById("adminPopup");
+
+forgotPasswordBtn.addEventListener("click", () => {
+    authPopup.style.display = "none";          // hide login popup
+    forgotPasswordPopup.style.display = "flex"; // show forgot password popup
+});
+
+closeForgotPasswordPopup.addEventListener("click", () => {
+    forgotPasswordPopup.style.display = "none"; // hide forgot popup
+    authPopup.style.display = "flex";           // show back login popup
 });
 
 
@@ -103,6 +121,7 @@ addLocationBtn.addEventListener("click", () => {
 });
 
 pickFromMapBtn.addEventListener("click", () => {
+    addLocationForm.classList.add("hidden");
     pickMode = true;
 });
 
@@ -134,7 +153,7 @@ map.on("click", function (e) {
 // View all location
 const viewAllBtn = document.getElementById("viewAllBtn");
 const popup = document.getElementById("viewLocationPopup");
-const closePopupBtn = document.getElementById("closePopup");
+const closePopupView = document.getElementById("closePopup");
 const searchInput = document.getElementById("searchLocation");
 const locationList = document.getElementById("locationList");
 
@@ -142,7 +161,7 @@ viewAllBtn.addEventListener("click", () => {
     openLocationPopup("view");
 });
 
-closePopupBtn.addEventListener("click", () => {
+closePopupView.addEventListener("click", () => {
     popup.classList.add("hidden");
 });
 
@@ -191,6 +210,7 @@ function openLocationPopup(mode) {
 
 const editFormPopup = document.getElementById("editLocationFormPopup");
 const editFormClose = document.getElementById("closeEditFormPopup");
+const editPickFromMapBtn = document.getElementById("editPickFromMapBtn");
 
 function attachEditButtons() {
     const buttons = document.querySelectorAll(".edit-btn");
@@ -217,7 +237,8 @@ editFormClose.addEventListener("click", () => {
     editFormPopup.classList.add("hidden");
 });
 
-document.getElementById("editPickFromMapBtn").addEventListener("click", () => {
+editPickFromMapBtn.addEventListener("click", () => {
+    addLocationForm.classList.add("hidden");
     pickMode = true;
 });
 
@@ -246,6 +267,7 @@ searchDeleteLocation.addEventListener("input", () => {
     });
 });
 
+//placcholder
 deleteLocationList.innerHTML = "";
 for (let i = 1; i <= 10; i++) {
     const row = document.createElement("div");
@@ -268,3 +290,47 @@ for (let i = 1; i <= 10; i++) {
     row.appendChild(delBtn);
     deleteLocationList.appendChild(row);
 }
+
+//Profile 
+const profileBtn = document.getElementById("profileBtn");
+const profilePopup = document.getElementById("profilePopup");
+const closePopupProfile = document.getElementById("closeProfilePopup");
+
+profileBtn.addEventListener("click", () => {
+    profilePopup.classList.remove("hidden");
+});
+
+closePopupProfile.addEventListener("click", () => {
+    profilePopup.classList.add("hidden");
+});
+
+//Change Email popup
+const changeEmailBtn = document.getElementById("changeEmailBtn");
+const changeEmailPopup = document.getElementById("changeEmailPopup");
+const closeChangeEmailPopup = document.getElementById("closeChangeEmailPopup");
+
+changeEmailBtn.addEventListener("click", () => {
+    profilePopup.classList.add("hidden");
+    changeEmailPopup.classList.remove("hidden");
+});
+
+closeChangeEmailPopup.addEventListener("click", () => {
+    changeEmailPopup.classList.add("hidden");
+    profilePopup.classList.remove("hidden");
+});
+
+//Change Password popup
+const changePasswordBtn = document.getElementById("changePasswordBtn");
+const changePasswordPopup = document.getElementById("changePasswordPopup");
+const closeChangePasswordPopup = document.getElementById("closeChangePasswordPopup");
+
+changePasswordBtn.addEventListener("click", () => {
+    profilePopup.classList.add("hidden");
+    changePasswordPopup.classList.remove("hidden");
+});
+
+closeChangePasswordPopup.addEventListener("click", () => {
+    changePasswordPopup.classList.add("hidden");
+    profilePopup.classList.remove("hidden");
+});
+

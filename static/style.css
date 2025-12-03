@@ -131,7 +131,7 @@ html, body, #content, #map-container, #map {
 }
 
 /* chatbot icon stays fixed */
-.icon {
+.chatbot-icon {
     position: fixed;
     bottom: 20px;
     right: 20px;
@@ -150,7 +150,30 @@ html, body, #content, #map-container, #map {
     z-index: 1100;
 }
 
-.icon:hover {
+.chatbot-icon:hover {
+    background-color: #0056b3;
+}
+
+.profile-icon {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: #fff;
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    cursor: pointer;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
+    transition: background-color 0.2s;
+    z-index: 1100;
+}
+
+.profile-icon:hover {
     background-color: #0056b3;
 }
 
@@ -256,6 +279,7 @@ html, body, #content, #map-container, #map {
 .tab-form button {
     width: 100%;
     padding: 8px;
+    margin-top: 5px;
     background-color: #444;
     color: #fff;
     border: none;
@@ -470,4 +494,36 @@ html, body, #content, #map-container, #map {
 #signout-profile{
     display: flex;
     flex-direction: column;
+}
+
+.profile-picture-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.profile-picture-section img {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    object-fit: cover;
+    background: #eee;
+    margin-bottom: 10px;
+}
+
+.profile-field {
+    margin-bottom: 15px;
+}
+
+.profile-field label {
+    display: block;
+    margin-bottom: 5px;
+}
+
+.profile-field input {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
 }
