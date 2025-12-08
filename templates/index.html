@@ -25,7 +25,6 @@
 <!-- Leaflet Routing Machine JS -->
 <script src="https://unpkg.com/leaflet-routing-machine@3.2.0/dist/leaflet-routing-machine.js"></script>
 
-
     <link
         rel="stylesheet"
         href="{{ url_for('static', filename='style.css') }}"
@@ -33,7 +32,6 @@
 </head>
 
 <body>
-    <body>
     <div id="flash-messages">
     {% with messages = get_flashed_messages(with_categories=true) %}
       {% if messages %}
@@ -123,17 +121,7 @@
             <div class="popup-content">
                 <form class="close-btn" id="closeEditListPopup">&times;</form>
                 <input type="text" id="searchEditLocation" class="popup-search" placeholder="Search location...">
-                <div id="editLocationList" class="popup-list">
-                    <!-- Example skeleton items (remove later) -->
-                    <div class="location-item">
-                        <span class="location-name">Sample Location 1</span>
-                        <button class="edit-item-btn">Edit</button>
-                    </div>
-                    <div class="location-item">
-                        <span class="location-name">Sample Location 2</span>
-                        <button class="edit-item-btn">Edit</button>
-                    </div>
-                </div>
+                <div id="editLocationList" class="popup-list"></div>
             </div>
         </div>
 
@@ -143,17 +131,19 @@
                 <span class="close-btn" id="closeEditFormPopup">&times;</span>
                 <h3>Edit Location</h3>
 
-                <label>Name:</label>
-                <input type="text" id="editLocName">
+                <form id="editLocationForm" method="POST">
+                    <label>Name:</label>
+                    <input type="text" id="editLocName" name="name" required>
 
-                <label>Description:</label>
-                <textarea id="editLocDesc"></textarea>
+                    <label>Description:</label>
+                    <textarea id="editLocDesc" name="description"></textarea>
 
-                <label>Location (lat, lng):</label>
-                <input type="text" id="editLocCoords" placeholder="Click map or type manually">
+                    <label>Location (lat, lng):</label>
+                    <input type="text" id="editLocCoords" name="coords" placeholder="Click map or type manually">
 
-                <button id="editPickFromMapBtn" class="admin-btn">Pick From Map</button>
-                <button id="saveEditedLocationBtn" class="admin-btn">Save Changes</button>
+                    <button type="button" id="editPickFromMapBtn" class="admin-btn">Pick From Map</button>
+                    <button type="submit" class="admin-btn">Save Changes</button>
+                </form>
             </div>
         </div>
 
@@ -274,7 +264,7 @@
                     <input type="password" id="signinPassword" name="password" required>
 
                     <button type="submit">Sign In</button>
-                    <button id="forgotPasswordBtn">Frogot Passsword</button>
+                    <button type="button" id="forgotPasswordBtn">Frogot Passsword</button>
                 </form>
 
                 <!-- Sign Up Form -->
@@ -299,17 +289,24 @@
                 <span id="closeForgotPasswordPopup" class="close-btn">&times;</span>
 
                 <h2>Change Password</h2>
+                <form id="forgotPasswordForm" method="POST" action="/forgot-password">
+
+                <label>Email:</label>
+                <input type="email" id="forgotEmailInput" name="email" autpcomplete="off">
 
                 <label>New Password:</label>
-                <input type="password" id="newPasswordInput">
+                <input type="password" id="newPasswordInput" name="password" autocomplete="new-password">
 
                 <label>Confirm Password:</label>
-                <input type="password" id="confirmPasswordInput">
+                <input type="password" id="confirmPasswordInput" name="c_password" autocomplete="new-password">
 
-                <button id="confirmForgotPasswordBtn" class="admin-btn">Confirm</button>
+                <button type="submit" id="confirmForgotPasswordBtn" class="admin-btn">Confirm</button>
+
+                </form>
             </div>
         </div>
     </div>
+
 
     <script src="{{ url_for('static', filename='routing.js') }}"></script>
     <script src="{{ url_for('static', filename='gps.js') }}"></script>
