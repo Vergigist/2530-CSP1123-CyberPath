@@ -1,5 +1,8 @@
-from flask import Flask, render_template, request, redirect, url_for, flash, session
+from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify
 from flask_sqlalchemy import SQLAlchemy
+from werkzeug.security import generate_password_hash
+import random
+from datetime import datetime
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = "sixseven67"
@@ -22,7 +25,8 @@ class Marker(db.Model):
     latitude = db.Column(db.Float, nullable=False)
     longitude = db.Column(db.Float, nullable=False)
     description = db.Column(db.Text)
-
+    timeadded = db.Column(db.DateTime, default=db.func.current_timestamp())
+    
 
 with app.app_context():
     db.create_all()
@@ -30,6 +34,7 @@ with app.app_context():
 
 @app.route("/")
 def index():
+
     return render_template("index.html")
 
 #---------------------------------------------------------------------------------------------------------------------------------
@@ -75,9 +80,57 @@ def signout():
     flash("Logged out successfully!", "success")
     return redirect(url_for("index"))
 
+
+@app.route("/forgot-password", methods=["POST"])
+def forgot_password():
+    email = request.form["email"]
+    new_password = request.form["password"]
+    confirm_password = request.form["c_password"]
+
+    user = User.query.filter_by(email=email).first()
+    if user.password == new_password:
+            flash("New password cannot be the same as your current password!", "error")
+            return redirect(url_for("index"))
+
+
+    if new_password != confirm_password:
+        flash("Passwords do not match!", "error")
+        return redirect(url_for("index"))
+
+    if user:
+        user.password = new_password
+        db.session.commit()
+        flash("Password updated successfully!", "success")
+    else:
+        flash("Email not found!", "error")
+        return redirect(url_for("index"))
+
+    
+    return redirect(url_for("index"))
+
+
 #---------------------------------------------------------------------------------------------------------------------------------
 # Location Management Functionality
 #---------------------------------------------------------------------------------------------------------------------------------
+
+@app.route("/api/markers")
+def api_markers():
+    if not session.get("admin_logged_in"):
+        return jsonify([])
+
+    markers = Marker.query.order_by(Marker.id).all()
+    markers_list = [
+        {
+            "id": m.id,
+            "name": m.name,
+            "latitude": m.latitude,
+            "longitude": m.longitude,
+            "description": m.description
+        }
+        for m in markers
+    ]
+    return jsonify(markers_list)
+
 
 @app.route("/add-marker", methods=["POST"])
 def add_marker():
@@ -93,8 +146,9 @@ def add_marker():
         return redirect(url_for("index"))
 
     description = request.form["description"]
+    timeadded = datetime.now()
 
-    new_marker = Marker(name=name, latitude=latitude, longitude=longitude, description=description)
+    new_marker = Marker(name=name, latitude=latitude, longitude=longitude, description=description, timeadded=timeadded)
     db.session.add(new_marker)
     db.session.commit()
 
@@ -117,6 +171,7 @@ def edit_marker(marker_id):
         return redirect(url_for("index"))
 
     marker.description = request.form["description"]
+    marker.timeadded = datetime.now()
 
     db.session.commit()
 
@@ -132,8 +187,8 @@ def delete_marker(marker_id):
     db.session.delete(marker)
     db.session.commit()
 
-    flash("Marker deleted successfully!", "success")
     return redirect(url_for("index"))
+
 
 #---------------------------------------------------------------------------------------------------------------------------------
 # Debugs (will remove after testing)
@@ -163,3 +218,4 @@ if __name__ == "__main__":
     app.run(debug=True)
 
 
+#test commit
