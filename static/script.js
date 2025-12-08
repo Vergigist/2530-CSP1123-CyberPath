@@ -56,20 +56,12 @@ map.on('click', function(e) {
     const lat = e.latlng.lat.toFixed(6);
     const lng = e.latlng.lng.toFixed(6);
     coordsDisplay.textContent = `Latitude: ${lat}, Longitude: ${lng}`;
-});
-
-map.on('dblclick', function (e) {
-    const lat = e.latlng.lat.toFixed(6);
-    const lng = e.latlng.lng.toFixed(6);
-
-    const routeHere = confirm(
-        "Start pathing to this location? (" + lat + ", " + lng + ")?"
-    );
-
+    
+    const routeHere = confirm("Start pathing to this location? (" + lat + ", " + lng + ")?");
     if (routeHere) {
         router.createRoute(parseFloat(lat), parseFloat(lng));
     }
-    
+
 });
 
 // Forgot Password
