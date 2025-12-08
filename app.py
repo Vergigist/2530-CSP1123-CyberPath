@@ -88,10 +88,14 @@ def forgot_password():
     confirm_password = request.form["c_password"]
 
     user = User.query.filter_by(email=email).first()
+    
+    if not user:
+        flash("Email not found!", "error")
+        return redirect(url_for("index"))
+
     if user.password == new_password:
             flash("New password cannot be the same as your current password!", "error")
             return redirect(url_for("index"))
-
 
     if new_password != confirm_password:
         flash("Passwords do not match!", "error")

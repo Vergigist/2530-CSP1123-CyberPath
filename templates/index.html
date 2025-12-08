@@ -297,13 +297,13 @@
                 <form id="forgotPasswordForm" class="tab-form active" method="POST" action="/forgot-password">
 
                     <label>Email:</label>
-                    <input type="email" id="forgotEmailInput" name="email" autpcomplete="off">
+                    <input type="email" id="forgotEmailInput" name="email" autpcomplete="off" required>
 
                     <label>New Password:</label>
-                    <input type="password" id="newPasswordInput" name="password" autocomplete="new-password">
+                    <input type="password" id="newPasswordInput" name="password" autocomplete="new-password" required>
 
                     <label>Confirm Password:</label>
-                    <input type="password" id="confirmPasswordInput" name="c_password" autocomplete="new-password">
+                    <input type="password" id="confirmPasswordInput" name="c_password" autocomplete="new-password" required>
 
                     <button type="submit" id="confirmForgotPasswordBtn" class="admin-btn">Confirm</button>
 
