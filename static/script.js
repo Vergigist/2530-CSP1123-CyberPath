@@ -72,15 +72,17 @@ const closeForgotPasswordPopup = document.getElementById("closeForgotPasswordPop
 // The sign-in/sign-up popup
 const authPopup = document.getElementById("adminPopup");
 
-forgotPasswordBtn.addEventListener("click", () => {
-    authPopup.style.display = "none";          // hide login popup
-    forgotPasswordPopup.style.display = "flex"; // show forgot password popup
-});
+if (forgotPasswordBtn && forgotPasswordPopup && closeForgotPasswordPopup && authPopup) {
+    forgotPasswordBtn.addEventListener("click", () => {
+        authPopup.style.display = "none";          // hide login popup
+        forgotPasswordPopup.style.display = "flex"; // show forgot password popup
+    });
 
-closeForgotPasswordPopup.addEventListener("click", () => {
-    forgotPasswordPopup.style.display = "none"; // hide forgot popup
-    authPopup.style.display = "flex";           // show back login popup
-});
+    closeForgotPasswordPopup.addEventListener("click", () => {
+        forgotPasswordPopup.style.display = "none"; // hide forgot popup
+        authPopup.style.display = "flex";           // show back login popup
+    });
+}
 
 
 // Admin dashboard
@@ -113,6 +115,7 @@ const addLocationBtn = document.getElementById("addLocationBtn");
 const addLocationForm = document.getElementById("addLocationForm");
 const pickFromMapBtn = document.getElementById("pickFromMapBtn");
 const locCoordsInput = document.getElementById("locCoords");
+const closeLocationFormBtn = document.getElementById("closeLocationFormBtn");
 
 let pickMode = false;
 
@@ -125,11 +128,12 @@ pickFromMapBtn.addEventListener("click", () => {
     pickMode = true;
 });
 
-closeLocationFormBtn.addEventListener("click", () => {
-    addLocationForm.classList.add("hidden");
-    pickMode = false;
-});
-
+if (closeLocationFormBtn) {
+    closeLocationFormBtn.addEventListener("click", () => {
+        addLocationForm.classList.add("hidden");
+        pickMode = false;
+    });
+}
 
 // Map picking for both add + edit
 map.on("click", function (e) {
