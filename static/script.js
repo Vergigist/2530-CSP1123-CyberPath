@@ -28,7 +28,6 @@ sidebar.addEventListener('transitionend', () => {
     map.invalidateSize();
 });
 
-
 // Admin 
 const adminBtn = document.getElementById('adminBtn');
 const adminPopup = document.getElementById('adminPopup');
@@ -56,12 +55,11 @@ map.on('click', function(e) {
     const lat = e.latlng.lat.toFixed(6);
     const lng = e.latlng.lng.toFixed(6);
     coordsDisplay.textContent = `Latitude: ${lat}, Longitude: ${lng}`;
-    
-    const routeHere = confirm("Start pathing to this location? (" + lat + ", " + lng + ")?");
-    if (routeHere) {
-        router.createRoute(parseFloat(lat), parseFloat(lng));
-    }
 
+    // const routeHere = confirm("Start pathing to this location? (" + lat + ", " + lng + ")?");
+    // if (routeHere) {
+    //     router.createRoute(parseFloat(lat), parseFloat(lng));
+    // }
 });
 
 // Forgot Password
@@ -84,7 +82,6 @@ if (forgotPasswordBtn && forgotPasswordPopup && closeForgotPasswordPopup && auth
     });
 }
 
-
 // Admin dashboard
 const adminSidebar = document.getElementById("adminSidebar");
 const adminToggleBtn = document.getElementById("adminToggleBtn");
@@ -100,7 +97,6 @@ function showAdminControls() {
     adminToggleBtn.style.display = "block";
 }
 
-
 // GPS
 const gpsButton = document.getElementById("gpsButton");
 gpsButton.addEventListener("click", gps.findCurrentLocation);
@@ -108,7 +104,6 @@ gpsButton.addEventListener("click", gps.findCurrentLocation);
 //Clear Route
 const userRemoveRouteButton = document.getElementById("userRemoveRouteButton");
 userRemoveRouteButton.addEventListener("click", router.userRemoveRoute);
-
 
 // Add location form
 const addLocationBtn = document.getElementById("addLocationBtn");
@@ -153,7 +148,6 @@ map.on("click", function (e) {
     pickMode = false;
 });
 
-
 // View all location
 const viewAllBtn = document.getElementById("viewAllBtn");
 const popup = document.getElementById("viewLocationPopup");
@@ -178,7 +172,6 @@ searchInput.addEventListener("input", () => {
     });
 });
 
-
 // Edit Location
 const editLocationBtn = document.getElementById("editLocationBtn");
 
@@ -190,28 +183,23 @@ function openLocationPopup(mode) {
     popup.classList.remove("hidden");
     locationList.innerHTML = "";
 
-    // Sample data here @jack
-    const sampleData = [
-        { id: 1, name: "Location 1" },
-        { id: 2, name: "Apple 2" },
-        { id: 3, name: "Location 3" }
-    ];
-
-    sampleData.forEach(loc => {
-        const row = document.createElement("div");
-        row.className = "popup-row";
-        row.innerHTML = `
-            <span>${loc.name}</span>
-            ${mode === "edit" ? `<button class="edit-btn" data-id="${loc.id}">Edit</button>` : ""}
-        `;
-        locationList.appendChild(row);
-    });
-
-    attachEditButtons();
+    fetch("/api/markers")
+        .then(res => res.json())
+        .then(markers => {
+            markers.forEach(loc => {
+                const row = document.createElement("div");
+                row.className = "popup-row";
+                row.innerHTML = `
+                    <span>${loc.name}</span>
+                    ${mode === "edit" ? `<button class="edit-btn" data-id="${loc.id}">Edit</button>` : ""}
+                `;
+                locationList.appendChild(row);
+            });
+            attachEditButtons();
+        });
 }
 
-//Edit location -- form
-
+// Edit location form
 const editFormPopup = document.getElementById("editLocationFormPopup");
 const editFormClose = document.getElementById("closeEditFormPopup");
 const editPickFromMapBtn = document.getElementById("editPickFromMapBtn");
@@ -230,9 +218,17 @@ function openEditForm(id) {
     popup.classList.add("hidden");
     editFormPopup.classList.remove("hidden");
 
-    document.getElementById("editLocName").value = "Example Name " + id;
-    document.getElementById("editLocDesc").value = "Example description";
-    document.getElementById("editLocCoords").value = "2.928000, 101.641920";
+    fetch("/api/markers")
+        .then(res => res.json())
+        .then(markers => {
+            const marker = markers.find(m => m.id == id);
+            if (!marker) return;
+            document.getElementById("editLocName").value = marker.name;
+            document.getElementById("editLocDesc").value = marker.description;
+            document.getElementById("editLocCoords").value = `${marker.latitude}, ${marker.longitude}`;
+        });
+
+        document.getElementById("editLocationForm").action = `/edit-marker/${id}`;
 
     pickMode = false;
 }
@@ -246,8 +242,7 @@ editPickFromMapBtn.addEventListener("click", () => {
     pickMode = true;
 });
 
-//Delete location
-
+// Delete location
 const deleteLocationBtn = document.getElementById("deleteLocationBtn");
 const deleteLocationPopup = document.getElementById("deleteLocationPopup");
 const closeDeletePopup = document.getElementById("closeDeletePopup");
@@ -256,12 +251,15 @@ const deleteLocationList = document.getElementById("deleteLocationList");
 
 deleteLocationBtn.addEventListener("click", () => {
     deleteLocationPopup.classList.remove("hidden");
+    populateDeleteList();
 });
 
+// Close popup
 closeDeletePopup.addEventListener("click", () => {
     deleteLocationPopup.classList.add("hidden");
 });
 
+// Filter search
 searchDeleteLocation.addEventListener("input", () => {
     const filter = searchDeleteLocation.value.toLowerCase();
     [...deleteLocationList.children].forEach(item => {
@@ -271,31 +269,43 @@ searchDeleteLocation.addEventListener("input", () => {
     });
 });
 
-//placcholder
-deleteLocationList.innerHTML = "";
-for (let i = 1; i <= 10; i++) {
-    const row = document.createElement("div");
-    row.classList.add("popup-item");
-    row.style.padding = "6px 0";
+async function populateDeleteList() {
+    try {
+        const response = await fetch("/api/markers");
+        const markers = await response.json();
 
-    const label = document.createElement("span");
-    label.textContent = "Location " + i;
+        deleteLocationList.innerHTML = "";
 
-    const delBtn = document.createElement("button");
-    delBtn.classList.add("delete-item-btn");
-    delBtn.textContent = "Delete";
+        markers.forEach(marker => {
+            const row = document.createElement("div");
+            row.className = "popup-item";
+            row.style.padding = "6px 0";
 
-    delBtn.addEventListener("click", () => {
-        alert(`Pretend deleting: Location ${i}`);
-        // Here you will send DELETE request later
-    });
+            const label = document.createElement("span");
+            label.textContent = marker.name;
 
-    row.appendChild(label);
-    row.appendChild(delBtn);
-    deleteLocationList.appendChild(row);
+            const delBtn = document.createElement("button");
+            delBtn.className = "delete-item-btn";
+            delBtn.textContent = "Delete";
+
+            delBtn.addEventListener("click", async () => {
+                if (confirm(`Delete "${marker.name}"?`)) {
+                    await fetch(`/delete-marker/${marker.id}`, { method: "POST" });
+                    populateDeleteList(); 
+                }
+            });
+
+            row.appendChild(label);
+            row.appendChild(delBtn);
+            deleteLocationList.appendChild(row);
+        });
+    } catch (err) {
+        console.error("Failed to fetch markers:", err);
+    }
 }
 
-//Profile 
+
+// Profile 
 const profileBtn = document.getElementById("profileBtn");
 const profilePopup = document.getElementById("profilePopup");
 const closePopupProfile = document.getElementById("closeProfilePopup");
@@ -337,4 +347,3 @@ closeChangePasswordPopup.addEventListener("click", () => {
     changePasswordPopup.classList.add("hidden");
     profilePopup.classList.remove("hidden");
 });
-
