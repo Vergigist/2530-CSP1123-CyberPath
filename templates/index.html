@@ -56,7 +56,22 @@
         </div>
         {% endif %}
     {% endwith %}
+    </div>
 
+    <div>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        <div class="flash-container">
+            {% for category, message in messages %}
+                {% if category == 'change_email_error' %}
+                    <div id="changeEmailError" data-message="{{ message }}"></div>
+                {% endif %}
+            {% endfor %}
+        </div>
+        {% endif %}
+    {% endwith %}
+    </div>
+        
     <script>
         document.addEventListener("DOMContentLoaded", function() {
             const err = document.getElementById("changePasswordError");
@@ -64,12 +79,25 @@
                 const popup = document.getElementById("changePasswordPopup");
                 if (popup) popup.classList.remove("hidden");
 
-                // Hide profile popup if needed
                 const profilePopup = document.getElementById("profilePopup");
                 if (profilePopup) profilePopup.classList.add("hidden");
             }
         });
     </script>
+
+    <script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const err = document.getElementById("changeEmailError");
+        if (err) {
+            const popup = document.getElementById("changeEmailPopup"); 
+            if (popup) popup.classList.remove("hidden");
+
+            const profilePopup = document.getElementById("profilePopup");
+            if (profilePopup) profilePopup.classList.add("hidden");
+            }
+        });
+    </script>
+
     </div>
 
     <div id="content">
@@ -223,12 +251,13 @@
 
                 <div class="profile-field">
                     <label>Email</label>
-                    <input type="email" id="profileEmail">
+                    <input type="email" id="profileEmail" value="{{ user.email if user else '' }}" readonly>
                 </div>
+
 
                 <div class="profile-field">
                     <label>About Me: </label>
-                    <input type="text" id="profileAboutMe" placeholder="Write sometthing about you."></input>
+                    <textarea type="text" id="profileAboutMe" class="about-box" placeholder="Write sometthing about you."  value="{{ user.about_me or '' }}"></textarea>
                 </div>
 
                 <!-- Action Buttons -->
@@ -245,13 +274,15 @@
 
                 <h2>Change Email</h2>
 
-                <label>New Email:</label>
-                <input type="email" id="newEmailInput">
+                <form id="changeEmailForm" class="tab-form active" method="POST" action="/change-email">
+                    <label>New Email:</label>
+                    <input type="email" id="newEmailInput" name="new_email" autocomplete="off" required>
 
-                <label>Confirm Email:</label>
-                <input type="email" id="confirmEmailInput">
+                    <label>Current Password:</label>
+                    <input type="password" id="confirmEmailpassword" name="password" autocomplete="off" required>
 
-                <button id="confirmChangeEmailBtn" class="admin-btn">Confirm</button>
+                    <button id="confirmChangeEmailBtn" class="admin-btn">Confirm</button>
+                </form>
             </div>
         </div>
 
@@ -265,13 +296,13 @@
                 <form id="changePasswordForm" class="tab-form active" method="POST" action="/changepassword">
 
                     <label>Current Password:</label>
-                    <input type="password" id="curPasswordInput" name="current_password" required>
+                    <input type="password" id="curPasswordInput" name="current_password" required autofill="off">
 
                     <label>New Password:</label>
-                    <input type="password" id="newPasswordInput" name="new_password" required>
+                    <input type="password" id="newPasswordInput" name="new_password" required autofill="off">
 
                     <label>Confirm Password:</label>
-                    <input type="password" id="confirmPasswordInput" name="confirm_password" required>
+                    <input type="password" id="confirmPasswordInput" name="confirm_password" required autofill="off">
 
                     <button type="submit" id="confirmChangePasswordBtn" class="admin-btn">Confirm</button>
                 </form>
@@ -335,7 +366,7 @@
                 <form id="forgotPasswordForm" class="tab-form active" method="POST" action="/forgot-password">
 
                     <label>Email:</label>
-                    <input type="email" id="forgotEmailInput" name="email" autpcomplete="off" required>
+                    <input type="email" id="forgotEmailInput" name="email" autocomplete="off" required>
 
                     <label>New Password:</label>
                     <input type="password" id="newPasswordInput" name="password" autocomplete="new-password" required>
