@@ -128,20 +128,22 @@
         <!--Add location container-->
         <div id="addLocationForm" class="popup hidden">
             <div class="popup-content">
-            <form id="markerForm" action="/add-marker" method="POST">
-                <label>Name:</label> <br>
-                <input type="text" id="locName" name="name"> <br> 
+                <span class="close-btn" id="closeAddLocation">&times;</span>
+                <form id="markerForm" class="tab-form active" action="/add-marker" method="POST">
+                    <h2>Add Location</h2>
+                    
+                    <label>Name:</label> <br>
+                    <input type="text" id="locName" name="name"> <br> 
 
-                <label>Description:</label><br>
-                <textarea id="locDesc" name="description"></textarea> <br>
+                    <label>Description:</label><br>
+                    <input id="locDesc" name="description" required></input> <br>
 
-                <label>Location (lat, lng):</label><br>
-                <input type="text" id="locCoords" name="coords" placeholder="Click map or type manually">
-                <button type="button" id="pickFromMapBtn">Pick From Map</button><br>
+                    <label>Location (lat, lng):</label><br>
+                    <input type="text" id="locCoords" name="coords" placeholder="Click map or type manually">
+                    <button type="button" id="pickFromMapBtn">Pick From Map</button><br>
 
-                <button type="submit" id="saveLocationBtn" class="admin-btn">Save</button>
-                <button type="button" id="closeLocationFormBtn" class="admin-btn">Close</button>
-            </form>
+                    <button type="submit" id="saveLocationBtn" class="admin-btn">Save</button>
+                </form>
             </div>
         </div>
 
@@ -160,12 +162,14 @@
                 <span class="close-btn" id="closeEditFormPopup">&times;</span>
                 <h3>Edit Location</h3>
 
-                <form id="editLocationForm" method="POST">
+                <form id="editLocationForm" class="tab-form active" method="POST">
                     <label>Name:</label>
                     <input type="text" id="editLocName" name="name" required>
 
-                    <label>Description:</label>
-                    <textarea id="editLocDesc" name="description"></textarea>
+                    <label>Description:</label> 
+                    <br>
+                    <input id="editLocDesc" name="description" required></input>
+                    <br>
 
                     <label>Location (lat, lng):</label>
                     <input type="text" id="editLocCoords" name="coords" placeholder="Click map or type manually">
@@ -216,14 +220,15 @@
                 </div>
 
                 <!-- Info Fields -->
-                <div class="profile-field">
-                    <label>Username</label>
-                    <input type="text" id="profileUsername">
-                </div>
 
                 <div class="profile-field">
                     <label>Email</label>
                     <input type="email" id="profileEmail">
+                </div>
+
+                <div class="profile-field">
+                    <label>About Me: </label>
+                    <input type="text" id="profileAboutMe" placeholder="Write sometthing about you."></input>
                 </div>
 
                 <!-- Action Buttons -->
@@ -327,18 +332,18 @@
                 <span id="closeForgotPasswordPopup" class="close-btn">&times;</span>
 
                 <h2>Change Password</h2>
-                <form id="forgotPasswordForm" method="POST" action="/forgot-password">
+                <form id="forgotPasswordForm" class="tab-form active" method="POST" action="/forgot-password">
 
-                <label>Email:</label>
-                <input type="email" id="forgotEmailInput" name="email" autpcomplete="off">
+                    <label>Email:</label>
+                    <input type="email" id="forgotEmailInput" name="email" autpcomplete="off" required>
 
-                <label>New Password:</label>
-                <input type="password" id="newPasswordInput" name="password" autocomplete="new-password">
+                    <label>New Password:</label>
+                    <input type="password" id="newPasswordInput" name="password" autocomplete="new-password" required>
 
-                <label>Confirm Password:</label>
-                <input type="password" id="confirmPasswordInput" name="c_password" autocomplete="new-password">
+                    <label>Confirm Password:</label>
+                    <input type="password" id="confirmPasswordInput" name="c_password" autocomplete="new-password" required>
 
-                <button type="submit" id="confirmForgotPasswordBtn" class="admin-btn">Confirm</button>
+                    <button type="submit" id="confirmForgotPasswordBtn" class="admin-btn">Confirm</button>
 
                 </form>
             </div>

@@ -110,15 +110,20 @@ const addLocationBtn = document.getElementById("addLocationBtn");
 const addLocationForm = document.getElementById("addLocationForm");
 const pickFromMapBtn = document.getElementById("pickFromMapBtn");
 const locCoordsInput = document.getElementById("locCoords");
-const closeLocationFormBtn = document.getElementById("closeLocationFormBtn");
+const closeLocationFormBtn = document.getElementById("closeAddLocation");
 
 let pickMode = false;
+let activePopup = null;
+let activeCoordsInput = null;
 
 addLocationBtn.addEventListener("click", () => {
     addLocationForm.classList.remove("hidden");
 });
 
 pickFromMapBtn.addEventListener("click", () => {
+    activePopup = addLocationForm;
+    activeCoordsInput = locCoordsInput;
+
     addLocationForm.classList.add("hidden");
     pickMode = true;
 });
@@ -132,20 +137,17 @@ if (closeLocationFormBtn) {
 
 // Map picking for both add + edit
 map.on("click", function (e) {
-    if (!pickMode) return;
+    if (!pickMode || !activePopup || !activeCoordsInput) return;
 
     const lat = e.latlng.lat.toFixed(6);
     const lng = e.latlng.lng.toFixed(6);
+    activeCoordsInput.value = `${lat}, ${lng}`;
 
-    if (!addLocationForm.classList.contains("hidden")) {
-        locCoordsInput.value = `${lat}, ${lng}`;
-    }
-
-    if (!document.getElementById("editLocationFormPopup").classList.contains("hidden")) {
-        document.getElementById("editLocCoords").value = `${lat}, ${lng}`;
-    }
+    activePopup.classList.remove("hidden");
 
     pickMode = false;
+    activePopup = null;
+    activeCoordsInput = null;
 });
 
 // View all location
@@ -202,7 +204,7 @@ function openLocationPopup(mode) {
 // Edit location form
 const editFormPopup = document.getElementById("editLocationFormPopup");
 const editFormClose = document.getElementById("closeEditFormPopup");
-const editPickFromMapBtn = document.getElementById("editPickFromMapBtn");
+const editCoordsInput = document.getElementById("editLocCoords");
 
 function attachEditButtons() {
     const buttons = document.querySelectorAll(".edit-btn");
@@ -238,7 +240,16 @@ editFormClose.addEventListener("click", () => {
 });
 
 editPickFromMapBtn.addEventListener("click", () => {
-    addLocationForm.classList.add("hidden");
+    activePopup = editFormPopup;
+    activeCoordsInput = editCoordsInput;
+
+    editFormPopup.classList.add("hidden");
+    pickMode = true;
+});editPickFromMapBtn.addEventListener("click", () => {
+    activePopup = editFormPopup;
+    activeCoordsInput = editCoordsInput;
+
+    editFormPopup.classList.add("hidden");
     pickMode = true;
 });
 
