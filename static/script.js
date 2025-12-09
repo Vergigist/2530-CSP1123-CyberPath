@@ -358,3 +358,21 @@ closeChangePasswordPopup.addEventListener("click", () => {
     changePasswordPopup.classList.add("hidden");
     profilePopup.classList.remove("hidden");
 });
+
+document.addEventListener("DOMContentLoaded", function() {
+    const aboutInput = document.getElementById("profileAboutMe");
+
+    if (aboutInput) {
+        aboutInput.addEventListener("input", function() {
+            const text = this.value;
+
+            fetch("/update-about-me", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ about_me: text })
+            });
+        });
+    }
+});
