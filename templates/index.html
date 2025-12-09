@@ -43,6 +43,35 @@
       {% endif %}
     {% endwith %}
     </div>
+
+    <div>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        <div class="flash-container">
+            {% for category, message in messages %}
+                {% if category == 'change_password_error' %}
+                    <div id="changePasswordError" data-message="{{ message }}"></div>
+                {% endif %}
+            {% endfor %}
+        </div>
+        {% endif %}
+    {% endwith %}
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const err = document.getElementById("changePasswordError");
+            if (err) {
+                const popup = document.getElementById("changePasswordPopup");
+                if (popup) popup.classList.remove("hidden");
+
+                // Hide profile popup if needed
+                const profilePopup = document.getElementById("profilePopup");
+                if (profilePopup) profilePopup.classList.add("hidden");
+            }
+        });
+    </script>
+    </div>
+
     <div id="content">
         <!-- Sidebar -->
         <div id="sidebar" class="sidebar">
@@ -228,15 +257,24 @@
 
                 <h2>Change Password</h2>
 
-                <label>New Password:</label>
-                <input type="password" id="newPasswordInput">
+                <form id="changePasswordForm" class="tab-form active" method="POST" action="/changepassword">
 
-                <label>Confirm Password:</label>
-                <input type="password" id="confirmPasswordInput">
+                    <label>Current Password:</label>
+                    <input type="password" id="curPasswordInput" name="current_password" required>
 
-                <button id="confirmChangePasswordBtn" class="admin-btn">Confirm</button>
+                    <label>New Password:</label>
+                    <input type="password" id="newPasswordInput" name="new_password" required>
+
+                    <label>Confirm Password:</label>
+                    <input type="password" id="confirmPasswordInput" name="confirm_password" required>
+
+                    <button type="submit" id="confirmChangePasswordBtn" class="admin-btn">Confirm</button>
+                </form>
+
             </div>
         </div>
+
+
 
         <!-- Toggle admin dashboard button -->
             {% if session.get('admin_logged_in') %}

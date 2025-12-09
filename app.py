@@ -67,6 +67,7 @@ def signin():
     user = User.query.filter_by(email=email, password=password).first()
     if user:
         session["admin_logged_in"] = True
+        session["user_email"] = user.email
         flash("Login successful!", "success")
         return redirect(url_for("index"))
     else:
@@ -77,6 +78,7 @@ def signin():
 @app.route("/signout", methods=["POST"])
 def signout():
     session.pop("admin_logged_in", None)
+    session.pop("user_email", None)
     flash("Logged out successfully!", "success")
     return redirect(url_for("index"))
 
@@ -106,6 +108,36 @@ def forgot_password():
         return redirect(url_for("index"))
 
     
+    return redirect(url_for("index"))
+
+
+@app.route("/changepassword", methods=["POST"])
+def change_password():
+    if not session.get("admin_logged_in"):
+        return redirect(url_for("index"))
+
+    email = session.get("user_email")
+    current_password = request.form["current_password"]
+    new_password = request.form["new_password"]
+    confirm_password = request.form["confirm_password"]
+
+    user = User.query.filter_by(email=email).first()
+
+    if not user or user.password != current_password:
+        flash("Current password is incorrect!", "change_password_error")
+        return redirect(url_for("index"))
+
+    if new_password != confirm_password:
+        flash("New passwords do not match!", "change_password_error")
+        return redirect(url_for("index"))
+
+    if current_password == new_password:
+        flash("New password cannot be the same as the current password!", "change_password_error")
+        return redirect(url_for("index"))
+
+    user.password = new_password
+    db.session.commit()
+    flash("Password changed successfully!", "success")
     return redirect(url_for("index"))
 
 

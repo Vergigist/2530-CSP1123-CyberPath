@@ -449,7 +449,7 @@ html, body, #content, #map-container, #map {
     background-color: #28a745;
 }
 
-.flash.error {
+.flash.error, .flash.change_password_error {
     background-color: #dc3545;
 }
 
