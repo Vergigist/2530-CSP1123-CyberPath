@@ -17,7 +17,7 @@ class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(150), unique=True, nullable=False)
     password = db.Column(db.String(150), nullable=False)
-
+    about_me = db.Column(db.String(500))
 
 class Marker(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -34,8 +34,14 @@ with app.app_context():
 
 @app.route("/")
 def index():
+    user = None
+    if "user_email" in session:
+        user_email = session["user_email"]
+        user = User.query.filter_by(email=user_email).first()
 
-    return render_template("index.html")
+    return render_template("index.html", user=user)
+
+
 
 #---------------------------------------------------------------------------------------------------------------------------------
 # Account Functionality
@@ -67,6 +73,7 @@ def signin():
     user = User.query.filter_by(email=email, password=password).first()
     if user:
         session["admin_logged_in"] = True
+        session["user_email"] = user.email
         flash("Login successful!", "success")
         return redirect(url_for("index"))
     else:
@@ -77,6 +84,7 @@ def signin():
 @app.route("/signout", methods=["POST"])
 def signout():
     session.pop("admin_logged_in", None)
+    session.pop("user_email", None)
     flash("Logged out successfully!", "success")
     return redirect(url_for("index"))
 
@@ -112,6 +120,79 @@ def forgot_password():
     
     return redirect(url_for("index"))
 
+
+@app.route("/changepassword", methods=["POST"])
+def change_password():
+    if not session.get("admin_logged_in"):
+        return redirect(url_for("index"))
+
+    email = session.get("user_email")
+    current_password = request.form["current_password"]
+    new_password = request.form["new_password"]
+    confirm_password = request.form["confirm_password"]
+
+    user = User.query.filter_by(email=email).first()
+
+    if not user or user.password != current_password:
+        flash("Current password is incorrect!", "change_password_error")
+        return redirect(url_for("index"))
+
+    if new_password != confirm_password:
+        flash("New passwords do not match!", "change_password_error")
+        return redirect(url_for("index"))
+
+    if current_password == new_password:
+        flash("New password cannot be the same as the current password!", "change_password_error")
+        return redirect(url_for("index"))
+
+    user.password = new_password
+    db.session.commit()
+    flash("Password changed successfully!", "success")
+    return redirect(url_for("index"))
+
+
+@app.route("/update-about-me", methods=["POST"])
+def update_about_me():
+    if not session.get("admin_logged_in"):
+        return jsonify({"success": False}), 403
+
+    user_email = session["user_email"]
+    data = request.get_json()
+    text = data.get("about_me", "")
+
+    user = User.query.filter_by(email=user_email).first()
+    if user:
+        user.about_me = text
+        db.session.commit()
+
+    return jsonify({"success": True})
+
+
+
+@app.route("/change-email", methods=["POST"])
+def change_email():
+    if not session.get("admin_logged_in"):
+        return redirect(url_for("index"))
+
+    current_email = session.get("user_email")
+    password = request.form["password"]
+    new_email = request.form["new_email"]
+
+    existing = User.query.filter_by(email=new_email).first()
+    if existing:
+        flash("Email already in use!", "change_email_error")
+        return redirect(url_for("index"))
+
+    user = User.query.filter_by(email=current_email, password=password).first()
+    if user:
+        user.email = new_email
+        db.session.commit()
+        session["user_email"] = new_email
+        flash("Email changed successfully!", "success")
+        return redirect(url_for("index"))
+    else:
+        flash("Incorrect password!", "change_email_error")
+        return redirect(url_for("index"))
 
 #---------------------------------------------------------------------------------------------------------------------------------
 # Location Management Functionality
