@@ -152,7 +152,8 @@ map.on("click", function (e) {
 
 // View all location
 const viewAllBtn = document.getElementById("viewAllBtn");
-const popup = document.getElementById("viewLocationPopup");
+const viewAllBtnUser = document.getElementById("viewAllBtnUser");
+const viewLocationPopup = document.getElementById("viewLocationPopup");
 const closePopupView = document.getElementById("closePopup");
 const searchInput = document.getElementById("searchLocation");
 const locationList = document.getElementById("locationList");
@@ -161,8 +162,12 @@ viewAllBtn.addEventListener("click", () => {
     openLocationPopup("view");
 });
 
+viewAllBtnUser.addEventListener("click", () => {
+    openLocationPopup("view");
+});
+
 closePopupView.addEventListener("click", () => {
-    popup.classList.add("hidden");
+    viewLocationPopup.classList.add("hidden");
 });
 
 searchInput.addEventListener("input", () => {
@@ -174,6 +179,20 @@ searchInput.addEventListener("input", () => {
     });
 });
 
+//danish this is pathing button for user
+locationList.addEventListener("click", (e) => {
+    const btn = e.target.closest(".path-btn");
+    if (!btn) return;
+
+    const lat = btn.dataset.lat;
+    const lng = btn.dataset.lng;
+
+    console.log("Path to:", lat, lng);
+
+    // placeholder frontend behavior
+    alert(`Pathing to ${lat}, ${lng}`);
+});
+
 // Edit Location
 const editLocationBtn = document.getElementById("editLocationBtn");
 
@@ -182,7 +201,7 @@ editLocationBtn.addEventListener("click", () => {
 });
 
 function openLocationPopup(mode) {
-    popup.classList.remove("hidden");
+    viewLocationPopup.classList.remove("hidden");
     locationList.innerHTML = "";
 
     fetch("/api/markers")
@@ -193,6 +212,8 @@ function openLocationPopup(mode) {
                 row.className = "popup-row";
                 row.innerHTML = `
                     <span>${loc.name}</span>
+                    <span class="col-category">${loc.category ?? "-"}</span>
+                    <button class="path-btn">Get directions</button>
                     ${mode === "edit" ? `<button class="edit-btn" data-id="${loc.id}">Edit</button>` : ""}
                 `;
                 locationList.appendChild(row);
@@ -217,7 +238,7 @@ function attachEditButtons() {
 }
 
 function openEditForm(id) {
-    popup.classList.add("hidden");
+    viewLocationPopup.classList.add("hidden");
     editFormPopup.classList.remove("hidden");
 
     fetch("/api/markers")

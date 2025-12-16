@@ -103,19 +103,15 @@
     <div id="content">
         <!-- Sidebar -->
         <div id="sidebar" class="sidebar">
-            <div class = "sidebar-top">
+            <div class = "sidebarTop">
                 <h2>Cyberpath : MMU Smart <br/>Campus Navigator</h2>
-                <ul>
-                    <li>Faculty</li>
-                    <li>Cafe</li>
-                    <li>Lecture Rooms</li>
-                    <li>Lab Rooms</li>
-                </ul>
+                <button class="user-btn" id="viewAllBtnUser">View Locations</button>
             </div>
-            {% if not session.get("admin_logged_in") %}
-            <button id="adminBtn" class="sign-inup">Admin Sign In/Sign Up</button>
-            {% endif %}
-            
+            <div id="sidebarBottom">
+                {% if not session.get("admin_logged_in") %}
+                <button id="adminBtn" class="sign-inup">Admin Sign In/Sign Up</button>
+                {% endif %}
+            </div>
         </div>
 
         <!-- Buttons -->
@@ -161,13 +157,21 @@
                     <h2>Add Location</h2>
                     
                     <label>Name:</label> <br>
-                    <input type="text" id="locName" name="name"> <br> 
+                    <input type="text" id="locName" name="name" autocomplete="off"> <br> 
 
                     <label>Description:</label><br>
-                    <input id="locDesc" name="description" required></input> <br>
+                    <input id="locDesc" name="description" required autocomplete="off"></input> <br>
+
+                    <label>Category:</label> <br>
+                    <select class="admin-btn" id="category">
+                        <option value="">Select category</option>
+                        <option value="room">Room</option>
+                        <option value="building">Building</option>
+                        <option value="misc">Misc</option>
+                    </select> <br>
 
                     <label>Location (lat, lng):</label><br>
-                    <input type="text" id="locCoords" name="coords" placeholder="Click map or type manually">
+                    <input type="text" id="locCoords" name="coords" placeholder="Click map or type manually" autocomplete="off">
                     <button type="button" id="pickFromMapBtn">Pick From Map</button><br>
 
                     <button type="submit" id="saveLocationBtn" class="admin-btn">Save</button>
@@ -178,7 +182,7 @@
         <!--Edit location container-->
         <div id="editLocationListPopup" class="popup hidden">
             <div class="popup-content">
-                <form class="close-btn" id="closeEditListPopup">&times;</form>
+                <span class="close-btn" id="closeEditListPopup">&times;</span>
                 <input type="text" id="searchEditLocation" class="popup-search" placeholder="Search location...">
                 <div id="editLocationList" class="popup-list"></div>
             </div>
@@ -192,15 +196,23 @@
 
                 <form id="editLocationForm" class="tab-form active" method="POST">
                     <label>Name:</label>
-                    <input type="text" id="editLocName" name="name" required>
+                    <input type="text" id="editLocName" name="name" required autocomplete="off">
 
                     <label>Description:</label> 
                     <br>
-                    <input id="editLocDesc" name="description" required></input>
+                    <input id="editLocDesc" name="description" required autocomplete="off"></input>
                     <br>
 
+                    <label>Category:</label> <br>
+                    <select class="admin-btn" id="category">
+                        <option value="">Select category</option>
+                        <option value="room">Room</option>
+                        <option value="building">Building</option>
+                        <option value="misc">Misc</option>
+                    </select> <br>
+
                     <label>Location (lat, lng):</label>
-                    <input type="text" id="editLocCoords" name="coords" placeholder="Click map or type manually">
+                    <input type="text" id="editLocCoords" name="coords" placeholder="Click map or type manually" autocomplete="off"autocomplete="off">
 
                     <button type="button" id="editPickFromMapBtn" class="admin-btn">Pick From Map</button>
                     <button type="submit" class="admin-btn">Save Changes</button>
@@ -225,9 +237,16 @@
         <div id="viewLocationPopup" class="popup hidden">
             <div class="popup-content">
                 <span id="closePopup" class="close-btn">&times;</span>
-                <!-- Search bar -->
+                
                 <input type="text" id="searchLocation" class="popup-search" placeholder="Search locations...">
-                <!-- Scrollable location list -->
+                
+                <!-- List header -->
+                <div class="popup-row header">
+                    <span>Name</span>
+                    <span>Category</span>
+                    <span>Action</span>
+                </div>
+                
                 <div id="locationList" class="popup-list">
                     <!-- Items will appear here -->
                 </div>
@@ -338,7 +357,7 @@
                     <input type="password" id="signinPassword" name="password" required>
 
                     <button type="submit">Sign In</button>
-                    <button type="button" id="forgotPasswordBtn">Frogot Passsword</button>
+                    <button type="button" id="forgotPasswordBtn">Forgot Passsword</button>
                 </form>
 
                 <!-- Sign Up Form -->

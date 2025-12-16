@@ -54,12 +54,12 @@ html, body, #content, #map-container, #map {
     transform: translateX(0);
 }
 
-.sidebar-top {
+.sidebarTop {
     display: flex;
     flex-direction: column;
 }
 
-.sidebar-top li {
+.sidebarTop li {
     margin: 8px 0;
 }
 
@@ -247,6 +247,41 @@ html, body, #content, #map-container, #map {
     position: relative;
 }
 
+.popup-row {
+    display: grid;
+    grid-template-columns: 3fr 2fr 2fr auto;
+    gap: 8px;
+    padding: 8px;
+    align-items: center;
+}
+
+.popup-row.header {
+    font-weight: bold;
+    border-bottom: 1px solid #ddd;
+}
+
+.popup-row:not(.header) {
+    border-bottom: 1px solid #eee;
+}
+
+.actions {
+    display: flex;
+    gap: 6px;
+}
+
+.path-btn {
+    padding: 6px 10px;
+    border-radius: 6px;
+    border: 1px solid #d0d5dd;
+    background: #f9fafb;
+    cursor: pointer;
+    font-size: 13px;
+}
+
+.path-btn:hover {
+    background: #eef2ff;
+}
+
 .close-btn {
     position: absolute;
     top: 10px; right: 15px;
@@ -277,6 +312,17 @@ html, body, #content, #map-container, #map {
     margin: 6px 0 12px;
 }
 .tab-form button {
+    width: 100%;
+    padding: 8px;
+    margin-top: 5px;
+    background-color: #444;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.tab-form select {
     width: 100%;
     padding: 8px;
     margin-top: 5px;
@@ -468,14 +514,17 @@ html, body, #content, #map-container, #map {
 }
 
 .edit-item-btn {
-    padding: 4px 8px;
+    float: right;
     background: #444;
     color: white;
     border: none;
+    padding: 4px 6px;
     border-radius: 4px;
     cursor: pointer;
 }
-.edit-item-btn:hover { background: #666; }
+.edit-item-btn:hover { 
+    background: #666;
+}
 
 .delete-item-btn {
     float: right;
@@ -536,4 +585,17 @@ html, body, #content, #map-container, #map {
     border-radius: 6px;
     border: 1px solid #ccc;
     font-size: 14px;
+}
+
+.user-btn {
+    padding: 10px;
+    background: #5384c58f;
+    color: #000000;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-top: 4px;
+}
+.user-btn:hover {
+    background: #666;
 }
