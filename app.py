@@ -1,13 +1,24 @@
 from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify
 from flask_sqlalchemy import SQLAlchemy
-from werkzeug.security import generate_password_hash
+from werkzeug.security import generate_password_hash, check_password_hash
+from flask_mail import Mail, Message
 import random
-from datetime import datetime
+from datetime import datetime, timedelta
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = "sixseven67"
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///cyberpath.db"
+app.config["MAIL_SERVER"] = "smtp.gmail.com"
+app.config["MAIL_PORT"] = 587
+app.config["MAIL_USE_TLS"] = True
+app.config["MAIL_USE_SSL"] = False
+app.config["MAIL_USERNAME"] = "cyberpathotp@gmail.com" 
+app.config["MAIL_PASSWORD"] = "onjl mije yxkv ruit"
+app.config["MAIL_DEFAULT_SENDER"] = "cyberpathotp@gmail.com"
+mail = Mail(app)
 db = SQLAlchemy(app)
+def generate_otp():
+    return str(random.randint(100000, 999999))
 
 #---------------------------------------------------------------------------------------------------------------------------------
 # Database Models
@@ -18,6 +29,7 @@ class User(db.Model):
     email = db.Column(db.String(150), unique=True, nullable=False)
     password = db.Column(db.String(150), nullable=False)
     about_me = db.Column(db.String(500))
+    verified = db.Column(db.Boolean, default=False)
 
 class Marker(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -26,11 +38,29 @@ class Marker(db.Model):
     longitude = db.Column(db.Float, nullable=False)
     description = db.Column(db.Text)
     timeadded = db.Column(db.DateTime, default=db.func.current_timestamp())
+    category_id = db.Column(db.Integer, db.ForeignKey("category.id"), nullable=True)
     
+class Category(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), unique=True, nullable=False)
+    markers = db.relationship("Marker", backref="category", lazy=True)
+
 
 with app.app_context():
+    #db.drop_all()
     db.create_all()
 
+    if not Category.query.first():
+        db.session.add_all([
+            Category(name="Lecture Halls"),
+            Category(name="Labs"),
+            Category(name="Offices"),
+            Category(name="Food & Drinks"),
+            Category(name="Buildings"),
+            Category(name="Others")
+        ])
+        db.session.commit()
+   
 
 @app.route("/")
 def index():
@@ -39,8 +69,9 @@ def index():
         user_email = session["user_email"]
         user = User.query.filter_by(email=user_email).first()
 
-    return render_template("index.html", user=user)
+    categories = Category.query.all()
 
+    return render_template("index.html", user=user, categories=categories)
 
 
 #---------------------------------------------------------------------------------------------------------------------------------
@@ -57,12 +88,38 @@ def signup():
         flash("Email already exists!", "error")
         return redirect(url_for("index"))
 
-    new_user = User(email=email, password=password)
+    hashed_password = generate_password_hash(password)
+
+    if email.lower() == "hozhenxiang@gmail.com":
+        verified_status = True
+    else:
+        verified_status = False
+
+    new_user = User(email=email, password=hashed_password, verified=verified_status)
     db.session.add(new_user)
     db.session.commit()
 
-    flash("Account created successfully!", "success")
+    if verified_status:
+        flash("Account created and automatically verified!", "success")
+    else:
+        flash("Account created! Waiting for admin verification.", "success")
+
     return redirect(url_for("index"))
+
+
+@app.route("/api/admins")
+def api_admins():
+    verified_admins = User.query.filter_by(verified=True).all()
+
+    admins_list = [
+        {
+            "id": admin.id,
+            "email": admin.email
+        }
+        for admin in verified_admins
+    ]
+
+    return jsonify(admins_list)
 
 
 @app.route("/signin", methods=["POST"])
@@ -70,8 +127,17 @@ def signin():
     email = request.form["email"]
     password = request.form["password"]
 
-    user = User.query.filter_by(email=email, password=password).first()
-    if user:
+    user = User.query.filter_by(email=email).first()
+
+    if not user:
+        flash("Invalid email or password!", "error")
+        return redirect(url_for("index"))
+
+    if not user.verified:
+        flash("Your account is not yet verified by an admin.", "error")
+        return redirect(url_for("index"))
+
+    if check_password_hash(user.password, password):
         session["admin_logged_in"] = True
         session["user_email"] = user.email
         flash("Login successful!", "success")
@@ -80,6 +146,52 @@ def signin():
         flash("Invalid email or password!", "error")
         return redirect(url_for("index"))
     
+
+@app.route("/admin/verify-user/<int:user_id>", methods=["POST"])
+def approve_user(user_id):
+    if not session.get("admin_logged_in"):
+        return jsonify({"success": False, "message": "Not authorized"}), 403
+
+    user = User.query.get_or_404(user_id)
+    user.verified = True
+    db.session.commit()
+    return jsonify({"success": True, "message": f"{user.email} approved!"})
+
+
+@app.route("/admin/reject-user/<int:user_id>", methods=["POST"])
+def reject_user(user_id):
+    if not session.get("admin_logged_in"):
+        return jsonify({"success": False, "message": "Not authorized"}), 403
+
+    user = User.query.get_or_404(user_id)
+    db.session.delete(user)
+    db.session.commit()
+    return jsonify({"success": True, "message": f"{user.email} rejected!"})
+
+
+@app.route("/api/pending-users")
+def api_pending_users():
+    if not session.get("admin_logged_in"):
+        return jsonify([])
+
+    users = User.query.filter_by(verified=False).all()
+    return jsonify([{"id": u.id, "email": u.email} for u in users])
+
+
+@app.route("/delete-admin/<int:user_id>", methods=["POST"])
+def delete_admin(user_id):
+    if not session.get("admin_logged_in") and session.get("user_email") != "hozhenxiang@gmail.com":
+        return jsonify({"success": False, "message": "Unauthorized action."})
+
+    user = User.query.get_or_404(user_id)
+
+    if user.email == "hozhenxiang@gmail.com":
+        return jsonify({"success": False, "message": "Cannot delete this admin."})
+    
+    db.session.delete(user)
+    db.session.commit()
+    return jsonify({"success": True, "message": f"Admin {user.email} deleted successfully."})
+
 
 @app.route("/signout", methods=["POST"])
 def signout():
@@ -101,53 +213,17 @@ def forgot_password():
         flash("Email not found!", "error")
         return redirect(url_for("index"))
 
-    if user.password == new_password:
-            flash("New password cannot be the same as your current password!", "error")
-            return redirect(url_for("index"))
+    if check_password_hash(user.password, new_password):
+        flash("New password cannot be the same as your current password!", "error")
+        return redirect(url_for("index"))
 
     if new_password != confirm_password:
         flash("Passwords do not match!", "error")
         return redirect(url_for("index"))
 
-    if user:
-        user.password = new_password
-        db.session.commit()
-        flash("Password updated successfully!", "success")
-    else:
-        flash("Email not found!", "error")
-        return redirect(url_for("index"))
-
-    
-    return redirect(url_for("index"))
-
-
-@app.route("/changepassword", methods=["POST"])
-def change_password():
-    if not session.get("admin_logged_in"):
-        return redirect(url_for("index"))
-
-    email = session.get("user_email")
-    current_password = request.form["current_password"]
-    new_password = request.form["new_password"]
-    confirm_password = request.form["confirm_password"]
-
-    user = User.query.filter_by(email=email).first()
-
-    if not user or user.password != current_password:
-        flash("Current password is incorrect!", "change_password_error")
-        return redirect(url_for("index"))
-
-    if new_password != confirm_password:
-        flash("New passwords do not match!", "change_password_error")
-        return redirect(url_for("index"))
-
-    if current_password == new_password:
-        flash("New password cannot be the same as the current password!", "change_password_error")
-        return redirect(url_for("index"))
-
-    user.password = new_password
+    user.password = generate_password_hash(new_password)
     db.session.commit()
-    flash("Password changed successfully!", "success")
+    flash("Password updated successfully!", "success")
     return redirect(url_for("index"))
 
 
@@ -168,7 +244,6 @@ def update_about_me():
     return jsonify({"success": True})
 
 
-
 @app.route("/change-email", methods=["POST"])
 def change_email():
     if not session.get("admin_logged_in"):
@@ -183,8 +258,9 @@ def change_email():
         flash("Email already in use!", "change_email_error")
         return redirect(url_for("index"))
 
-    user = User.query.filter_by(email=current_email, password=password).first()
-    if user:
+    user = User.query.filter_by(email=current_email).first()
+
+    if user and check_password_hash(user.password, password):
         user.email = new_email
         db.session.commit()
         session["user_email"] = new_email
@@ -194,15 +270,43 @@ def change_email():
         flash("Incorrect password!", "change_email_error")
         return redirect(url_for("index"))
 
+
+@app.route("/changepassword", methods=["POST"])
+def change_password():
+    if not session.get("admin_logged_in"):
+        return redirect(url_for("index"))
+
+    email = session.get("user_email")
+    current_password = request.form["current_password"]
+    new_password = request.form["new_password"]
+    confirm_password = request.form["confirm_password"]
+
+    user = User.query.filter_by(email=email).first()
+
+    if not user or not check_password_hash(user.password, current_password):
+        flash("Current password is incorrect!", "change_password_error")
+        return redirect(url_for("index"))
+
+    if new_password != confirm_password:
+        flash("New passwords do not match!", "change_password_error")
+        return redirect(url_for("index"))
+
+    if check_password_hash(user.password, new_password):
+        flash("New password cannot be the same as the current password!", "change_password_error")
+        return redirect(url_for("index"))
+
+    user.password = generate_password_hash(new_password)
+    db.session.commit()
+
+    flash("Password changed successfully!", "success")
+    return redirect(url_for("index"))
+
 #---------------------------------------------------------------------------------------------------------------------------------
 # Location Management Functionality
 #---------------------------------------------------------------------------------------------------------------------------------
 
 @app.route("/api/markers")
 def api_markers():
-    if not session.get("admin_logged_in"):
-        return jsonify([])
-
     markers = Marker.query.order_by(Marker.id).all()
     markers_list = [
         {
@@ -210,7 +314,8 @@ def api_markers():
             "name": m.name,
             "latitude": m.latitude,
             "longitude": m.longitude,
-            "description": m.description
+            "description": m.description,
+            "category": m.category.name if m.category else None
         }
         for m in markers
     ]
@@ -232,8 +337,9 @@ def add_marker():
 
     description = request.form["description"]
     timeadded = datetime.now()
+    category_id = request.form.get("category_id")
 
-    new_marker = Marker(name=name, latitude=latitude, longitude=longitude, description=description, timeadded=timeadded)
+    new_marker = Marker(name=name, latitude=latitude, longitude=longitude, description=description, timeadded=timeadded, category_id=category_id)
     db.session.add(new_marker)
     db.session.commit()
 
@@ -256,6 +362,8 @@ def edit_marker(marker_id):
         return redirect(url_for("index"))
 
     marker.description = request.form["description"]
+    marker.category_id = request.form.get("category_id")
+
     marker.timeadded = datetime.now()
 
     db.session.commit()

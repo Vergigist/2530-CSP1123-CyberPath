@@ -137,6 +137,9 @@
                 <button class="admin-btn" id="editLocationBtn">Edit Location</button>
                 <button class="admin-btn" id="deleteLocationBtn">Delete Location</button>
                 <button class="admin-btn" id="viewAllBtn">View All Locations</button>
+                <button class="admin-btn" id="pendingUsersBtn">Pending Users</button>
+                <button class="admin-btn" id="manageAdminsBtn">Manage Admins</button>
+
             </div>
             <div id="signout-profile">
                 {% if session.get("admin_logged_in") %}
@@ -163,13 +166,13 @@
                     <input id="locDesc" name="description" required autocomplete="off"></input> <br>
 
                     <label>Category:</label> <br>
-                    <select class="admin-btn" id="category">
+                    <select class="admin-btn" id="category" name="category_id" required>
                         <option value="">Select category</option>
-                        <option value="room">Room</option>
-                        <option value="building">Building</option>
-                        <option value="misc">Misc</option>
+                        {% for category in categories %}
+                            <option value="{{ category.id }}">{{ category.name }}</option>
+                        {% endfor %}
                     </select> <br>
-
+                    <br>
                     <label>Location (lat, lng):</label><br>
                     <input type="text" id="locCoords" name="coords" placeholder="Click map or type manually" autocomplete="off">
                     <button type="button" id="pickFromMapBtn">Pick From Map</button><br>
@@ -204,11 +207,11 @@
                     <br>
 
                     <label>Category:</label> <br>
-                    <select class="admin-btn" id="category">
+                    <select class="admin-btn" id="editCategory" name="category_id" required>
                         <option value="">Select category</option>
-                        <option value="room">Room</option>
-                        <option value="building">Building</option>
-                        <option value="misc">Misc</option>
+                        {% for category in categories %}
+                            <option value="{{ category.id }}">{{ category.name }}</option>
+                        {% endfor %}
                     </select> <br>
 
                     <label>Location (lat, lng):</label>
@@ -253,6 +256,27 @@
             </div>
         </div>
         
+        <div id="pendingUsersPopup" class="popup hidden">
+            <div class="popup-content">
+                <span id="closePendingUsers" class="close-btn">&times;</span>
+                <h2>Pending User Approvals</h2>
+                <div id="pendingUsersList">
+                    <!-- Pending users list here -->
+                </div>
+            </div>
+        </div>
+
+        <div id="manageAdminsPopup" class="popup hidden">
+            <div class="popup-content">
+                <span id="closeManageAdmins" class="close-btn">&times;</span>
+                <h2>Manage Admins</h2>
+                <div id="adminsList">
+                    <!-- Admins list here or whatever-->
+                </div>
+            </div>
+        </div>
+
+
         <!--Profile container-->
         <div id="profilePopup" class ="popup hidden">
             <div class="popup-content">

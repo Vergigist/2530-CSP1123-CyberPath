@@ -1,4 +1,5 @@
 // Initialise Map
+let selectedCategoryId = null;
 var map = L.map('map').setView([2.928, 101.64192], 16);
 
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -71,10 +72,10 @@ const closeForgotPasswordPopup = document.getElementById("closeForgotPasswordPop
 const authPopup = document.getElementById("adminPopup");
 
 if (forgotPasswordBtn && forgotPasswordPopup && closeForgotPasswordPopup && authPopup) {
-    forgotPasswordBtn.addEventListener("click", () => {
+forgotPasswordBtn.addEventListener("click", () => {
         authPopup.style.display = "none";          // hide login popup
         forgotPasswordPopup.style.display = "flex"; // show forgot password popup
-    });
+});
 
     closeForgotPasswordPopup.addEventListener("click", () => {
         forgotPasswordPopup.style.display = "none"; // hide forgot popup
@@ -204,8 +205,7 @@ function openLocationPopup(mode) {
     viewLocationPopup.classList.remove("hidden");
     locationList.innerHTML = "";
 
-    fetch("/api/markers")
-        .then(res => res.json())
+    fetchMarkersByCategory()
         .then(markers => {
             markers.forEach(loc => {
                 const row = document.createElement("div");
@@ -241,8 +241,7 @@ function openEditForm(id) {
     viewLocationPopup.classList.add("hidden");
     editFormPopup.classList.remove("hidden");
 
-    fetch("/api/markers")
-        .then(res => res.json())
+    fetchMarkersByCategory()
         .then(markers => {
             const marker = markers.find(m => m.id == id);
             if (!marker) return;
@@ -266,13 +265,8 @@ editPickFromMapBtn.addEventListener("click", () => {
 
     editFormPopup.classList.add("hidden");
     pickMode = true;
-});editPickFromMapBtn.addEventListener("click", () => {
-    activePopup = editFormPopup;
-    activeCoordsInput = editCoordsInput;
 
-    editFormPopup.classList.add("hidden");
-    pickMode = true;
-});
+})
 
 // Delete location
 const deleteLocationBtn = document.getElementById("deleteLocationBtn");
@@ -303,8 +297,7 @@ searchDeleteLocation.addEventListener("input", () => {
 
 async function populateDeleteList() {
     try {
-        const response = await fetch("/api/markers");
-        const markers = await response.json();
+       const markers = await fetchMarkersByCategory();
 
         deleteLocationList.innerHTML = "";
 
@@ -397,3 +390,130 @@ document.addEventListener("DOMContentLoaded", function() {
         });
     }
 });
+
+function fetchMarkersByCategory() {
+    const url = selectedCategoryId
+        ? `/markers/${selectedCategoryId}`
+        : "/api/markers";
+
+    return fetch(url).then(res => res.json());
+}
+
+const pendingUsersBtn = document.getElementById("pendingUsersBtn");
+const pendingUsersPopup = document.getElementById("pendingUsersPopup");
+const closePendingUsers = document.getElementById("closePendingUsers");
+const pendingUsersList = document.getElementById("pendingUsersList");
+
+pendingUsersBtn.addEventListener("click", async () => {
+    pendingUsersPopup.classList.remove("hidden");
+    await loadPendingUsers();
+});
+
+closePendingUsers.addEventListener("click", () => {
+    pendingUsersPopup.classList.add("hidden");
+});
+
+async function loadPendingUsers() {
+    try {
+        const res = await fetch("/api/pending-users"); // We'll create this API route
+        const users = await res.json();
+        pendingUsersList.innerHTML = "";
+
+        if(users.length === 0){
+            pendingUsersList.innerHTML = "<p>No pending users.</p>";
+            return;
+        }
+
+        users.forEach(user => {
+            const div = document.createElement("div");
+            div.classList.add("pending-user");
+            div.innerHTML = `
+                <span>${user.email}</span>
+                <button class="approve-btn" data-id="${user.id}">Approve</button>
+                <button class="reject-btn" data-id="${user.id}">Reject</button>
+            `;
+            pendingUsersList.appendChild(div);
+        });
+
+        document.querySelectorAll(".approve-btn").forEach(btn => {
+            btn.addEventListener("click", async () => {
+                const userId = btn.dataset.id;
+                const res = await fetch(`/admin/verify-user/${userId}`, { method: "POST" });
+                const data = await res.json();
+                alert(data.message);
+                await loadPendingUsers();
+            });
+        });
+
+        document.querySelectorAll(".reject-btn").forEach(btn => {
+            btn.addEventListener("click", async () => {
+                const userId = btn.dataset.id;
+                const res = await fetch(`/admin/reject-user/${userId}`, { method: "POST" });
+                const data = await res.json();
+                alert(data.message);
+                await loadPendingUsers();
+            });
+        });
+
+    } catch (err) {
+        console.error("Failed to load pending users:", err);
+    }
+}
+
+document.addEventListener("DOMContentLoaded", async () => {
+    const manageAdminsBtn = document.getElementById("manageAdminsBtn");
+    const manageAdminsPopup = document.getElementById("manageAdminsPopup");
+    const closeManageAdminsPopup = document.getElementById("closeManageAdmins");
+    const adminsListDiv = document.getElementById("adminsList");
+
+    // Open popup on button click
+    manageAdminsBtn.addEventListener("click", async () => {
+        manageAdminsPopup.classList.remove("hidden");
+
+        try {
+            const res = await fetch("/api/admins");
+            const admins = await res.json();
+
+            adminsListDiv.innerHTML = ""; // clear old list
+
+            admins.forEach(admin => {
+                const div = document.createElement("div");
+                div.classList.add("admin-item");
+                div.innerHTML = `
+                    <span>${admin.email}</span>
+                    <button class="delete-admin-btn" data-id="${admin.id}">Delete</button>
+                `;
+                adminsListDiv.appendChild(div);
+
+                // Attach delete handler
+                const delBtn = div.querySelector(".delete-admin-btn");
+                delBtn.addEventListener("click", async () => {
+                    if (confirm(`Delete admin "${admin.email}"?`)) {
+                        const delRes = await fetch(`/delete-admin/${admin.id}`, { method: "POST" });
+                        const delData = await delRes.json();
+                        if (delData.success) {
+                            div.remove(); // remove from DOM
+                            alert("Admin deleted successfully.");
+                        } else {
+                            alert("Cannot delete this admin.");
+                        }
+                    }
+                });
+            });
+
+        } catch (err) {
+            console.error("Failed to fetch admins:", err);
+        }
+    });
+
+    closeManageAdminsPopup.addEventListener("click", () => {
+        manageAdminsPopup.classList.add("hidden");
+    });
+
+    window.addEventListener("click", (e) => {
+        if (e.target === manageAdminsPopup) {
+            manageAdminsPopup.classList.add("hidden");
+        }
+    });
+});
+
