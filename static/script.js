@@ -373,22 +373,49 @@ closeChangePasswordPopup.addEventListener("click", () => {
     profilePopup.classList.remove("hidden");
 });
 
-document.addEventListener("DOMContentLoaded", function() {
+document.addEventListener("DOMContentLoaded", function () {
     const aboutInput = document.getElementById("profileAboutMe");
+    const aboutStatus = document.getElementById("aboutStatus");
 
-    if (aboutInput) {
-        aboutInput.addEventListener("input", function() {
-            const text = this.value;
+    let aboutTimeout;
 
-            fetch("/update-about-me", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({ about_me: text })
-            });
-        });
-    }
+    if (!aboutInput) return;
+
+    aboutInput.addEventListener("input", function () {
+        clearTimeout(aboutTimeout);
+
+        // show "Saving..."
+        if (aboutStatus) {
+            aboutStatus.textContent = "Saving...";
+            aboutStatus.style.opacity = "1";
+            aboutStatus.style.color = "#888";
+        }
+
+        aboutTimeout = setTimeout(async () => {
+            try {
+                const res = await fetch("/update-about-me", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ about_me: aboutInput.value })
+                });
+
+                if (res.ok && aboutStatus) {
+                    aboutStatus.textContent = "Saved ✓";
+                    aboutStatus.style.color = "green";
+
+                    // fade out after a moment
+                    setTimeout(() => {
+                        aboutStatus.style.opacity = "0";
+                    }, 1200);
+                }
+            } catch (err) {
+                if (aboutStatus) {
+                    aboutStatus.textContent = "Failed to save";
+                    aboutStatus.style.color = "red";
+                }
+            }
+        }, 500);
+    });
 });
 
 function fetchMarkersByCategory() {
@@ -517,3 +544,22 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
 });
 
+document.addEventListener("DOMContentLoaded", () => {
+    const toggles = document.querySelectorAll(".toggle-password");
+    const passwordFields = document.querySelectorAll(".password-field");
+
+    toggles.forEach(toggle => {
+        toggle.addEventListener("click", () => {
+            const showing = passwordFields[0].type === "text";
+
+            passwordFields.forEach(input => {
+                input.type = showing ? "password" : "text";
+            });
+
+            toggles.forEach(icon => {
+                icon.classList.toggle("fa-eye", showing);
+                icon.classList.toggle("fa-eye-slash", !showing);
+            });
+        });
+    });
+});

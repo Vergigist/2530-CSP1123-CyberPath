@@ -4,6 +4,12 @@
     <title>CyberPath</title>
     <meta charset="UTF-8" />
 
+   <link
+        rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+        />
+
+
     <!-- Leaflet CSS -->
     <link
         rel="stylesheet"
@@ -300,7 +306,9 @@
 
                 <div class="profile-field">
                     <label>About Me: </label>
-                    <textarea type="text" id="profileAboutMe" class="about-box" placeholder="Write sometthing about you."  value="{{ user.about_me or '' }}"></textarea>
+                    <textarea id="profileAboutMe" class="about-box" placeholder="Write something about you.">{{ user.about_me or '' }}</textarea>
+                    <small id="aboutStatus" style="opacity:0; transition: opacity 0.3s;"></small>
+
                 </div>
 
                 <!-- Action Buttons -->
@@ -322,7 +330,10 @@
                     <input type="email" id="newEmailInput" name="new_email" autocomplete="off" required>
 
                     <label>Current Password:</label>
-                    <input type="password" id="confirmEmailpassword" name="password" autocomplete="off" required>
+                    <div class="password-wrapper">
+                        <input type="password" id="confirmEmailpassword" name="password" class="password-field" required>
+                        <i class="fa-solid fa-eye toggle-password"></i>
+                    </div>
 
                     <button id="confirmChangeEmailBtn" class="admin-btn">Confirm</button>
                 </form>
@@ -339,13 +350,22 @@
                 <form id="changePasswordForm" class="tab-form active" method="POST" action="/changepassword">
 
                     <label>Current Password:</label>
-                    <input type="password" id="curPasswordInput" name="current_password" required autofill="off">
+                    <div class="password-wrapper">
+                        <input type="password" id="curPasswordInput" name="current_password" class="password-field" required>
+                        <i class="fa-solid fa-eye toggle-password"></i>
+                    </div>
 
                     <label>New Password:</label>
-                    <input type="password" id="newPasswordInput" name="new_password" required autofill="off">
+                    <div class="password-wrapper">
+                        <input type="password" id="newPasswordInput" name="new_password" class="password-field" required>
+                        <i class="fa-solid fa-eye toggle-password"></i>
+                    </div>
 
                     <label>Confirm Password:</label>
-                    <input type="password" id="confirmPasswordInput" name="confirm_password" required autofill="off">
+                    <div class="password-wrapper">
+                        <input type="password" id="confirmPasswordInput" name="confirm_password" class="password-field" required>
+                        <i class="fa-solid fa-eye toggle-password"></i>
+                    </div>
 
                     <button type="submit" id="confirmChangePasswordBtn" class="admin-btn">Confirm</button>
                 </form>
@@ -378,7 +398,10 @@
                     <input type="email" id="signinEmail" name="email" required>
 
                     <label for="password">Password:</label>
-                    <input type="password" id="signinPassword" name="password" required>
+                    <div class="password-wrapper">
+                        <input type="password" id="signinPassword" name="password" class="password-field" required>
+                        <i class="fa-solid fa-eye toggle-password"></i>
+                    </div>
 
                     <button type="submit">Sign In</button>
                     <button type="button" id="forgotPasswordBtn">Forgot Passsword</button>
@@ -391,7 +414,11 @@
                     <input type="email" id="signupEmail" name="email" required>
 
                     <label for="signupPassword">Password:</label>
-                    <input type="password" id="signupPassword" name="password" required>
+                    <div class="password-wrapper">
+                        <input type="password" id="signupPassword" name="password" class="password-field" required>
+                        <i class="fa-solid fa-eye toggle-password"></i>
+                    </div>
+
 
                     <button type="submit">Sign Up</button>
                 </form>
@@ -412,11 +439,17 @@
                     <input type="email" id="forgotEmailInput" name="email" autocomplete="off" required>
 
                     <label>New Password:</label>
-                    <input type="password" id="newPasswordInput" name="password" autocomplete="new-password" required>
+                   <div class="password-wrapper">
+                        <input type="password" id="newPasswordInput" name="password" class="password-field" required>
+                        <i class="fa-solid fa-eye toggle-password"></i>
+                    </div>
 
                     <label>Confirm Password:</label>
-                    <input type="password" id="confirmPasswordInput" name="c_password" autocomplete="new-password" required>
-
+                    <div class="password-wrapper">
+                        <input type="password" id="confirmPasswordInput" name="c_password" class="password-field" required>
+                        <i class="fa-solid fa-eye toggle-password"></i>
+                    </div>
+                    
                     <button type="submit" id="confirmForgotPasswordBtn" class="admin-btn">Confirm</button>
 
                 </form>
