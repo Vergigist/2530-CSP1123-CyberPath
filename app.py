@@ -78,14 +78,21 @@ def index():
 # Account Functionality
 #---------------------------------------------------------------------------------------------------------------------------------
 
+referral_code = 961523
+
 @app.route("/signup", methods=["POST"])
 def signup():
+    referral = request.form.get("referral")
     email = request.form["email"]
     password = request.form["password"]
 
     existing = User.query.filter_by(email=email).first()
     if existing:
         flash("Email already exists!", "error")
+        return redirect(url_for("index"))
+
+    if referral and int(referral) != referral_code:
+        flash("Invalid referral code!", "error")   
         return redirect(url_for("index"))
 
     hashed_password = generate_password_hash(password)
@@ -201,30 +208,70 @@ def signout():
     return redirect(url_for("index"))
 
 
-@app.route("/forgot-password", methods=["POST"])
-def forgot_password():
+@app.route("/forgot-password/send-otp", methods=["POST"])
+def send_forgot_otp():
     email = request.form["email"]
-    new_password = request.form["password"]
-    confirm_password = request.form["c_password"]
-
     user = User.query.filter_by(email=email).first()
-    
-    if not user:
-        flash("Email not found!", "error")
-        return redirect(url_for("index"))
 
-    if check_password_hash(user.password, new_password):
-        flash("New password cannot be the same as your current password!", "error")
-        return redirect(url_for("index"))
+    if not user:
+        return jsonify({"success": False, "message": "Email not found"})
+
+    otp = random.randint(100000, 999999)
+
+    session["forgot_otp"] = otp
+    session["forgot_email"] = email
+    session["otp_verified"] = False
+
+    msg = Message(
+        "CyberPath Password Reset OTP",
+        recipients=[email]
+    )
+    msg.body = f"Your OTP for password reset is: {otp}"
+    mail.send(msg)
+
+    return jsonify({"success": True})
+
+
+from werkzeug.security import generate_password_hash, check_password_hash
+
+@app.route("/forgot-password/verify", methods=["POST"])
+def verify_forgot_otp():
+    otp = request.form["otp"]
+    new_password = request.form["password"]
+    confirm_password = request.form["confirm_password"]
+
+    if "forgot_otp" not in session or "forgot_email" not in session:
+        return jsonify({"success": False, "message": "OTP expired"})
+
+    if otp != session["forgot_otp"]:
+        return jsonify({"success": False, "message": "Invalid OTP"})
 
     if new_password != confirm_password:
-        flash("Passwords do not match!", "error")
-        return redirect(url_for("index"))
+        return jsonify({"success": False, "message": "Passwords do not match"})
+
+    user = User.query.filter_by(email=session["forgot_email"]).first()
+
+    if check_password_hash(user.password, new_password):
+        return jsonify({
+            "success": False,
+            "message": "New password cannot be the same as old password"
+        })
 
     user.password = generate_password_hash(new_password)
     db.session.commit()
-    flash("Password updated successfully!", "success")
-    return redirect(url_for("index"))
+
+    session.pop("forgot_otp")
+    session.pop("forgot_email")
+
+    return jsonify({"success": True})
+
+
+@app.route("/forgot-password/reset", methods=["POST"])
+def reset_forgot_password_state():
+    session.pop("forgot_otp", None)
+    session.pop("forgot_email", None)
+    session.pop("otp_verified", None)
+    return "", 204
 
 
 @app.route("/update-about-me", methods=["POST"])

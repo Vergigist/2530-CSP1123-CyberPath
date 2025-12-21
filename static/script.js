@@ -79,6 +79,7 @@ forgotPasswordBtn.addEventListener("click", () => {
 
     closeForgotPasswordPopup.addEventListener("click", () => {
         forgotPasswordPopup.style.display = "none"; // hide forgot popup
+        resetForgotPasswordPopup();
         authPopup.style.display = "flex";           // show back login popup
     });
 }
@@ -563,3 +564,128 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     });
 });
+
+const forgotEmailInput = document.getElementById("sendOtpForm");
+
+
+    const newPass = document.getElementById("otpNewPassword");
+    const confirmPass = document.getElementById("otpConfirmPassword");
+
+    if (newPass) newPass.value = "";
+    if (confirmPass) confirmPass.value = "";
+
+document.addEventListener("DOMContentLoaded", () => {
+    const forgotBtn = document.getElementById("forgotPasswordBtn");
+
+    const otpPopup = document.getElementById("forgotOtpPopup");
+    const verifyPopup = document.getElementById("verifyOtpPopup");
+
+    const closeOtp = document.getElementById("closeForgotOtp");
+    const closeVerify = document.getElementById("closeVerifyOtp");
+
+    const sendOtpForm = document.getElementById("sendOtpForm");
+    const verifyOtpForm = document.getElementById("verifyOtpForm");
+
+    function resetForgotPasswordPopup() {
+    if (sendOtpForm) sendOtpForm.reset();
+    }
+
+    function resetOtpPopup() {
+        document.querySelectorAll(".otp-input").forEach(box => {
+            box.value = "";
+        });
+
+        const newPass = document.getElementById("otpNewPassword");
+        const confirmPass = document.getElementById("otpConfirmPassword");
+        const otpHidden = document.getElementById("otpHidden");
+
+        if (newPass) newPass.value = "";
+        if (confirmPass) confirmPass.value = "";
+        if (otpHidden) otpHidden.value = "";
+    }
+
+    function resetOtpState() {
+        fetch("/forgot-password/reset", { method: "POST" });
+        otpPopup.classList.add("hidden");
+        verifyPopup.classList.add("hidden");
+
+        resetForgotPasswordPopup();
+        resetOtpPopup();
+    }
+
+    // Always start with Send OTP popup
+    forgotBtn.addEventListener("click", () => {
+        resetOtpState();
+        otpPopup.classList.remove("hidden");
+    });
+
+    // Close buttons
+    closeOtp.addEventListener("click", resetOtpState);
+    closeVerify.addEventListener("click", resetOtpState);
+
+    // Send OTP
+    sendOtpForm.addEventListener("submit", async e => {
+        e.preventDefault();
+        const res = await fetch("/forgot-password/send-otp", {
+            method: "POST",
+            body: new FormData(sendOtpForm)
+        });
+        const data = await res.json();
+
+        if (data.success) {
+            otpPopup.classList.add("hidden");
+            resetForgotPasswordPopup(); 
+            verifyPopup.classList.remove("hidden");
+        } else {
+            alert(data.message);
+        }
+    });
+
+    // Verify OTP
+    verifyOtpForm.addEventListener("submit", async e => {
+        e.preventDefault();
+        const res = await fetch("/forgot-password/verify", {
+            method: "POST",
+            body: new FormData(verifyOtpForm)
+        });
+        const data = await res.json();
+
+        if (data.success) {
+            alert("Password reset successful!");
+            resetOtpState();
+        } else {
+            alert(data.message);
+        }
+    });
+
+    // Refresh = reset OTP
+    window.addEventListener("beforeunload", () => {
+        navigator.sendBeacon("/forgot-password/reset");
+    });
+});
+
+const otpInputs = document.querySelectorAll(".otp-input");
+const otpHidden = document.getElementById("otpHidden");
+
+otpInputs.forEach((input, index) => {
+    input.addEventListener("input", () => {
+        input.value = input.value.replace(/\D/, "");
+
+        if (input.value && index < otpInputs.length - 1) {
+            otpInputs[index + 1].focus();
+        }
+
+        updateOtpHidden();
+    });
+
+    input.addEventListener("keydown", e => {
+        if (e.key === "Backspace" && !input.value && index > 0) {
+            otpInputs[index - 1].focus();
+        }
+    });
+});
+
+function updateOtpHidden() {
+    otpHidden.value = [...otpInputs].map(i => i.value).join("");
+}
+
