@@ -394,6 +394,7 @@
 
                 <!-- Sign In Form -->
                 <form id="signinForm" class="tab-form active"  action="/signin" method="POST" >
+
                     <label for="signinEmail">Email:</label>
                     <input type="email" id="signinEmail" name="email" required>
 
@@ -409,7 +410,10 @@
 
                 <!-- Sign Up Form -->
                 <form id="signupForm" class="tab-form"  action="/signup" method="POST">
-                
+                    
+                    <label>Referral code</label>
+                    <input type="text" id="referral" name="referral" required>
+
                     <label for="email">Email:</label>
                     <input type="email" id="signupEmail" name="email" required>
 
@@ -428,31 +432,47 @@
         {% endif %}
         
         <!--Forgot password-->
-        <div id="forgotPasswordPopup" class="popup hidden">
+        <div id="forgotOtpPopup" class="popup hidden">
             <div class="popup-content">
-                <span id="closeForgotPasswordPopup" class="close-btn">&times;</span>
+                <span class="close-btn" id="closeForgotOtp">&times;</span>
+                <h2>Forgot Password</h2>
 
-                <h2>Change Password</h2>
-                <form id="forgotPasswordForm" class="tab-form active" method="POST" action="/forgot-password">
+                <form id="sendOtpForm">
+                <label>Email</label>
+                <input type="email" name="email" required autocomplete="off">
+                <button type="submit">Send OTP</button>
+                </form>
+            </div>
+        </div>
+        <div id="verifyOtpPopup" class="popup hidden">
+            <div class="popup-content">
+                <span class="close-btn" id="closeVerifyOtp">&times;</span>
+                <h2>Reset Password</h2>
 
-                    <label>Email:</label>
-                    <input type="email" id="forgotEmailInput" name="email" autocomplete="off" required>
+                <form id="verifyOtpForm" method="POST" action="/forgot-password/verify">
+
+                    <label>OTP:</label>
+
+                    <div class="otp-boxes">
+                        <input type="text" maxlength="1" class="otp-input">
+                        <input type="text" maxlength="1" class="otp-input">
+                        <input type="text" maxlength="1" class="otp-input">
+                        <input type="text" maxlength="1" class="otp-input">
+                        <input type="text" maxlength="1" class="otp-input">
+                        <input type="text" maxlength="1" class="otp-input">
+                    </div>
+
+                    <input type="hidden" name="otp" id="otpHidden">
 
                     <label>New Password:</label>
-                   <div class="password-wrapper">
-                        <input type="password" id="newPasswordInput" name="password" class="password-field" required>
-                        <i class="fa-solid fa-eye toggle-password"></i>
-                    </div>
+                    <input type="password" id="otpNewPassword" name="password" required> <br>
 
                     <label>Confirm Password:</label>
-                    <div class="password-wrapper">
-                        <input type="password" id="confirmPasswordInput" name="c_password" class="password-field" required>
-                        <i class="fa-solid fa-eye toggle-password"></i>
-                    </div>
-                    
-                    <button type="submit" id="confirmForgotPasswordBtn" class="admin-btn">Confirm</button>
+                    <input type="password" id="otpConfirmPassword" name="confirm_password" required>
 
+                    <button type="submit">Reset Password</button>
                 </form>
+
             </div>
         </div>
     </div>

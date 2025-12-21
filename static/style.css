@@ -614,9 +614,23 @@ html, body, #content, #map-container, #map {
     top: 50%;
     transform: translateY(-50%);
     cursor: pointer;
-    color: #777;
+    color: #777;   
 }
 
 .toggle-password:hover {
     color: #000;
+}
+
+.otp-boxes {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    margin-bottom: 15px;
+}
+
+.otp-input {
+    width: 40px;
+    height: 45px;
+    font-size: 22px;
+    text-align: center;
 }
