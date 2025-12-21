@@ -2,6 +2,7 @@ blinker==1.9.0
 click==8.3.0
 colorama==0.4.6
 Flask==3.1.2 # <--- this one
+Flask-Mail==0.10.1 #<--- new one
 Flask-SQLAlchemy==3.1.1 # <--- this one
 greenlet==3.2.4
 itsdangerous==2.2.0
@@ -14,8 +15,9 @@ Werkzeug==3.1.3
 # download Flask, and Flask -SQLAlchemy
 # run these in command prompt in the terminal:
 # python -m venv env
-# env\Scripts\activate <-- do this one everytime you reopen the project
+# env\Scripts\activate
 # pip install Flask
 # pip install Flask-SQLAlchemy
+# pip install Flask-Mail <---------------------------------- THIS IS A NEW ONE PLEASE INSTALL THANKS
 # pip list
 # ↑ to check if they are the same as the list above
