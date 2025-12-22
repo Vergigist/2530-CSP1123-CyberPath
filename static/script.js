@@ -173,11 +173,19 @@ closePopupView.addEventListener("click", () => {
 });
 
 searchInput.addEventListener("input", () => {
-    const filter = searchInput.value.toLowerCase();
-    [...locationList.children].forEach(item => {
-        item.style.display = item.textContent.toLowerCase().includes(filter)
-            ? "flex"
-            : "none";
+    const query = searchInput.value.toLowerCase();
+
+    const rows = locationList.querySelectorAll(".popup-row:not(.header)");
+    rows.forEach(row => {
+        const name = row.children[0].textContent.toLowerCase();
+        const category = row.children[1].textContent.toLowerCase();
+
+        // show row only if name or category includes query
+        if (name.includes(query) || category.includes(query)) {
+            row.style.display = "";
+        } else {
+            row.style.display = "none";
+        }
     });
 });
 
@@ -456,9 +464,11 @@ async function loadPendingUsers() {
             const div = document.createElement("div");
             div.classList.add("pending-user");
             div.innerHTML = `
-                <span>${user.email}</span>
+            <span>${user.email}</span>
+            <div class="button-group">
                 <button class="approve-btn" data-id="${user.id}">Approve</button>
                 <button class="reject-btn" data-id="${user.id}">Reject</button>
+            </div>
             `;
             pendingUsersList.appendChild(div);
         });
@@ -509,12 +519,12 @@ document.addEventListener("DOMContentLoaded", async () => {
                 div.classList.add("admin-item");
                 div.innerHTML = `
                     <span>${admin.email}</span>
-                    <button class="delete-admin-btn" data-id="${admin.id}">Delete</button>
+                    <button class="delete-item-btn" data-id="${admin.id}">Delete</button>
                 `;
                 adminsListDiv.appendChild(div);
 
                 // Attach delete handler
-                const delBtn = div.querySelector(".delete-admin-btn");
+                const delBtn = div.querySelector(".delete-item-btn");
                 delBtn.addEventListener("click", async () => {
                     if (confirm(`Delete admin "${admin.email}"?`)) {
                         const delRes = await fetch(`/delete-admin/${admin.id}`, { method: "POST" });
@@ -565,89 +575,89 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 });
 
-const forgotEmailInput = document.getElementById("sendOtpForm");
-
-
-    const newPass = document.getElementById("otpNewPassword");
-    const confirmPass = document.getElementById("otpConfirmPassword");
-
-    if (newPass) newPass.value = "";
-    if (confirmPass) confirmPass.value = "";
-
 document.addEventListener("DOMContentLoaded", () => {
-    const forgotBtn = document.getElementById("forgotPasswordBtn");
+    // Buttons
+    const forgotPasswordBtn = document.getElementById("forgotPasswordBtn");
+    const sendOtpBtn = document.getElementById("sendOtpBtn");
+    const closeForgotOtpBtn = document.getElementById("closeForgotOtp");
+    const closeVerifyOtpBtn = document.getElementById("closeVerifyOtp");
 
-    const otpPopup = document.getElementById("forgotOtpPopup");
-    const verifyPopup = document.getElementById("verifyOtpPopup");
-
-    const closeOtp = document.getElementById("closeForgotOtp");
-    const closeVerify = document.getElementById("closeVerifyOtp");
-
+    // Popups / Forms
     const sendOtpForm = document.getElementById("sendOtpForm");
     const verifyOtpForm = document.getElementById("verifyOtpForm");
+    const forgotOtpPopup = document.getElementById("forgotOtpPopup");
+    const verifyOtpPopup = document.getElementById("verifyOtpPopup");
 
-    function resetForgotPasswordPopup() {
-    if (sendOtpForm) sendOtpForm.reset();
-    }
+    // OTP Inputs
+    const otpInputs = document.querySelectorAll(".otp-input");
+    const otpHidden = document.getElementById("otpHidden");
+    const newPasswordInput = document.getElementById("otpNewPassword");
+    const confirmPasswordInput = document.getElementById("otpConfirmPassword");
 
-    function resetOtpPopup() {
-        document.querySelectorAll(".otp-input").forEach(box => {
-            box.value = "";
-        });
+    // Helper functions
+    const resetSendOtpForm = () => sendOtpForm?.reset();
 
-        const newPass = document.getElementById("otpNewPassword");
-        const confirmPass = document.getElementById("otpConfirmPassword");
-        const otpHidden = document.getElementById("otpHidden");
-
-        if (newPass) newPass.value = "";
-        if (confirmPass) confirmPass.value = "";
+    const resetOtpForm = () => {
+        otpInputs.forEach(input => input.value = "");
+        if (newPasswordInput) newPasswordInput.value = "";
+        if (confirmPasswordInput) confirmPasswordInput.value = "";
         if (otpHidden) otpHidden.value = "";
-    }
+    };
 
-    function resetOtpState() {
+    const resetOtpState = () => {
         fetch("/forgot-password/reset", { method: "POST" });
-        otpPopup.classList.add("hidden");
-        verifyPopup.classList.add("hidden");
+        forgotOtpPopup.classList.add("hidden");
+        verifyOtpPopup.classList.add("hidden");
+        resetSendOtpForm();
+        resetOtpForm();
+    };
 
-        resetForgotPasswordPopup();
-        resetOtpPopup();
-    }
+    const updateOtpHidden = () => {
+        if (otpHidden) {
+            otpHidden.value = [...otpInputs].map(i => i.value).join("");
+        }
+    };
 
-    // Always start with Send OTP popup
-    forgotBtn.addEventListener("click", () => {
+    // Event: Open Forgot OTP popup
+    forgotPasswordBtn?.addEventListener("click", () => {
         resetOtpState();
-        otpPopup.classList.remove("hidden");
+        forgotOtpPopup.classList.remove("hidden");
+
+        if (sendOtpForm) {
+            sendOtpForm.classList.add("tab-form", "active");
+        }
+    });
+
+    // Event: Open Verify OTP form
+    sendOtpBtn?.addEventListener("click", () => {
+        if (verifyOtpForm) {
+            verifyOtpForm.classList.add("tab-form", "active");
+        }
     });
 
     // Close buttons
-    closeOtp.addEventListener("click", resetOtpState);
-    closeVerify.addEventListener("click", resetOtpState);
+    closeForgotOtpBtn?.addEventListener("click", resetOtpState);
+    closeVerifyOtpBtn?.addEventListener("click", resetOtpState);
 
     // Send OTP
-    sendOtpForm.addEventListener("submit", async e => {
+    sendOtpForm?.addEventListener("submit", async e => {
         e.preventDefault();
-        const res = await fetch("/forgot-password/send-otp", {
-            method: "POST",
-            body: new FormData(sendOtpForm)
-        });
+        const res = await fetch("/forgot-password/send-otp", { method: "POST", body: new FormData(sendOtpForm) });
         const data = await res.json();
 
         if (data.success) {
-            otpPopup.classList.add("hidden");
-            resetForgotPasswordPopup(); 
-            verifyPopup.classList.remove("hidden");
+            forgotOtpPopup.classList.add("hidden");
+            resetSendOtpForm();
+            verifyOtpPopup.classList.remove("hidden");
         } else {
             alert(data.message);
         }
     });
 
     // Verify OTP
-    verifyOtpForm.addEventListener("submit", async e => {
+    verifyOtpForm?.addEventListener("submit", async e => {
         e.preventDefault();
-        const res = await fetch("/forgot-password/verify", {
-            method: "POST",
-            body: new FormData(verifyOtpForm)
-        });
+        const res = await fetch("/forgot-password/verify", { method: "POST", body: new FormData(verifyOtpForm) });
         const data = await res.json();
 
         if (data.success) {
@@ -658,34 +668,27 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
-    // Refresh = reset OTP
+    // Reset OTP on refresh
     window.addEventListener("beforeunload", () => {
         navigator.sendBeacon("/forgot-password/reset");
     });
-});
 
-const otpInputs = document.querySelectorAll(".otp-input");
-const otpHidden = document.getElementById("otpHidden");
+    // OTP Input navigation
+    otpInputs.forEach((input, index) => {
+        input.addEventListener("input", () => {
+            input.value = input.value.replace(/\D/, "");
+            if (input.value && index < otpInputs.length - 1) otpInputs[index + 1].focus();
+            updateOtpHidden();
+        });
 
-otpInputs.forEach((input, index) => {
-    input.addEventListener("input", () => {
-        input.value = input.value.replace(/\D/, "");
-
-        if (input.value && index < otpInputs.length - 1) {
-            otpInputs[index + 1].focus();
-        }
-
-        updateOtpHidden();
+        input.addEventListener("keydown", e => {
+            if (e.key === "Backspace" && !input.value && index > 0) {
+                otpInputs[index - 1].focus();
+            }
+        });
     });
 
-    input.addEventListener("keydown", e => {
-        if (e.key === "Backspace" && !input.value && index > 0) {
-            otpInputs[index - 1].focus();
-        }
-    });
+    // Clear passwords initially
+    if (newPasswordInput) newPasswordInput.value = "";
+    if (confirmPasswordInput) confirmPasswordInput.value = "";
 });
-
-function updateOtpHidden() {
-    otpHidden.value = [...otpInputs].map(i => i.value).join("");
-}
-
