@@ -221,7 +221,7 @@ CyberPath Team
     return jsonify({"success": True, "message": f"{user.email} rejected!"})
 
 
-@app.route("/api/pending-users")
+@app.route("/api/pending-approvals")
 def api_pending_users():
     if not session.get("admin_logged_in"):
         return jsonify([])

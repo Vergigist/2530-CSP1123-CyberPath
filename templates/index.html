@@ -143,7 +143,7 @@
                 <button class="admin-btn" id="editLocationBtn">Edit Location</button>
                 <button class="admin-btn" id="deleteLocationBtn">Delete Location</button>
                 <button class="admin-btn" id="viewAllBtn">View All Locations</button>
-                <button class="admin-btn" id="pendingUsersBtn">Pending Users</button>
+                <button class="admin-btn" id="pendingApprovalsBtn">Pending Approvals</button>
                 <button class="admin-btn" id="manageAdminsBtn">Manage Admins</button>
 
             </div>
@@ -268,20 +268,20 @@
                 </div>
             </div>
         </div>
-        
-        <div id="pendingUsersPopup" class="popup hidden">
+
+        <div id="pendingApprovalsPopup" class="popup hidden">
             <div class="popup-content">
-                <span id="closePendingUsers" class="close-btn">&times;</span>
-                <h2>Pending User Approvals</h2>
-                <input type="text" id="searchLocation" class="popup-search" placeholder="Search User...">
+                <span id="closePendingApprovals" class="close-btn">&times;</span>
+                <h2>Pending Approvals</h2>
+                <input type="text" id="searchLocation" class="popup-search" placeholder="Search Email...">
                 <div class="popup-row header">
                     <span>Name</span>
                     <span></span>
                     <span>Action</span>
                     <span></span>
                 </div>
-                <div id="pendingUsersList" class="popup-list">
-                    <!-- Pending users list here -->
+                <div id="pendingApprovalsList" class="popup-list">
+                    <!-- Pending approvals list here -->
                 </div>
             </div>
         </div>

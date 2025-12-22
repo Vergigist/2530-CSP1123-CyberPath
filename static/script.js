@@ -435,34 +435,33 @@ function fetchMarkersByCategory() {
     return fetch(url).then(res => res.json());
 }
 
-const pendingUsersBtn = document.getElementById("pendingUsersBtn");
-const pendingUsersPopup = document.getElementById("pendingUsersPopup");
-const closePendingUsers = document.getElementById("closePendingUsers");
-const pendingUsersList = document.getElementById("pendingUsersList");
+const pendingApprovalsBtn = document.getElementById("pendingApprovalsBtn");
+const pendingApprovalsPopup = document.getElementById("pendingApprovalsPopup");
+const closePendingApprovals = document.getElementById("closePendingApprovals");
+const pendingApprovalsList = document.getElementById("pendingApprovalsList");
 
-pendingUsersBtn.addEventListener("click", async () => {
-    pendingUsersPopup.classList.remove("hidden");
-    await loadPendingUsers();
+pendingApprovalsBtn.addEventListener("click", async () => {
+    pendingApprovalsPopup.classList.remove("hidden");
+    await loadPendingApprovals();
 });
 
-closePendingUsers.addEventListener("click", () => {
-    pendingUsersPopup.classList.add("hidden");
+closePendingApprovals.addEventListener("click", () => {
+    pendingApprovalsPopup.classList.add("hidden");
 });
 
-async function loadPendingUsers() {
+async function loadPendingApprovals() {
     try {
-        const res = await fetch("/api/pending-users");
+        const res = await fetch("/api/pending-approvals");
         const users = await res.json();
-        pendingUsersList.innerHTML = "";
-
+        pendingApprovalsList.innerHTML = "";
         if(users.length === 0){
-            pendingUsersList.innerHTML = "<p>No pending users.</p>";
+            pendingApprovalsList.innerHTML = "<p>No pending approvals.</p>";
             return;
         }
 
         users.forEach(user => {
             const div = document.createElement("div");
-            div.classList.add("pending-user");
+            div.classList.add("pending-approvals");
             div.innerHTML = `
             <span>${user.email}</span>
             <div class="button-group">
@@ -470,7 +469,7 @@ async function loadPendingUsers() {
                 <button class="reject-btn" data-id="${user.id}">Reject</button>
             </div>
             `;
-            pendingUsersList.appendChild(div);
+            pendingApprovalsList.appendChild(div);
         });
 
         document.querySelectorAll(".approve-btn").forEach(btn => {
@@ -479,7 +478,7 @@ async function loadPendingUsers() {
                 const res = await fetch(`/admin/approve-user/${userId}`, { method: "POST" });
                 const data = await res.json();
                 alert(data.message);
-                await loadPendingUsers();
+                await loadPendingApprovals();
             });
         });
 
@@ -489,12 +488,12 @@ async function loadPendingUsers() {
                 const res = await fetch(`/admin/reject-user/${userId}`, { method: "POST" });
                 const data = await res.json();
                 alert(data.message);
-                await loadPendingUsers();
+                await loadPendingApprovals();
             });
         });
 
     } catch (err) {
-        console.error("Failed to load pending users:", err);
+        console.error("Failed to load pending approvals:", err);
     }
 }
 
@@ -504,7 +503,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     const closeManageAdminsPopup = document.getElementById("closeManageAdmins");
     const adminsListDiv = document.getElementById("adminsList");
 
-    // Open popup on button click
     manageAdminsBtn.addEventListener("click", async () => {
         manageAdminsPopup.classList.remove("hidden");
 
@@ -530,7 +528,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                         const delRes = await fetch(`/delete-admin/${admin.id}`, { method: "POST" });
                         const delData = await delRes.json();
                         if (delData.success) {
-                            div.remove(); // remove from DOM
+                            div.remove();
                             alert("Admin deleted successfully.");
                         } else {
                             alert("Cannot delete this admin.");
