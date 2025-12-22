@@ -451,7 +451,7 @@ closePendingUsers.addEventListener("click", () => {
 
 async function loadPendingUsers() {
     try {
-        const res = await fetch("/api/pending-users"); // We'll create this API route
+        const res = await fetch("/api/pending-users");
         const users = await res.json();
         pendingUsersList.innerHTML = "";
 
@@ -476,7 +476,7 @@ async function loadPendingUsers() {
         document.querySelectorAll(".approve-btn").forEach(btn => {
             btn.addEventListener("click", async () => {
                 const userId = btn.dataset.id;
-                const res = await fetch(`/admin/verify-user/${userId}`, { method: "POST" });
+                const res = await fetch(`/admin/approve-user/${userId}`, { method: "POST" });
                 const data = await res.json();
                 alert(data.message);
                 await loadPendingUsers();
@@ -512,7 +512,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             const res = await fetch("/api/admins");
             const admins = await res.json();
 
-            adminsListDiv.innerHTML = ""; // clear old list
+            adminsListDiv.innerHTML = "";
 
             admins.forEach(admin => {
                 const div = document.createElement("div");
@@ -575,6 +575,19 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 });
 
+function activateOtpForm(formToShow) {
+    [sendOtpForm, verifyOtpForm].forEach(form => {
+        if (!form) return;
+        form.classList.remove("active");
+        form.style.display = "none";
+    });
+
+    if (formToShow) {
+        formToShow.classList.add("active");
+        formToShow.style.display = "block";
+    }
+}
+
 document.addEventListener("DOMContentLoaded", () => {
     // Buttons
     const forgotPasswordBtn = document.getElementById("forgotPasswordBtn");
@@ -606,10 +619,19 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const resetOtpState = () => {
         fetch("/forgot-password/reset", { method: "POST" });
+
         forgotOtpPopup.classList.add("hidden");
         verifyOtpPopup.classList.add("hidden");
+
         resetSendOtpForm();
-        resetOtpForm();
+
+        // Reset cooldown
+        if (otpCooldownTimer) {
+            clearInterval(otpCooldownTimer);
+            otpCooldownTimer = null;
+            sendOtpBtn.disabled = false;
+            sendOtpBtn.textContent = "Send OTP";
+        }
     };
 
     const updateOtpHidden = () => {
@@ -618,21 +640,31 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     };
 
-    // Event: Open Forgot OTP popup
+    // OTP cooldown
+    let otpCooldownTimer = null;
+    const OTP_COOLDOWN = 30;
+
+    const startOtpCooldown = () => {
+        let timeLeft = OTP_COOLDOWN;
+        sendOtpBtn.disabled = true;
+
+        otpCooldownTimer = setInterval(() => {
+            sendOtpBtn.textContent = `Send OTP (${timeLeft}s)`;
+            timeLeft--;
+
+            if (timeLeft < 0) {
+                clearInterval(otpCooldownTimer);
+                otpCooldownTimer = null;
+                sendOtpBtn.disabled = false;
+                sendOtpBtn.textContent = "Send OTP";
+            }
+        }, 1000);
+    };
+
+    // Open Forgot OTP popup
     forgotPasswordBtn?.addEventListener("click", () => {
         resetOtpState();
         forgotOtpPopup.classList.remove("hidden");
-
-        if (sendOtpForm) {
-            sendOtpForm.classList.add("tab-form", "active");
-        }
-    });
-
-    // Event: Open Verify OTP form
-    sendOtpBtn?.addEventListener("click", () => {
-        if (verifyOtpForm) {
-            verifyOtpForm.classList.add("tab-form", "active");
-        }
     });
 
     // Close buttons
@@ -642,6 +674,10 @@ document.addEventListener("DOMContentLoaded", () => {
     // Send OTP
     sendOtpForm?.addEventListener("submit", async e => {
         e.preventDefault();
+
+        sendOtpBtn.disabled = true;
+        sendOtpBtn.textContent = "Sending...";
+
         const res = await fetch("/forgot-password/send-otp", { method: "POST", body: new FormData(sendOtpForm) });
         const data = await res.json();
 
@@ -649,8 +685,12 @@ document.addEventListener("DOMContentLoaded", () => {
             forgotOtpPopup.classList.add("hidden");
             resetSendOtpForm();
             verifyOtpPopup.classList.remove("hidden");
+            startOtpCooldown(); 
+            sendOtpBtn.textContent = "Send OTP";
         } else {
             alert(data.message);
+            sendOtpBtn.disabled = false;
+            sendOtpBtn.textContent = "Send OTP";
         }
     });
 
@@ -663,17 +703,18 @@ document.addEventListener("DOMContentLoaded", () => {
         if (data.success) {
             alert("Password reset successful!");
             resetOtpState();
+            resetOtpForm();
         } else {
             alert(data.message);
         }
     });
 
-    // Reset OTP on refresh
+    // Reset OTP on page refresh
     window.addEventListener("beforeunload", () => {
         navigator.sendBeacon("/forgot-password/reset");
     });
 
-    // OTP Input navigation
+    // OTP input
     otpInputs.forEach((input, index) => {
         input.addEventListener("input", () => {
             input.value = input.value.replace(/\D/, "");
