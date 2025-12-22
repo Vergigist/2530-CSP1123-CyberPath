@@ -1,4 +1,4 @@
-/* reset for layout */
+aaaa/* reset for layout */
 * { box-sizing: border-box; }
 
 /* make sure nothing globally forces buttons to full width */
@@ -249,10 +249,17 @@ html, body, #content, #map-container, #map {
 
 .popup-row {
     display: grid;
-    grid-template-columns: 3fr 2fr 2fr auto;
+    grid-template-columns: 3fr 2fr 2fr auto; 
     gap: 8px;
     padding: 8px;
     align-items: center;
+    word-break: break-word; 
+}
+
+.popup-row span,
+.popup-row button {
+    white-space: normal; 
+    word-break: break-word;
 }
 
 .popup-row.header {
@@ -441,13 +448,14 @@ html, body, #content, #map-container, #map {
 .popup-content {
     background: #fff;
     width: 400px;
-    max-height: 70%;
+    max-height: 70vh;
     border-radius: 8px;
     padding: 20px;
     display: flex;
     flex-direction: column;
     box-shadow: 0 0 15px rgba(0,0,0,0.3);
     position: relative;
+    overflow-y: auto;
 }
 
 /* Search bar */
@@ -526,7 +534,7 @@ html, body, #content, #map-container, #map {
     background: #666;
 }
 
-.delete-item-btn {
+.delete-item-btn{
     float: right;
     background: #b30000;
     color: white;
@@ -634,3 +642,42 @@ html, body, #content, #map-container, #map {
     font-size: 22px;
     text-align: center;
 }
+
+.reject-btn{
+    background: #b30000;
+    color: white;
+    border: none;
+    padding: 4px 6px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.reject-btn:hover {
+    background: #e60000;
+}
+
+.approve-btn {
+    background: #26ad0b;
+    color: white;
+    border: none;
+    padding: 4px 6px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.approve-btn:hover {
+    background: rgb(19, 133, 4);
+}
+
+.pending-user {
+    display: flex;
+    justify-content: space-between; /* approve left, reject right */
+    align-items: center;
+    margin-bottom: 10px; /* optional spacing between users */
+}
+
+.button-group {
+    display: flex;
+    gap: 10px; /* space between buttons */
+}
+
