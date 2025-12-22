@@ -551,15 +551,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
     toggles.forEach(toggle => {
         toggle.addEventListener("click", () => {
-            const showing = passwordFields[0].type === "text";
+            const currentlyVisible = passwordFields[0].type === "text";
 
             passwordFields.forEach(input => {
-                input.type = showing ? "password" : "text";
+                input.type = currentlyVisible ? "password" : "text";
             });
 
             toggles.forEach(icon => {
-                icon.classList.toggle("fa-eye", showing);
-                icon.classList.toggle("fa-eye-slash", !showing);
+                icon.classList.toggle("fa-eye", !currentlyVisible);
+                icon.classList.toggle("fa-eye-slash", currentlyVisible);
             });
         });
     });
