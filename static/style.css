@@ -1,4 +1,4 @@
-aaaa/* reset for layout */
+/* reset for layout */
 * { box-sizing: border-box; }
 
 /* make sure nothing globally forces buttons to full width */
@@ -448,7 +448,7 @@ html, body, #content, #map-container, #map {
 .popup-content {
     background: #fff;
     width: 400px;
-    max-height: 70vh;
+    max-height: 70%;
     border-radius: 8px;
     padding: 20px;
     display: flex;
