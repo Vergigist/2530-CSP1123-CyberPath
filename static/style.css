@@ -679,5 +679,6 @@ html, body, #content, #map-container, #map {
 .button-group {
     display: flex;
     gap: 10px; /* space between buttons */
+    flex-shrink: 0;
 }
 

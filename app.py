@@ -17,8 +17,7 @@ app.config["MAIL_PASSWORD"] = "onjl mije yxkv ruit"
 app.config["MAIL_DEFAULT_SENDER"] = "cyberpathotp@gmail.com"
 mail = Mail(app)
 db = SQLAlchemy(app)
-def generate_otp():
-    return str(random.randint(100000, 999999))
+
 
 #---------------------------------------------------------------------------------------------------------------------------------
 # Database Models
@@ -166,7 +165,7 @@ def send_email(to, subject, body):
         print("Email failed:", e)
 
 
-@app.route("/admin/approve-user/<int:user_id>", methods=["POST"])
+@app.route("/admin/approve/<int:user_id>", methods=["POST"])
 def approve_user(user_id):
     if not session.get("admin_logged_in"):
         return jsonify({"success": False, "message": "Not authorized"}), 403
@@ -192,7 +191,7 @@ CyberPath Team
     return jsonify({"success": True, "message": f"{user.email} approved!"})
 
 
-@app.route("/admin/reject-user/<int:user_id>", methods=["POST"])
+@app.route("/admin/reject/<int:user_id>", methods=["POST"])
 def reject_user(user_id):
     if not session.get("admin_logged_in"):
         return jsonify({"success": False, "message": "Not authorized"}), 403
@@ -275,9 +274,6 @@ def send_forgot_otp():
 
     return jsonify({"success": True})
 
-
-
-from werkzeug.security import generate_password_hash, check_password_hash
 
 @app.route("/forgot-password/verify", methods=["POST"])
 def verify_forgot_otp():
@@ -438,6 +434,7 @@ def add_marker():
     flash("Marker added successfully!", "success")
     return redirect(url_for("index"))
 
+
 @app.route("/edit-marker/<int:marker_id>", methods=["POST"])
 def edit_marker(marker_id):
     if not session.get("admin_logged_in"):
@@ -462,6 +459,7 @@ def edit_marker(marker_id):
 
     flash("Marker updated successfully!", "success")
     return redirect(url_for("index"))
+
 
 @app.route("/delete-marker/<int:marker_id>", methods=["POST"])
 def delete_marker(marker_id):
