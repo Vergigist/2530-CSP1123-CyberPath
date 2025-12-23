@@ -79,7 +79,6 @@ forgotPasswordBtn.addEventListener("click", () => {
 
     closeForgotPasswordPopup.addEventListener("click", () => {
         forgotPasswordPopup.style.display = "none"; // hide forgot popup
-        resetForgotPasswordPopup();
         authPopup.style.display = "flex";           // show back login popup
     });
 }
@@ -663,6 +662,7 @@ document.addEventListener("DOMContentLoaded", () => {
     forgotPasswordBtn?.addEventListener("click", () => {
         resetOtpState();
         forgotOtpPopup.classList.remove("hidden");
+        activateOtpForm(sendOtpForm);
     });
 
     // Close buttons
