@@ -79,7 +79,6 @@ forgotPasswordBtn.addEventListener("click", () => {
 
     closeForgotPasswordPopup.addEventListener("click", () => {
         forgotPasswordPopup.style.display = "none"; // hide forgot popup
-        resetForgotPasswordPopup();
         authPopup.style.display = "flex";           // show back login popup
     });
 }
@@ -461,7 +460,7 @@ async function loadPendingApprovals() {
 
         users.forEach(user => {
             const div = document.createElement("div");
-            div.classList.add("pending-approvals");
+            div.classList.add("pending-user");
             div.innerHTML = `
             <span>${user.email}</span>
             <div class="button-group">
@@ -475,7 +474,7 @@ async function loadPendingApprovals() {
         document.querySelectorAll(".approve-btn").forEach(btn => {
             btn.addEventListener("click", async () => {
                 const userId = btn.dataset.id;
-                const res = await fetch(`/admin/approve-user/${userId}`, { method: "POST" });
+                const res = await fetch(`/admin/approve/${userId}`, { method: "POST" });
                 const data = await res.json();
                 alert(data.message);
                 await loadPendingApprovals();
@@ -485,7 +484,7 @@ async function loadPendingApprovals() {
         document.querySelectorAll(".reject-btn").forEach(btn => {
             btn.addEventListener("click", async () => {
                 const userId = btn.dataset.id;
-                const res = await fetch(`/admin/reject-user/${userId}`, { method: "POST" });
+                const res = await fetch(`/admin/reject/${userId}`, { method: "POST" });
                 const data = await res.json();
                 alert(data.message);
                 await loadPendingApprovals();
@@ -663,6 +662,7 @@ document.addEventListener("DOMContentLoaded", () => {
     forgotPasswordBtn?.addEventListener("click", () => {
         resetOtpState();
         forgotOtpPopup.classList.remove("hidden");
+        activateOtpForm(sendOtpForm);
     });
 
     // Close buttons
