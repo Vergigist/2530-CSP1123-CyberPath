@@ -54,12 +54,12 @@ html, body, #content, #map-container, #map {
     transform: translateX(0);
 }
 
-.sidebar-top {
+.sidebarTop {
     display: flex;
     flex-direction: column;
 }
 
-.sidebar-top li {
+.sidebarTop li {
     margin: 8px 0;
 }
 
@@ -247,6 +247,48 @@ html, body, #content, #map-container, #map {
     position: relative;
 }
 
+.popup-row {
+    display: grid;
+    grid-template-columns: 3fr 2fr 2fr auto; 
+    gap: 8px;
+    padding: 8px;
+    align-items: center;
+    word-break: break-word; 
+}
+
+.popup-row span,
+.popup-row button {
+    white-space: normal; 
+    word-break: break-word;
+}
+
+.popup-row.header {
+    font-weight: bold;
+    border-bottom: 1px solid #ddd;
+}
+
+.popup-row:not(.header) {
+    border-bottom: 1px solid #eee;
+}
+
+.actions {
+    display: flex;
+    gap: 6px;
+}
+
+.path-btn {
+    padding: 6px 10px;
+    border-radius: 6px;
+    border: 1px solid #d0d5dd;
+    background: #f9fafb;
+    cursor: pointer;
+    font-size: 13px;
+}
+
+.path-btn:hover {
+    background: #eef2ff;
+}
+
 .close-btn {
     position: absolute;
     top: 10px; right: 15px;
@@ -277,6 +319,17 @@ html, body, #content, #map-container, #map {
     margin: 6px 0 12px;
 }
 .tab-form button {
+    width: 100%;
+    padding: 8px;
+    margin-top: 5px;
+    background-color: #444;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.tab-form select {
     width: 100%;
     padding: 8px;
     margin-top: 5px;
@@ -402,6 +455,7 @@ html, body, #content, #map-container, #map {
     flex-direction: column;
     box-shadow: 0 0 15px rgba(0,0,0,0.3);
     position: relative;
+    overflow-y: auto;
 }
 
 /* Search bar */
@@ -449,7 +503,7 @@ html, body, #content, #map-container, #map {
     background-color: #28a745;
 }
 
-.flash.error {
+.flash.error, .flash.change_password_error, .flash.change_email_error {
     background-color: #dc3545;
 }
 
@@ -468,16 +522,19 @@ html, body, #content, #map-container, #map {
 }
 
 .edit-item-btn {
-    padding: 4px 8px;
+    float: right;
     background: #444;
     color: white;
     border: none;
+    padding: 4px 6px;
     border-radius: 4px;
     cursor: pointer;
 }
-.edit-item-btn:hover { background: #666; }
+.edit-item-btn:hover { 
+    background: #666;
+}
 
-.delete-item-btn {
+.delete-item-btn{
     float: right;
     background: #b30000;
     color: white;
@@ -527,3 +584,100 @@ html, body, #content, #map-container, #map {
     border: 1px solid #ccc;
     border-radius: 5px;
 }
+
+.about-box {
+    width: 100%;        
+    height: 140px;      
+    resize: vertical;  
+    padding: 10px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    font-size: 14px;
+}
+
+.user-btn {
+    padding: 10px;
+    background: #5384c58f;
+    color: #000000;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-top: 4px;
+}
+.user-btn:hover {
+    background: #666;
+}
+
+.password-wrapper {
+    position: relative;
+}
+
+.password-wrapper input {
+    padding-right: 40px;
+}
+
+.toggle-password {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    color: #777;   
+}
+
+.toggle-password:hover {
+    color: #000;
+}
+
+.otp-boxes {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    margin-bottom: 15px;
+}
+
+.otp-input {
+    width: 40px;
+    height: 45px;
+    font-size: 22px;
+    text-align: center;
+}
+
+.reject-btn{
+    background: #b30000;
+    color: white;
+    border: none;
+    padding: 4px 6px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.reject-btn:hover {
+    background: #e60000;
+}
+
+.approve-btn {
+    background: #26ad0b;
+    color: white;
+    border: none;
+    padding: 4px 6px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.approve-btn:hover {
+    background: rgb(19, 133, 4);
+}
+
+.pending-user {
+    display: flex;
+    justify-content: space-between; /* approve left, reject right */
+    align-items: center;
+    margin-bottom: 10px; /* optional spacing between users */
+}
+
+.button-group {
+    display: flex;
+    gap: 10px; /* space between buttons */
+}
+
