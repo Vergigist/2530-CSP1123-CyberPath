@@ -188,18 +188,36 @@ searchInput.addEventListener("input", () => {
     });
 });
 
-//danish this is pathing button for user
+//danish pathing
 locationList.addEventListener("click", (e) => {
     const btn = e.target.closest(".path-btn");
     if (!btn) return;
 
-    const lat = btn.dataset.lat;
-    const lng = btn.dataset.lng;
+    const targetLat = parseFloat(btn.dataset.lat);
+    const targetLng = parseFloat(btn.dataset.lng);
+    const locationName = btn.dataset.name;
 
-    console.log("Path to:", lat, lng);
+    console.log("Pathing to: " + locationName + " (" + targetLat + ", " + targetLng + ")");
 
-    // placeholder frontend behavior
-    alert(`Pathing to ${lat}, ${lng}`);
+    // if user location is not available
+    if (window.userLocation == null) {
+        alert("📍 Please enable GPS first by clicking 'Find My Location'!");
+        return;
+    }
+
+    // if router or createRoute is not available
+    if (!router || !router.createRoute) {
+        console.error("Router system not loaded!");
+        alert("Routing system error. Please refresh the page.");
+        return;
+    }
+
+    // Create the route
+    const routeHere = router.createRoute(targetLat, targetLng);
+    alert(`✅ Route created to ${locationName}! Follow the directions on the map. `);
+    
+    if (!routeHere) {
+        console.log("Failed to create route. Please try again."); }
 });
 
 // Edit Location
@@ -221,7 +239,12 @@ function openLocationPopup(mode) {
                 row.innerHTML = `
                     <span>${loc.name}</span>
                     <span class="col-category">${loc.category ?? "-"}</span>
-                    <button class="path-btn">Get directions</button>
+                    <button class="path-btn" 
+                            data-lat="${loc.latitude}" 
+                            data-lng="${loc.longitude}"
+                            data-name="${loc.name}">
+                        Get directions
+                    </button>
                     ${mode === "edit" ? `<button class="edit-btn" data-id="${loc.id}">Edit</button>` : ""}
                 `;
                 locationList.appendChild(row);
