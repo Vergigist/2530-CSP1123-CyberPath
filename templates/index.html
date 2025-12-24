@@ -4,6 +4,12 @@
     <title>CyberPath</title>
     <meta charset="UTF-8" />
 
+   <link
+        rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+        />
+
+
     <!-- Leaflet CSS -->
     <link
         rel="stylesheet"
@@ -25,7 +31,6 @@
 <!-- Leaflet Routing Machine JS -->
 <script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js"></script>
 
-
     <link
         rel="stylesheet"
         href="{{ url_for('static', filename='style.css') }}"
@@ -33,7 +38,6 @@
 </head>
 
 <body>
-    <body>
     <div id="flash-messages">
     {% with messages = get_flashed_messages(with_categories=true) %}
       {% if messages %}
@@ -45,22 +49,75 @@
       {% endif %}
     {% endwith %}
     </div>
+
+    <div>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        <div class="flash-container">
+            {% for category, message in messages %}
+                {% if category == 'change_password_error' %}
+                    <div id="changePasswordError" data-message="{{ message }}"></div>
+                {% endif %}
+            {% endfor %}
+        </div>
+        {% endif %}
+    {% endwith %}
+    </div>
+
+    <div>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        <div class="flash-container">
+            {% for category, message in messages %}
+                {% if category == 'change_email_error' %}
+                    <div id="changeEmailError" data-message="{{ message }}"></div>
+                {% endif %}
+            {% endfor %}
+        </div>
+        {% endif %}
+    {% endwith %}
+    </div>
+        
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const err = document.getElementById("changePasswordError");
+            if (err) {
+                const popup = document.getElementById("changePasswordPopup");
+                if (popup) popup.classList.remove("hidden");
+
+                const profilePopup = document.getElementById("profilePopup");
+                if (profilePopup) profilePopup.classList.add("hidden");
+            }
+        });
+    </script>
+
+    <script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const err = document.getElementById("changeEmailError");
+        if (err) {
+            const popup = document.getElementById("changeEmailPopup"); 
+            if (popup) popup.classList.remove("hidden");
+
+            const profilePopup = document.getElementById("profilePopup");
+            if (profilePopup) profilePopup.classList.add("hidden");
+            }
+        });
+    </script>
+
+    </div>
+
     <div id="content">
         <!-- Sidebar -->
         <div id="sidebar" class="sidebar">
-            <div class = "sidebar-top">
+            <div class = "sidebarTop">
                 <h2>Cyberpath : MMU Smart <br/>Campus Navigator</h2>
-                <ul>
-                    <li>Faculty</li>
-                    <li>Cafe</li>
-                    <li>Lecture Rooms</li>
-                    <li>Lab Rooms</li>
-                </ul>
+                <button class="user-btn" id="viewAllBtnUser">View Locations</button>
             </div>
-            {% if not session.get("admin_logged_in") %}
-            <button id="adminBtn" class="sign-inup">Admin Sign In/Sign Up</button>
-            {% endif %}
-            
+            <div id="sidebarBottom">
+                {% if not session.get("admin_logged_in") %}
+                <button id="adminBtn" class="sign-inup">Admin Sign In/Sign Up</button>
+                {% endif %}
+            </div>
         </div>
 
         <!-- Buttons -->
@@ -86,6 +143,9 @@
                 <button class="admin-btn" id="editLocationBtn">Edit Location</button>
                 <button class="admin-btn" id="deleteLocationBtn">Delete Location</button>
                 <button class="admin-btn" id="viewAllBtn">View All Locations</button>
+                <button class="admin-btn" id="pendingApprovalsBtn">Pending Approvals</button>
+                <button class="admin-btn" id="manageAdminsBtn">Manage Admins</button>
+
             </div>
             <div id="signout-profile">
                 {% if session.get("admin_logged_in") %}
@@ -101,39 +161,39 @@
         <!--Add location container-->
         <div id="addLocationForm" class="popup hidden">
             <div class="popup-content">
-            <form id="markerForm" action="/add-marker" method="POST">
-                <label>Name:</label> <br>
-                <input type="text" id="locName" name="name"> <br> 
+                <span class="close-btn" id="closeAddLocation">&times;</span>
+                <form id="markerForm" class="tab-form active" action="/add-marker" method="POST">
+                    <h2>Add Location</h2>
+                    
+                    <label>Name:</label> <br>
+                    <input type="text" id="locName" name="name" autocomplete="new-password"> <br> 
 
-                <label>Description:</label><br>
-                <textarea id="locDesc" name="description"></textarea> <br>
+                    <label>Description:</label><br>
+                    <input id="locDesc" name="description" required autocomplete="new-password"></input> <br>
 
-                <label>Location (lat, lng):</label><br>
-                <input type="text" id="locCoords" name="coords" placeholder="Click map or type manually">
-                <button type="button" id="pickFromMapBtn">Pick From Map</button><br>
+                    <label>Category:</label> <br>
+                    <select class="admin-btn" id="category" name="category_id" required>
+                        <option value="">Select category</option>
+                        {% for category in categories %}
+                            <option value="{{ category.id }}">{{ category.name }}</option>
+                        {% endfor %}
+                    </select> <br>
+                    <br>
+                    <label>Location (lat, lng):</label><br>
+                    <input type="text" id="locCoords" name="coords" placeholder="Click map or type manually" autocomplete="new-password">
+                    <button type="button" id="pickFromMapBtn">Pick From Map</button><br>
 
-                <button type="submit" id="saveLocationBtn" class="admin-btn">Save</button>
-                <button type="button" id="closeLocationFormBtn" class="admin-btn">Close</button>
-            </form>
+                    <button type="submit" id="saveLocationBtn" class="admin-btn">Save</button>
+                </form>
             </div>
         </div>
 
         <!--Edit location container-->
         <div id="editLocationListPopup" class="popup hidden">
             <div class="popup-content">
-                <form class="close-btn" id="closeEditListPopup">&times;</form>
+                <span class="close-btn" id="closeEditListPopup">&times;</span>
                 <input type="text" id="searchEditLocation" class="popup-search" placeholder="Search location...">
-                <div id="editLocationList" class="popup-list">
-                    <!-- Example skeleton items (remove later) -->
-                    <div class="location-item">
-                        <span class="location-name">Sample Location 1</span>
-                        <button class="edit-item-btn">Edit</button>
-                    </div>
-                    <div class="location-item">
-                        <span class="location-name">Sample Location 2</span>
-                        <button class="edit-item-btn">Edit</button>
-                    </div>
-                </div>
+                <div id="editLocationList" class="popup-list"></div>
             </div>
         </div>
 
@@ -143,17 +203,29 @@
                 <span class="close-btn" id="closeEditFormPopup">&times;</span>
                 <h3>Edit Location</h3>
 
-                <label>Name:</label>
-                <input type="text" id="editLocName">
+                <form id="editLocationForm" class="tab-form active" method="POST">
+                    <label>Name:</label>
+                    <input type="text" id="editLocName" name="name" required autocomplete="new-password">
 
-                <label>Description:</label>
-                <textarea id="editLocDesc"></textarea>
+                    <label>Description:</label> 
+                    <br>
+                    <input id="editLocDesc" name="description" required autocomplete="new-password"></input>
+                    <br>
 
-                <label>Location (lat, lng):</label>
-                <input type="text" id="editLocCoords" placeholder="Click map or type manually">
+                    <label>Category:</label> <br>
+                    <select class="admin-btn" id="editCategory" name="category_id" required>
+                        <option value="">Select category</option>
+                        {% for category in categories %}
+                            <option value="{{ category.id }}">{{ category.name }}</option>
+                        {% endfor %}
+                    </select> <br>
 
-                <button id="editPickFromMapBtn" class="admin-btn">Pick From Map</button>
-                <button id="saveEditedLocationBtn" class="admin-btn">Save Changes</button>
+                    <label>Location (lat, lng):</label>
+                    <input type="text" id="editLocCoords" name="coords" placeholder="Click map or type manually" autocomplete="new-password">
+
+                    <button type="button" id="editPickFromMapBtn" class="admin-btn">Pick From Map</button>
+                    <button type="submit" class="admin-btn">Save Changes</button>
+                </form>
             </div>
         </div>
 
@@ -164,6 +236,12 @@
 
                 <!-- Search bar -->
                 <input type="text" id="searchDeleteLocation" class="popup-search" placeholder="Search locations...">
+                <div class="popup-row header">
+                    <span>Name</span>
+                    <span></span>
+                    <span></span>
+                    <span>Action</span>
+                </div>
 
                 <!-- Scrollable list -->
                 <div id="deleteLocationList" class="popup-list"></div>
@@ -174,15 +252,58 @@
         <div id="viewLocationPopup" class="popup hidden">
             <div class="popup-content">
                 <span id="closePopup" class="close-btn">&times;</span>
-                <!-- Search bar -->
+                
                 <input type="text" id="searchLocation" class="popup-search" placeholder="Search locations...">
-                <!-- Scrollable location list -->
+                
+                <!-- List header -->
+                <div class="popup-row header">
+                    <span>Name</span>
+                    <span>Category</span>
+                    <span>Action</span>
+                    <span></span>
+                </div>
+                
                 <div id="locationList" class="popup-list">
                     <!-- Items will appear here -->
                 </div>
             </div>
         </div>
-        
+
+        <div id="pendingApprovalsPopup" class="popup hidden">
+            <div class="popup-content">
+                <span id="closePendingApprovals" class="close-btn">&times;</span>
+                <h2>Pending Approvals</h2>
+                <input type="text" id="searchLocation" class="popup-search" placeholder="Search Email...">
+                <div class="popup-row header">
+                    <span>Name</span>
+                    <span></span>
+                    <span>Action</span>
+                    <span></span>
+                </div>
+                <div id="pendingApprovalsList" class="popup-list">
+                    <!-- Pending approvals list here -->
+                </div>
+            </div>
+        </div>
+
+        <div id="manageAdminsPopup" class="popup hidden">
+            <div class="popup-content">
+                <span id="closeManageAdmins" class="close-btn">&times;</span>
+                <h2>Manage Admins</h2>
+                <input type="text" id="searchLocation" class="popup-search" placeholder="Search Admin...">
+                <div class="popup-row header">
+                    <span>Name</span>
+                    <span></span>
+                    <span></span>
+                    <span>Action</span>
+                </div>
+                <div id="adminsList" class="popup-list">
+                    <!-- Admins list here or whatever-->
+                </div>
+            </div>
+        </div>
+
+
         <!--Profile container-->
         <div id="profilePopup" class ="popup hidden">
             <div class="popup-content">
@@ -197,14 +318,18 @@
                 </div>
 
                 <!-- Info Fields -->
-                <div class="profile-field">
-                    <label>Username</label>
-                    <input type="text" id="profileUsername">
-                </div>
 
                 <div class="profile-field">
                     <label>Email</label>
-                    <input type="email" id="profileEmail">
+                    <input type="email" id="profileEmail" value="{{ user.email if user else '' }}" readonly>
+                </div>
+
+
+                <div class="profile-field">
+                    <label>About Me: </label>
+                    <textarea id="profileAboutMe" class="about-box" placeholder="Write something about you.">{{ user.about_me or '' }}</textarea>
+                    <small id="aboutStatus" style="opacity:0; transition: opacity 0.3s;"></small>
+
                 </div>
 
                 <!-- Action Buttons -->
@@ -221,13 +346,18 @@
 
                 <h2>Change Email</h2>
 
-                <label>New Email:</label>
-                <input type="email" id="newEmailInput">
+                <form id="changeEmailForm" class="tab-form active" method="POST" action="/change-email">
+                    <label>New Email:</label>
+                    <input type="email" id="newEmailInput" name="new_email" autocomplete="new-password" required>
 
-                <label>Confirm Email:</label>
-                <input type="email" id="confirmEmailInput">
+                    <label>Current Password:</label>
+                    <div class="password-wrapper">
+                        <input type="password" id="confirmEmailpassword" name="password" class="password-field" required>
+                        <i class="fa-solid fa-eye-slash toggle-password"></i>
+                    </div>
 
-                <button id="confirmChangeEmailBtn" class="admin-btn">Confirm</button>
+                    <button id="confirmChangeEmailBtn" class="admin-btn">Confirm</button>
+                </form>
             </div>
         </div>
 
@@ -238,15 +368,33 @@
 
                 <h2>Change Password</h2>
 
-                <label>New Password:</label>
-                <input type="password" id="newPasswordInput">
+                <form id="changePasswordForm" class="tab-form active" method="POST" action="/changepassword">
 
-                <label>Confirm Password:</label>
-                <input type="password" id="confirmPasswordInput">
+                    <label>Current Password:</label>
+                    <div class="password-wrapper">
+                        <input type="password" id="curPasswordInput" name="current_password" class="password-field" required>
+                        <i class="fa-solid fa-eye-slash toggle-password"></i>
+                    </div>
 
-                <button id="confirmChangePasswordBtn" class="admin-btn">Confirm</button>
+                    <label>New Password:</label>
+                    <div class="password-wrapper">
+                        <input type="password" id="newPasswordInput" name="new_password" class="password-field" required>
+                        <i class="fa-solid fa-eye-slash toggle-password"></i>
+                    </div>
+
+                    <label>Confirm Password:</label>
+                    <div class="password-wrapper">
+                        <input type="password" id="confirmPasswordInput" name="confirm_password" class="password-field" required>
+                        <i class="fa-solid fa-eye-slash toggle-password"></i>
+                    </div>
+
+                    <button type="submit" id="confirmChangePasswordBtn" class="admin-btn">Confirm</button>
+                </form>
+
             </div>
         </div>
+
+
 
         <!-- Toggle admin dashboard button -->
             {% if session.get('admin_logged_in') %}
@@ -267,24 +415,35 @@
 
                 <!-- Sign In Form -->
                 <form id="signinForm" class="tab-form active"  action="/signin" method="POST" >
+
                     <label for="signinEmail">Email:</label>
-                    <input type="email" id="signinEmail" name="email" required>
+                    <input type="email" id="signinEmail" name="email" autocomplete="new-password" required>
 
                     <label for="password">Password:</label>
-                    <input type="password" id="signinPassword" name="password" required>
+                    <div class="password-wrapper">
+                        <input type="password" id="signinPassword" name="password" class="password-field" autocomplete="new-password" required>
+                        <i class="fa-solid fa-eye-slash toggle-password"></i>
+                    </div>
 
                     <button type="submit">Sign In</button>
-                    <button id="forgotPasswordBtn">Frogot Passsword</button>
+                    <button type="button" id="forgotPasswordBtn">Forgot Passsword</button>
                 </form>
 
                 <!-- Sign Up Form -->
                 <form id="signupForm" class="tab-form"  action="/signup" method="POST">
-                
+                    
+                    <label>Referral Code:</label>
+                    <input type="text" id="referral" name="referral" autocomplete="new-password" required>
+
                     <label for="email">Email:</label>
-                    <input type="email" id="signupEmail" name="email" required>
+                    <input type="email" id="signupEmail" name="email" autocomplete="new-password" required>
 
                     <label for="signupPassword">Password:</label>
-                    <input type="password" id="signupPassword" name="password" required>
+                    <div class="password-wrapper">
+                        <input type="password" id="signupPassword" name="password" class="password-field" autocomplete="new-password" required>
+                        <i class="fa-solid fa-eye-slash toggle-password"></i>
+                    </div>
+
 
                     <button type="submit">Sign Up</button>
                 </form>
@@ -294,22 +453,50 @@
         {% endif %}
         
         <!--Forgot password-->
-        <div id="forgotPasswordPopup" class="popup hidden">
+        <div id="forgotOtpPopup" class="popup hidden">
             <div class="popup-content">
-                <span id="closeForgotPasswordPopup" class="close-btn">&times;</span>
+                <span class="close-btn" id="closeForgotOtp">&times;</span>
+                <h2>Forgot Password</h2>
 
-                <h2>Change Password</h2>
+                <form id="sendOtpForm" class="tab-form active">
+                <label>Email</label>
+                <input type="email" name="email" required autocomplete="new-password">
+                <button id="sendOtpBtn" type="submit" class="admin-btn">Send OTP</button>
+                </form>
+            </div>
+        </div>
+        <div id="verifyOtpPopup" class="popup hidden">
+            <div class="popup-content">
+                <span class="close-btn" id="closeVerifyOtp">&times;</span>
+                <h2>Reset Password</h2>
 
-                <label>New Password:</label>
-                <input type="password" id="newPasswordInput">
+                <form id="verifyOtpForm" class ="tab-form active" method="POST" action="/forgot-password/verify">
 
-                <label>Confirm Password:</label>
-                <input type="password" id="confirmPasswordInput">
+                    <label>OTP:</label>
+                    <input type="hidden" name="otp" id="otpHidden">
 
-                <button id="confirmForgotPasswordBtn" class="admin-btn">Confirm</button>
+                    <div class="otp-boxes">
+                        <input type="text" maxlength="1" class="otp-input">
+                        <input type="text" maxlength="1" class="otp-input">
+                        <input type="text" maxlength="1" class="otp-input">
+                        <input type="text" maxlength="1" class="otp-input">
+                        <input type="text" maxlength="1" class="otp-input">
+                        <input type="text" maxlength="1" class="otp-input">
+                    </div>
+
+                    <label>New Password:</label>
+                    <input type="password" id="otpNewPassword" name="password" required> <br>
+
+                    <label>Confirm Password:</label>
+                    <input type="password" id="otpConfirmPassword" name="confirm_password" required>
+
+                    <button type="submit">Reset Password</button>
+                </form>
+
             </div>
         </div>
     </div>
+
 
     <script src="{{ url_for('static', filename='routing.js') }}"></script>
     <script src="{{ url_for('static', filename='gps.js') }}"></script>
