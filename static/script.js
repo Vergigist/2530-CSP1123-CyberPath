@@ -63,25 +63,6 @@ map.on('click', function(e) {
     // }
 });
 
-// Forgot Password
-const forgotPasswordBtn = document.getElementById("forgotPasswordBtn");
-const forgotPasswordPopup = document.getElementById("forgotPasswordPopup");
-const closeForgotPasswordPopup = document.getElementById("closeForgotPasswordPopup");
-
-// The sign-in/sign-up popup
-const authPopup = document.getElementById("adminPopup");
-
-if (forgotPasswordBtn && forgotPasswordPopup && closeForgotPasswordPopup && authPopup) {
-forgotPasswordBtn.addEventListener("click", () => {
-        authPopup.style.display = "none";          // hide login popup
-        forgotPasswordPopup.style.display = "flex"; // show forgot password popup
-});
-
-    closeForgotPasswordPopup.addEventListener("click", () => {
-        forgotPasswordPopup.style.display = "none"; // hide forgot popup
-        authPopup.style.display = "flex";           // show back login popup
-    });
-}
 
 // Admin dashboard
 const adminSidebar = document.getElementById("adminSidebar");
@@ -599,12 +580,12 @@ function activateOtpForm(formToShow) {
     [sendOtpForm, verifyOtpForm].forEach(form => {
         if (!form) return;
         form.classList.remove("active");
-        form.style.display = "none";
+        form.hidden = true;
     });
 
     if (formToShow) {
         formToShow.classList.add("active");
-        formToShow.style.display = "block";
+        formToShow.hidden = false;
     }
 }
 
@@ -706,6 +687,7 @@ document.addEventListener("DOMContentLoaded", () => {
             forgotOtpPopup.classList.add("hidden");
             resetSendOtpForm();
             verifyOtpPopup.classList.remove("hidden");
+            activateOtpForm(verifyOtpForm);
             startOtpCooldown(); 
             sendOtpBtn.textContent = "Send OTP";
         } else {
