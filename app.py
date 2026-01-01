@@ -3,7 +3,7 @@ from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_mail import Mail, Message
 import random
-from datetime import datetime, timedelta
+from datetime import datetime
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = "sixseven67"
@@ -17,8 +17,7 @@ app.config["MAIL_PASSWORD"] = "onjl mije yxkv ruit"
 app.config["MAIL_DEFAULT_SENDER"] = "cyberpathotp@gmail.com"
 mail = Mail(app)
 db = SQLAlchemy(app)
-def generate_otp():
-    return str(random.randint(100000, 999999))
+
 
 #---------------------------------------------------------------------------------------------------------------------------------
 # Database Models
@@ -154,7 +153,19 @@ def signin():
         return redirect(url_for("index"))
     
 
-@app.route("/admin/verify-user/<int:user_id>", methods=["POST"])
+def send_email(to, subject, body):
+    try:
+        msg = Message(
+            subject=subject,
+            recipients=[to],
+            body=body
+        )
+        mail.send(msg)
+    except Exception as e:
+        print("Email failed:", e)
+
+
+@app.route("/admin/approve/<int:user_id>", methods=["POST"])
 def approve_user(user_id):
     if not session.get("admin_logged_in"):
         return jsonify({"success": False, "message": "Not authorized"}), 403
@@ -162,21 +173,54 @@ def approve_user(user_id):
     user = User.query.get_or_404(user_id)
     user.verified = True
     db.session.commit()
+
+    send_email(
+        to=user.email,
+        subject="Your account has been approved 🎉",
+        body=f"""Hello,
+
+Good news! Your account has been approved by our admin team.
+
+You can now log in and access admin features.
+
+Welcome aboard,
+CyberPath Team
+"""
+    )
+
     return jsonify({"success": True, "message": f"{user.email} approved!"})
 
 
-@app.route("/admin/reject-user/<int:user_id>", methods=["POST"])
+@app.route("/admin/reject/<int:user_id>", methods=["POST"])
 def reject_user(user_id):
     if not session.get("admin_logged_in"):
         return jsonify({"success": False, "message": "Not authorized"}), 403
 
     user = User.query.get_or_404(user_id)
+    email = user.email
     db.session.delete(user)
     db.session.commit()
+
+    send_email(
+        to=email,
+        subject="Account request update",
+        body=f"""Hello,
+
+Thank you for your interest in CyberPath.
+
+After review, your account request was not approved.
+
+If you believe this was a mistake, feel free to contact the team.
+
+Regards,
+CyberPath Team
+"""
+    )
+    
     return jsonify({"success": True, "message": f"{user.email} rejected!"})
 
 
-@app.route("/api/pending-users")
+@app.route("/api/pending-approvals")
 def api_pending_users():
     if not session.get("admin_logged_in"):
         return jsonify([])
@@ -216,23 +260,20 @@ def send_forgot_otp():
     if not user:
         return jsonify({"success": False, "message": "Email not found"})
 
-    otp = random.randint(100000, 999999)
+    otp = str(random.randint(100000, 999999))
 
     session["forgot_otp"] = otp
     session["forgot_email"] = email
     session["otp_verified"] = False
 
-    msg = Message(
-        "CyberPath Password Reset OTP",
-        recipients=[email]
+    send_email(
+        to=email,
+        subject="CyberPath Password Reset OTP",
+        body=f"Your OTP for password reset is: {otp}"
     )
-    msg.body = f"Your OTP for password reset is: {otp}"
-    mail.send(msg)
 
     return jsonify({"success": True})
 
-
-from werkzeug.security import generate_password_hash, check_password_hash
 
 @app.route("/forgot-password/verify", methods=["POST"])
 def verify_forgot_otp():
@@ -393,6 +434,7 @@ def add_marker():
     flash("Marker added successfully!", "success")
     return redirect(url_for("index"))
 
+
 @app.route("/edit-marker/<int:marker_id>", methods=["POST"])
 def edit_marker(marker_id):
     if not session.get("admin_logged_in"):
@@ -418,6 +460,7 @@ def edit_marker(marker_id):
     flash("Marker updated successfully!", "success")
     return redirect(url_for("index"))
 
+
 @app.route("/delete-marker/<int:marker_id>", methods=["POST"])
 def delete_marker(marker_id):
     if not session.get("admin_logged_in"):
@@ -431,28 +474,8 @@ def delete_marker(marker_id):
 
 
 #---------------------------------------------------------------------------------------------------------------------------------
-# Debugs (will remove after testing)
+# Run Program
 #---------------------------------------------------------------------------------------------------------------------------------
-
-@app.route("/test-users")
-def test_users():
-    users = User.query.all()
-    return "<br>".join([f"{u.id} - {u.email}" for u in users])
-
-@app.route("/test-markers")
-def debug_markers():
-    markers = Marker.query.all()
-
-    if not markers:
-        return "No markers found in database."
-
-    output = []
-    for m in markers:
-        output.append(f"{m.id}: {m.name} @ ({m.latitude}, {m.longitude}) — {m.description}")
-
-    return "<br>".join(output)
-
-
 
 if __name__ == "__main__":
     app.run(debug=True)

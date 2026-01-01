@@ -28,7 +28,7 @@ function makeGPS() {
                         alert("📍 An unknown error occurred while trying to get your location.");
                     } 
                 },
-                { enableHighAccuracy: true, maximumAge: 0, timeout: 10000 }
+                { enableHighAccuracy: true, maximumAge: 0, timeout: 5000 }
             );
         }
     }
@@ -43,7 +43,7 @@ function makeGPS() {
                     if (!window.userLocationMarker) {
                         const userLocationIcon = L.divIcon({
                             className: "userLocationIcon",
-                            html: '<div class="blue-circle"</div>',
+                            html: '<div class="blue-circle"></div>',
                             iconSize: [30, 30],
                             iconAnchor: [15, 30]
                         });

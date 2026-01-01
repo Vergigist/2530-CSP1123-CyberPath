@@ -63,26 +63,6 @@ map.on('click', function(e) {
     // }
 });
 
-// Forgot Password
-const forgotPasswordBtn = document.getElementById("forgotPasswordBtn");
-const forgotPasswordPopup = document.getElementById("forgotPasswordPopup");
-const closeForgotPasswordPopup = document.getElementById("closeForgotPasswordPopup");
-
-// The sign-in/sign-up popup
-const authPopup = document.getElementById("adminPopup");
-
-if (forgotPasswordBtn && forgotPasswordPopup && closeForgotPasswordPopup && authPopup) {
-forgotPasswordBtn.addEventListener("click", () => {
-        authPopup.style.display = "none";          // hide login popup
-        forgotPasswordPopup.style.display = "flex"; // show forgot password popup
-});
-
-    closeForgotPasswordPopup.addEventListener("click", () => {
-        forgotPasswordPopup.style.display = "none"; // hide forgot popup
-        resetForgotPasswordPopup();
-        authPopup.style.display = "flex";           // show back login popup
-    });
-}
 
 // Admin dashboard
 const adminSidebar = document.getElementById("adminSidebar");
@@ -189,18 +169,36 @@ searchInput.addEventListener("input", () => {
     });
 });
 
-//danish this is pathing button for user
+//danish pathing
 locationList.addEventListener("click", (e) => {
     const btn = e.target.closest(".path-btn");
     if (!btn) return;
 
-    const lat = btn.dataset.lat;
-    const lng = btn.dataset.lng;
+    const targetLat = parseFloat(btn.dataset.lat);
+    const targetLng = parseFloat(btn.dataset.lng);
+    const locationName = btn.dataset.name;
 
-    console.log("Path to:", lat, lng);
+    console.log("Pathing to: " + locationName + " (" + targetLat + ", " + targetLng + ")");
 
-    // placeholder frontend behavior
-    alert(`Pathing to ${lat}, ${lng}`);
+    // if user location is not available
+    if (window.userLocation == null) {
+        alert("📍 Please enable GPS first by clicking 'Find My Location'!");
+        return;
+    }
+
+    // if router or createRoute is not available
+    if (!router || !router.createRoute) {
+        console.error("Router system not loaded!");
+        alert("Routing system error. Please refresh the page.");
+        return;
+    }
+
+    // Create the route
+    const routeHere = router.createRoute(targetLat, targetLng);
+    alert(`✅ Route created to ${locationName}! Follow the directions on the map. `);
+    
+    if (!routeHere) {
+        console.log("Failed to create route. Please try again."); }
 });
 
 // Edit Location
@@ -222,7 +220,12 @@ function openLocationPopup(mode) {
                 row.innerHTML = `
                     <span>${loc.name}</span>
                     <span class="col-category">${loc.category ?? "-"}</span>
-                    <button class="path-btn">Get directions</button>
+                    <button class="path-btn" 
+                            data-lat="${loc.latitude}" 
+                            data-lng="${loc.longitude}"
+                            data-name="${loc.name}">
+                        Get directions
+                    </button>
                     ${mode === "edit" ? `<button class="edit-btn" data-id="${loc.id}">Edit</button>` : ""}
                 `;
                 locationList.appendChild(row);
@@ -435,28 +438,27 @@ function fetchMarkersByCategory() {
     return fetch(url).then(res => res.json());
 }
 
-const pendingUsersBtn = document.getElementById("pendingUsersBtn");
-const pendingUsersPopup = document.getElementById("pendingUsersPopup");
-const closePendingUsers = document.getElementById("closePendingUsers");
-const pendingUsersList = document.getElementById("pendingUsersList");
+const pendingApprovalsBtn = document.getElementById("pendingApprovalsBtn");
+const pendingApprovalsPopup = document.getElementById("pendingApprovalsPopup");
+const closePendingApprovals = document.getElementById("closePendingApprovals");
+const pendingApprovalsList = document.getElementById("pendingApprovalsList");
 
-pendingUsersBtn.addEventListener("click", async () => {
-    pendingUsersPopup.classList.remove("hidden");
-    await loadPendingUsers();
+pendingApprovalsBtn.addEventListener("click", async () => {
+    pendingApprovalsPopup.classList.remove("hidden");
+    await loadPendingApprovals();
 });
 
-closePendingUsers.addEventListener("click", () => {
-    pendingUsersPopup.classList.add("hidden");
+closePendingApprovals.addEventListener("click", () => {
+    pendingApprovalsPopup.classList.add("hidden");
 });
 
-async function loadPendingUsers() {
+async function loadPendingApprovals() {
     try {
-        const res = await fetch("/api/pending-users"); // We'll create this API route
+        const res = await fetch("/api/pending-approvals");
         const users = await res.json();
-        pendingUsersList.innerHTML = "";
-
+        pendingApprovalsList.innerHTML = "";
         if(users.length === 0){
-            pendingUsersList.innerHTML = "<p>No pending users.</p>";
+            pendingApprovalsList.innerHTML = "<p>No pending approvals.</p>";
             return;
         }
 
@@ -470,31 +472,31 @@ async function loadPendingUsers() {
                 <button class="reject-btn" data-id="${user.id}">Reject</button>
             </div>
             `;
-            pendingUsersList.appendChild(div);
+            pendingApprovalsList.appendChild(div);
         });
 
         document.querySelectorAll(".approve-btn").forEach(btn => {
             btn.addEventListener("click", async () => {
                 const userId = btn.dataset.id;
-                const res = await fetch(`/admin/verify-user/${userId}`, { method: "POST" });
+                const res = await fetch(`/admin/approve/${userId}`, { method: "POST" });
                 const data = await res.json();
                 alert(data.message);
-                await loadPendingUsers();
+                await loadPendingApprovals();
             });
         });
 
         document.querySelectorAll(".reject-btn").forEach(btn => {
             btn.addEventListener("click", async () => {
                 const userId = btn.dataset.id;
-                const res = await fetch(`/admin/reject-user/${userId}`, { method: "POST" });
+                const res = await fetch(`/admin/reject/${userId}`, { method: "POST" });
                 const data = await res.json();
                 alert(data.message);
-                await loadPendingUsers();
+                await loadPendingApprovals();
             });
         });
 
     } catch (err) {
-        console.error("Failed to load pending users:", err);
+        console.error("Failed to load pending approvals:", err);
     }
 }
 
@@ -504,7 +506,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     const closeManageAdminsPopup = document.getElementById("closeManageAdmins");
     const adminsListDiv = document.getElementById("adminsList");
 
-    // Open popup on button click
     manageAdminsBtn.addEventListener("click", async () => {
         manageAdminsPopup.classList.remove("hidden");
 
@@ -512,16 +513,31 @@ document.addEventListener("DOMContentLoaded", async () => {
             const res = await fetch("/api/admins");
             const admins = await res.json();
 
-            adminsListDiv.innerHTML = ""; // clear old list
+            adminsListDiv.innerHTML = "";
 
             admins.forEach(admin => {
                 const div = document.createElement("div");
                 div.classList.add("admin-item");
                 div.innerHTML = `
                     <span>${admin.email}</span>
+                    <button class="profileBtnManage"> ℹ️</button>
                     <button class="delete-item-btn" data-id="${admin.id}">Delete</button>
                 `;
                 adminsListDiv.appendChild(div);
+
+                //Profile inside manage admins
+                const profileBtnManage = div.querySelector(".profileBtnManage");
+
+                profileBtnManage.addEventListener("click", () => {
+                    manageAdminsPopup.classList.add("hidden");   // close current
+                    profilePopup.classList.remove("hidden");    // open profile
+                });
+
+                closeProfilePopup.addEventListener("click", () => {
+                    profilePopup.classList.add("hidden");
+                    manageAdminsPopup.classList.remove("hidden");
+                });
+                
 
                 // Attach delete handler
                 const delBtn = div.querySelector(".delete-item-btn");
@@ -530,7 +546,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                         const delRes = await fetch(`/delete-admin/${admin.id}`, { method: "POST" });
                         const delData = await delRes.json();
                         if (delData.success) {
-                            div.remove(); // remove from DOM
+                            div.remove();
                             alert("Admin deleted successfully.");
                         } else {
                             alert("Cannot delete this admin.");
@@ -575,6 +591,19 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 });
 
+function activateOtpForm(formToShow) {
+    [sendOtpForm, verifyOtpForm].forEach(form => {
+        if (!form) return;
+        form.classList.remove("active");
+        form.hidden = true;
+    });
+
+    if (formToShow) {
+        formToShow.classList.add("active");
+        formToShow.hidden = false;
+    }
+}
+
 document.addEventListener("DOMContentLoaded", () => {
     // Buttons
     const forgotPasswordBtn = document.getElementById("forgotPasswordBtn");
@@ -606,10 +635,19 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const resetOtpState = () => {
         fetch("/forgot-password/reset", { method: "POST" });
+
         forgotOtpPopup.classList.add("hidden");
         verifyOtpPopup.classList.add("hidden");
+
         resetSendOtpForm();
-        resetOtpForm();
+
+        // Reset cooldown
+        if (otpCooldownTimer) {
+            clearInterval(otpCooldownTimer);
+            otpCooldownTimer = null;
+            sendOtpBtn.disabled = false;
+            sendOtpBtn.textContent = "Send OTP";
+        }
     };
 
     const updateOtpHidden = () => {
@@ -618,21 +656,32 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     };
 
-    // Event: Open Forgot OTP popup
+    // OTP cooldown
+    let otpCooldownTimer = null;
+    const OTP_COOLDOWN = 30;
+
+    const startOtpCooldown = () => {
+        let timeLeft = OTP_COOLDOWN;
+        sendOtpBtn.disabled = true;
+
+        otpCooldownTimer = setInterval(() => {
+            sendOtpBtn.textContent = `Send OTP (${timeLeft}s)`;
+            timeLeft--;
+
+            if (timeLeft < 0) {
+                clearInterval(otpCooldownTimer);
+                otpCooldownTimer = null;
+                sendOtpBtn.disabled = false;
+                sendOtpBtn.textContent = "Send OTP";
+            }
+        }, 1000);
+    };
+
+    // Open Forgot OTP popup
     forgotPasswordBtn?.addEventListener("click", () => {
         resetOtpState();
         forgotOtpPopup.classList.remove("hidden");
-
-        if (sendOtpForm) {
-            sendOtpForm.classList.add("tab-form", "active");
-        }
-    });
-
-    // Event: Open Verify OTP form
-    sendOtpBtn?.addEventListener("click", () => {
-        if (verifyOtpForm) {
-            verifyOtpForm.classList.add("tab-form", "active");
-        }
+        activateOtpForm(sendOtpForm);
     });
 
     // Close buttons
@@ -642,6 +691,10 @@ document.addEventListener("DOMContentLoaded", () => {
     // Send OTP
     sendOtpForm?.addEventListener("submit", async e => {
         e.preventDefault();
+
+        sendOtpBtn.disabled = true;
+        sendOtpBtn.textContent = "Sending...";
+
         const res = await fetch("/forgot-password/send-otp", { method: "POST", body: new FormData(sendOtpForm) });
         const data = await res.json();
 
@@ -649,8 +702,13 @@ document.addEventListener("DOMContentLoaded", () => {
             forgotOtpPopup.classList.add("hidden");
             resetSendOtpForm();
             verifyOtpPopup.classList.remove("hidden");
+            activateOtpForm(verifyOtpForm);
+            startOtpCooldown(); 
+            sendOtpBtn.textContent = "Send OTP";
         } else {
             alert(data.message);
+            sendOtpBtn.disabled = false;
+            sendOtpBtn.textContent = "Send OTP";
         }
     });
 
@@ -663,17 +721,18 @@ document.addEventListener("DOMContentLoaded", () => {
         if (data.success) {
             alert("Password reset successful!");
             resetOtpState();
+            resetOtpForm();
         } else {
             alert(data.message);
         }
     });
 
-    // Reset OTP on refresh
+    // Reset OTP on page refresh
     window.addEventListener("beforeunload", () => {
         navigator.sendBeacon("/forgot-password/reset");
     });
 
-    // OTP Input navigation
+    // OTP input
     otpInputs.forEach((input, index) => {
         input.addEventListener("input", () => {
             input.value = input.value.replace(/\D/, "");

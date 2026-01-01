@@ -26,10 +26,10 @@
     </script>
 
 <!-- Leaflet Routing Machine CSS -->
-<link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.0/dist/leaflet-routing-machine.css" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css" />
 
 <!-- Leaflet Routing Machine JS -->
-<script src="https://unpkg.com/leaflet-routing-machine@3.2.0/dist/leaflet-routing-machine.js"></script>
+<script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js"></script>
 
     <link
         rel="stylesheet"
@@ -143,7 +143,7 @@
                 <button class="admin-btn" id="editLocationBtn">Edit Location</button>
                 <button class="admin-btn" id="deleteLocationBtn">Delete Location</button>
                 <button class="admin-btn" id="viewAllBtn">View All Locations</button>
-                <button class="admin-btn" id="pendingUsersBtn">Pending Users</button>
+                <button class="admin-btn" id="pendingApprovalsBtn">Pending Approvals</button>
                 <button class="admin-btn" id="manageAdminsBtn">Manage Admins</button>
 
             </div>
@@ -166,10 +166,10 @@
                     <h2>Add Location</h2>
                     
                     <label>Name:</label> <br>
-                    <input type="text" id="locName" name="name" autocomplete="off"> <br> 
+                    <input type="text" id="locName" name="name" autocomplete="new-password"> <br> 
 
                     <label>Description:</label><br>
-                    <input id="locDesc" name="description" required autocomplete="off"></input> <br>
+                    <input id="locDesc" name="description" required autocomplete="new-password"></input> <br>
 
                     <label>Category:</label> <br>
                     <select class="admin-btn" id="category" name="category_id" required>
@@ -180,7 +180,7 @@
                     </select> <br>
                     <br>
                     <label>Location (lat, lng):</label><br>
-                    <input type="text" id="locCoords" name="coords" placeholder="Click map or type manually" autocomplete="off">
+                    <input type="text" id="locCoords" name="coords" placeholder="Click map or type manually" autocomplete="new-password">
                     <button type="button" id="pickFromMapBtn">Pick From Map</button><br>
 
                     <button type="submit" id="saveLocationBtn" class="admin-btn">Save</button>
@@ -205,11 +205,11 @@
 
                 <form id="editLocationForm" class="tab-form active" method="POST">
                     <label>Name:</label>
-                    <input type="text" id="editLocName" name="name" required autocomplete="off">
+                    <input type="text" id="editLocName" name="name" required autocomplete="new-password">
 
                     <label>Description:</label> 
                     <br>
-                    <input id="editLocDesc" name="description" required autocomplete="off"></input>
+                    <input id="editLocDesc" name="description" required autocomplete="new-password"></input>
                     <br>
 
                     <label>Category:</label> <br>
@@ -221,7 +221,7 @@
                     </select> <br>
 
                     <label>Location (lat, lng):</label>
-                    <input type="text" id="editLocCoords" name="coords" placeholder="Click map or type manually" autocomplete="off"autocomplete="off">
+                    <input type="text" id="editLocCoords" name="coords" placeholder="Click map or type manually" autocomplete="new-password">
 
                     <button type="button" id="editPickFromMapBtn" class="admin-btn">Pick From Map</button>
                     <button type="submit" class="admin-btn">Save Changes</button>
@@ -268,20 +268,20 @@
                 </div>
             </div>
         </div>
-        
-        <div id="pendingUsersPopup" class="popup hidden">
+
+        <div id="pendingApprovalsPopup" class="popup hidden">
             <div class="popup-content">
-                <span id="closePendingUsers" class="close-btn">&times;</span>
-                <h2>Pending User Approvals</h2>
-                <input type="text" id="searchLocation" class="popup-search" placeholder="Search User...">
+                <span id="closePendingApprovals" class="close-btn">&times;</span>
+                <h2>Pending Approvals</h2>
+                <input type="text" id="searchLocation" class="popup-search" placeholder="Search Email...">
                 <div class="popup-row header">
                     <span>Name</span>
                     <span></span>
                     <span>Action</span>
                     <span></span>
                 </div>
-                <div id="pendingUsersList" class="popup-list">
-                    <!-- Pending users list here -->
+                <div id="pendingApprovalsList" class="popup-list">
+                    <!-- Pending approvals list here -->
                 </div>
             </div>
         </div>
@@ -327,7 +327,7 @@
 
                 <div class="profile-field">
                     <label>About Me: </label>
-                    <textarea id="profileAboutMe" class="about-box" placeholder="Write something about you.">{{ user.about_me or '' }}</textarea>
+                    <textarea id="profileAboutMe" class="about-box" spellcheck="false" placeholder="Write something about you.">{{ user.about_me or '' }}</textarea>
                     <small id="aboutStatus" style="opacity:0; transition: opacity 0.3s;"></small>
 
                 </div>
@@ -348,7 +348,7 @@
 
                 <form id="changeEmailForm" class="tab-form active" method="POST" action="/change-email">
                     <label>New Email:</label>
-                    <input type="email" id="newEmailInput" name="new_email" autocomplete="off" required>
+                    <input type="email" id="newEmailInput" name="new_email" autocomplete="new-password" required>
 
                     <label>Current Password:</label>
                     <div class="password-wrapper">
@@ -417,11 +417,11 @@
                 <form id="signinForm" class="tab-form active"  action="/signin" method="POST" >
 
                     <label for="signinEmail">Email:</label>
-                    <input type="email" id="signinEmail" name="email" required>
+                    <input type="email" id="signinEmail" name="email" autocomplete="new-password" required>
 
                     <label for="password">Password:</label>
                     <div class="password-wrapper">
-                        <input type="password" id="signinPassword" name="password" class="password-field" required>
+                        <input type="password" id="signinPassword" name="password" class="password-field" autocomplete="new-password" required>
                         <i class="fa-solid fa-eye-slash toggle-password"></i>
                     </div>
 
@@ -433,14 +433,14 @@
                 <form id="signupForm" class="tab-form"  action="/signup" method="POST">
                     
                     <label>Referral Code:</label>
-                    <input type="text" id="referral" name="referral" required>
+                    <input type="text" id="referral" name="referral" autocomplete="new-password" required>
 
                     <label for="email">Email:</label>
-                    <input type="email" id="signupEmail" name="email" required>
+                    <input type="email" id="signupEmail" name="email" autocomplete="new-password" required>
 
                     <label for="signupPassword">Password:</label>
                     <div class="password-wrapper">
-                        <input type="password" id="signupPassword" name="password" class="password-field" required>
+                        <input type="password" id="signupPassword" name="password" class="password-field" autocomplete="new-password" required>
                         <i class="fa-solid fa-eye-slash toggle-password"></i>
                     </div>
 
@@ -460,7 +460,7 @@
 
                 <form id="sendOtpForm" class="tab-form active">
                 <label>Email</label>
-                <input type="email" name="email" required autocomplete="off">
+                <input type="email" name="email" required autocomplete="new-password">
                 <button id="sendOtpBtn" type="submit" class="admin-btn">Send OTP</button>
                 </form>
             </div>
@@ -473,6 +473,7 @@
                 <form id="verifyOtpForm" class ="tab-form active" method="POST" action="/forgot-password/verify">
 
                     <label>OTP:</label>
+                    <input type="hidden" name="otp" id="otpHidden">
 
                     <div class="otp-boxes">
                         <input type="text" maxlength="1" class="otp-input">
@@ -482,8 +483,6 @@
                         <input type="text" maxlength="1" class="otp-input">
                         <input type="text" maxlength="1" class="otp-input">
                     </div>
-
-                    <input type="hidden" name="otp" id="otpHidden">
 
                     <label>New Password:</label>
                     <input type="password" id="otpNewPassword" name="password" required> <br>
