@@ -1,13 +1,24 @@
-// Initialise Map
+// Initialise Map with zoom limits
 let selectedCategoryId = null;
-var map = L.map('map').setView([2.928, 101.64192], 16);
 
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '&copy; OpenStreetMap contributors'
-}).addTo(map);
+var map = L.map('map', {
+    center: [2.928, 101.64192],
+    zoom: 16,
+    minZoom: 16,   // allow zooming all the way out
+    maxZoom: 20   // allow zooming in super close
+});
 
+// Add tile layer
+L.tileLayer(
+    'https://{s}.basemaps.cartocdn.com/rastertiles/voyager_nolabels/{z}/{x}/{y}{r}.png',
+    { 
+        attribution: '© OpenStreetMap © CARTO',
+        maxZoom: 20   // match map maxZoom
+    }
+).addTo(map);
+
+// Remove default zoom control buttons
 map.removeControl(map.zoomControl);
-
 const content = document.getElementById('content');
 const sidebar = document.getElementById('sidebar');
 const toggleBtn = document.getElementById('toggleBtn');
@@ -750,4 +761,33 @@ document.addEventListener("DOMContentLoaded", () => {
     // Clear passwords initially
     if (newPasswordInput) newPasswordInput.value = "";
     if (confirmPasswordInput) confirmPasswordInput.value = "";
+});
+
+// Array to store marker instances (optional, useful if you want later)
+let markers = [];
+
+// ---------- LOAD MARKERS ----------
+async function loadMarkers() {
+    const response = await fetch("/api/markers");
+    const data = await response.json();
+    addMarkersToMap(data);
+}
+
+// ---------- ADD MARKERS ----------
+function addMarkersToMap(data) {
+    data.forEach(m => {
+        const marker = L.marker([m.latitude, m.longitude])
+            .addTo(map)
+            .bindPopup(`
+                <strong>${m.name}</strong><br>
+                ${m.description || ""}
+            `);
+
+        markers.push(marker);
+    });
+}
+
+// ---------- INIT ----------
+document.addEventListener("DOMContentLoaded", () => {
+    loadMarkers();
 });
