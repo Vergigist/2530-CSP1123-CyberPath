@@ -2,18 +2,18 @@ from flask import Flask, render_template, request, redirect, url_for, flash, ses
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_mail import Mail, Message
-import random, os
+import random
 from datetime import datetime
 
 app = Flask(__name__)
-app.config["SECRET_KEY"] = os.getenv("SECRET_KEY")
+app.config["SECRET_KEY"] = "sixseven67"
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///cyberpath.db"
 app.config["MAIL_SERVER"] = "smtp.gmail.com"
 app.config["MAIL_PORT"] = 587
 app.config["MAIL_USE_TLS"] = True
 app.config["MAIL_USE_SSL"] = False
 app.config["MAIL_USERNAME"] = "cyberpathotp@gmail.com" 
-app.config["MAIL_PASSWORD"] = os.getenv("MAIL_PASSWORD")
+app.config["MAIL_PASSWORD"] = "onjl mije yxkv ruit"
 app.config["MAIL_DEFAULT_SENDER"] = "cyberpathotp@gmail.com"
 mail = Mail(app)
 db = SQLAlchemy(app)
