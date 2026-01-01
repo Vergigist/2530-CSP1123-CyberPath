@@ -55,7 +55,8 @@ with app.app_context():
             Category(name="Labs"),
             Category(name="Offices"),
             Category(name="Food & Drinks"),
-            Category(name="Buildings"),
+            Category(name="Facilities"),
+            Category(name="Recreation"),
             Category(name="Others")
         ])
         db.session.commit()
@@ -231,13 +232,16 @@ def api_pending_users():
 
 @app.route("/delete-admin/<int:user_id>", methods=["POST"])
 def delete_admin(user_id):
-    if not session.get("admin_logged_in") and session.get("user_email") != "hozhenxiang@gmail.com":
+    if session.get("user_email") != "hozhenxiang@gmail.com":
         return jsonify({"success": False, "message": "Unauthorized action."})
 
     user = User.query.get_or_404(user_id)
 
     if user.email == "hozhenxiang@gmail.com":
         return jsonify({"success": False, "message": "Cannot delete this admin."})
+    
+    if user.email == session.get("user_email"):
+        return jsonify({"success": False, "message": "Cannot delete your own account."})
     
     db.session.delete(user)
     db.session.commit()
@@ -330,6 +334,51 @@ def update_about_me():
         db.session.commit()
 
     return jsonify({"success": True})
+
+@app.route("/api/admin/me")
+def get_my_admin_profile():
+    if not session.get("admin_logged_in"):
+        return jsonify({"success": False}), 403
+
+    user_email = session.get("user_email")
+    user = User.query.filter_by(email=user_email).first_or_404()
+
+    return jsonify({
+        "success": True,
+        "email": user.email,
+        "about_me": user.about_me or ""
+    })
+
+
+@app.route("/api/admins")
+def get_admins():
+    if not session.get("admin_logged_in"):
+        return jsonify([]), 403
+
+    admins = User.query.filter_by(verified=True).all()
+    result = []
+    for admin in admins:
+        result.append({
+            "id": admin.id,
+            "email": admin.email,
+            "about_me": admin.about_me or ""
+        })
+    return jsonify(result)
+
+@app.route("/api/admin/<int:user_id>")
+def get_admin_profile(user_id):
+    if not session.get("admin_logged_in"):
+        return jsonify({"success": False, "message": "Not authorized"}), 403
+
+    user = User.query.filter_by(id=user_id, verified=True).first()
+    if not user:
+        return jsonify({"success": False, "message": "User not found"}), 404
+
+    return jsonify({
+        "success": True,
+        "email": user.email,
+        "about_me": user.about_me or ""
+    })
 
 
 @app.route("/change-email", methods=["POST"])

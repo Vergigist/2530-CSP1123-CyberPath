@@ -485,10 +485,16 @@
                     </div>
 
                     <label>New Password:</label>
-                    <input type="password" id="otpNewPassword" name="password" required> <br>
+                    <div class="password-wrapper">
+                        <input type="password" id="otpNewPassword" name="password" class="password-field" required>
+                        <i class="fa-solid fa-eye-slash toggle-password"></i> <br>
+                    </div>
 
                     <label>Confirm Password:</label>
-                    <input type="password" id="otpConfirmPassword" name="confirm_password" required>
+                    <div class="password-wrapper">
+                        <input type="password" id="otpConfirmPassword" name="confirm_password" class="password-field" required>
+                        <i class="fa-solid fa-eye-slash toggle-password"></i>
+                    </div>
 
                     <button type="submit">Reset Password</button>
                 </form>
