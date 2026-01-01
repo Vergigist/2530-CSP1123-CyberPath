@@ -135,6 +135,30 @@
 
         <!-- Chatbot -->
         <div class="chatbot-icon">💬</div>
+        <!-- Chatbot Popup -->
+        <div id="chatbotPopup" class="popup hidden">
+            <div class="popup-content" style="width: 400px; height: 500px; display: flex; flex-direction: column;">
+                <span id="closeChatbotPopup" class="close-btn">&times;</span>
+                
+                <h3 style="margin: 0 0 15px 0;">Campus Assistant 🤖</h3>
+                
+                <!-- Chat messages area -->
+                <div id="chatMessages" style="flex: 1; overflow-y: auto; margin: 10px 0; padding: 10px; border: 1px solid #ddd; border-radius: 8px; background: #f9f9f9;">
+                    <!--Message from bot -->
+                    <div style="background: #e3f2fd; padding: 10px; border-radius: 10px; margin-bottom: 10px; border-left: 4px solid #2196f3;">
+                        <strong>Assistant:</strong> Hello! I'm your campus AI assistant. Ask me about locations, directions, or anything about MMU campus!
+                    </div>
+                </div>
+                
+                <!-- Chat input area -->
+                <div style="display: flex; gap: 10px;">
+                    <input type="text" id="chatInput" placeholder="Type your question here..." 
+                        style="flex: 1; padding: 10px; border: 1px solid #ccc; border-radius: 4px;"
+                        autocomplete="off">
+                    <button id="sendChatBtn" class="admin-btn" style="padding: 10px 20px;">Send</button>
+                </div>
+            </div>
+        </div>
 
         <!-- Toggle admin sidebar -->
         <div id="adminSidebar" class="admin-sidebar" >
@@ -508,6 +532,7 @@
     <script src="{{ url_for('static', filename='routing.js') }}"></script>
     <script src="{{ url_for('static', filename='gps.js') }}"></script>
     <script src="{{ url_for('static', filename='script.js') }}"></script>
+    <script src="{{ url_for('static', filename='chatbot.js') }}"></script>
 
 
 </body>

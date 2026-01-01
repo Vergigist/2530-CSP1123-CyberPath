@@ -4,6 +4,9 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from flask_mail import Mail, Message
 import random
 from datetime import datetime
+import google.genai as genai
+import os
+from dotenv import load_dotenv
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = "sixseven67"
@@ -520,6 +523,110 @@ def delete_marker(marker_id):
     db.session.commit()
 
     return redirect(url_for("index"))
+
+# ===========================================
+# AI CHATBOT SECTION
+# ===========================================
+
+
+
+load_dotenv()  
+gemini_api_key = os.getenv("GEMINI_API_KEY")
+
+# Initialize client as None
+client = None
+
+if gemini_api_key:
+    # Just use the new method - no fallback
+    try:
+        client = genai.Client(api_key=gemini_api_key)
+        print("✅ Gemini API configured successfully.")
+    except Exception as e:
+        print(f"❌ Failed to create Gemini client: {e}")
+        client = None
+else:
+    print("⚠️ GEMINI_API_KEY not found in environment variables.")
+
+@app.route("/chatbot/ask", methods=["POST"])
+def chatbot_ask():
+    user_message = request.json.get("message", "").strip()
+    if not user_message:
+        return jsonify({"success": False, "message": "Please type a question"})
+
+    try:
+        campus_info = """
+        You are a helpful assistant for Multimedia University (MMU) Cyberjaya campus.
+        Your name is CyberPath Assistant.
+        
+        You help with:
+        1. Finding locations on campus
+        2. Giving directions
+        3. Answering questions about campus facilities
+        4. Navigation help
+        
+        The campus has:
+        - Lecture halls
+        - Computer labs
+        - Offices
+        - Food places
+        - Buildings
+        - Other facilities
+        
+        If someone asks about a location, try to give helpful information.
+        If they want directions, explain they can use the navigation system.
+        Be friendly and helpful.
+        Keep answers short and clear.   
+        """
+
+        full_prompt = f"{campus_info}\n\nUser asks: {user_message}\n\nYour helpful answer:"
+
+        if client:
+            try:
+                response = client.models.generate_content(
+                    model="gemini-3-flash-preview",
+                    contents=full_prompt
+                )
+                answer = response.text
+                print(f"✅ AI Response: {answer[:100]}...")  # Debug
+            except Exception as e:
+                print(f"Gemini API error: {e}")
+                answer = "Sorry, I'm having trouble accessing the chatbot service right now."
+        else:   
+            answer = "Chatbot is currently unavailable."    
+
+        location_data = check_for_location(user_message)
+
+        return jsonify({
+            "success": True,
+            "response": answer,
+            "coordinates": location_data.get("coordinates"),
+            "location_name": location_data.get("location_name"),
+            "location_description": location_data.get("location_description")
+        })
+    
+    except Exception as e:
+        print(f"Chatbot error: {e}")
+        return jsonify({
+            "success": True,
+            "response": "I'm here to help with campus navigation! Try asking about locations or directions."
+        })
+    
+def check_for_location(user_message):
+    markers = Marker.query.all()
+        
+    for marker in markers:
+        if marker.name.lower() in user_message.lower():
+            # Found a matching location!
+            return {
+                    "coordinates": {
+                    "latitude": marker.latitude, 
+                    "longitude": marker.longitude,
+                    },
+                    "location_name": marker.name,
+                    "location_description": marker.description, 
+                    }
+    return {}
+
 
 
 #---------------------------------------------------------------------------------------------------------------------------------

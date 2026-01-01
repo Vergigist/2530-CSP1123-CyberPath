@@ -43,4 +43,4 @@ function startRouting () {
     };
 }
 
-const router = startRouting();
+window.router = startRouting();
