@@ -154,7 +154,7 @@ html, body, #content, #map-container, #map {
     background-color: #0056b3;
 }
 
-.profileBtn {
+.profileBtnManage {
     float: center;
     background: transparent;
     color: white;
@@ -164,7 +164,7 @@ html, body, #content, #map-container, #map {
     cursor: pointer;
 }
 
-.profileBtn:hover {
+.profileBtnManage:hover {
     background-color: grey;
 }
 

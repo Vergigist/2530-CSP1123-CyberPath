@@ -520,10 +520,24 @@ document.addEventListener("DOMContentLoaded", async () => {
                 div.classList.add("admin-item");
                 div.innerHTML = `
                     <span>${admin.email}</span>
-                    <button class="profileBtn"> ℹ️</button>
+                    <button class="profileBtnManage"> ℹ️</button>
                     <button class="delete-item-btn" data-id="${admin.id}">Delete</button>
                 `;
                 adminsListDiv.appendChild(div);
+
+                //Profile inside manage admins
+                const profileBtnManage = div.querySelector(".profileBtnManage");
+
+                profileBtnManage.addEventListener("click", () => {
+                    manageAdminsPopup.classList.add("hidden");   // close current
+                    profilePopup.classList.remove("hidden");    // open profile
+                });
+
+                closeProfilePopup.addEventListener("click", () => {
+                    profilePopup.classList.add("hidden");
+                    manageAdminsPopup.classList.remove("hidden");
+                });
+                
 
                 // Attach delete handler
                 const delBtn = div.querySelector(".delete-item-btn");
