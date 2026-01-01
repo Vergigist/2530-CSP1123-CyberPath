@@ -343,16 +343,52 @@ async function populateDeleteList() {
 
 
 // Profile 
-const profileBtn = document.getElementById("profileBtn");
 const profilePopup = document.getElementById("profilePopup");
 const closePopupProfile = document.getElementById("closeProfilePopup");
+const aboutMeInput = document.getElementById("profileAboutMe");
+const emailInput = document.getElementById("profileEmail");
+let openedFromManageAdmins = false;
 
-profileBtn.addEventListener("click", () => {
-    profilePopup.classList.remove("hidden");
+async function openProfile(userId = null, editable = true) {
+    try {
+        let url = userId ? `/api/admin/${userId}` : `/api/admin/me`;
+        const res = await fetch(url);
+        const data = await res.json();
+
+        if (!data.success) {
+            alert("Failed to load profile: " + (data.message || ""));
+            return false;
+        }
+
+        const emailInput = document.getElementById("profileEmail");
+        const aboutMeInput = document.getElementById("profileAboutMe");
+        const profilePopup = document.getElementById("profilePopup");
+
+        emailInput.value = data.email;
+        aboutMeInput.value = data.about_me || "";
+        aboutMeInput.readOnly = !editable;
+
+        profilePopup.classList.remove("hidden");
+        return true;
+    } catch (err) {
+        console.error("Error fetching profile data:", err);
+        alert("Error fetching profile data.");
+        return false;
+    }
+}
+
+document.getElementById("profileBtn")?.addEventListener("click", () => {
+    openedFromManageAdmins = false;
+    openProfile(null, true);
 });
 
 closePopupProfile.addEventListener("click", () => {
     profilePopup.classList.add("hidden");
+
+    if (openedFromManageAdmins) {
+        document.getElementById("manageAdminsPopup").classList.remove("hidden");
+        openedFromManageAdmins = false;
+    }
 });
 
 //Change Email popup
@@ -520,24 +556,22 @@ document.addEventListener("DOMContentLoaded", async () => {
                 div.classList.add("admin-item");
                 div.innerHTML = `
                     <span>${admin.email}</span>
-                    <button class="profileBtnManage"> ℹ️</button>
+                    <button class="profileBtnManage">ℹ️</button>
                     <button class="delete-item-btn" data-id="${admin.id}">Delete</button>
                 `;
                 adminsListDiv.appendChild(div);
 
                 //Profile inside manage admins
                 const profileBtnManage = div.querySelector(".profileBtnManage");
+                profileBtnManage.addEventListener("click", async () => {
+                    openedFromManageAdmins = true;
 
-                profileBtnManage.addEventListener("click", () => {
-                    manageAdminsPopup.classList.add("hidden");   // close current
-                    profilePopup.classList.remove("hidden");    // open profile
-                });
+                    const success = await openProfile(admin.id, false);
 
-                closeProfilePopup.addEventListener("click", () => {
-                    profilePopup.classList.add("hidden");
-                    manageAdminsPopup.classList.remove("hidden");
+                    if (success) {
+                        manageAdminsPopup.classList.add("hidden");
+                    }
                 });
-                
 
                 // Attach delete handler
                 const delBtn = div.querySelector(".delete-item-btn");
@@ -554,7 +588,6 @@ document.addEventListener("DOMContentLoaded", async () => {
                     }
                 });
             });
-
         } catch (err) {
             console.error("Failed to fetch admins:", err);
         }
@@ -564,10 +597,8 @@ document.addEventListener("DOMContentLoaded", async () => {
         manageAdminsPopup.classList.add("hidden");
     });
 
-    window.addEventListener("click", (e) => {
-        if (e.target === manageAdminsPopup) {
-            manageAdminsPopup.classList.add("hidden");
-        }
+    window.addEventListener("click", e => {
+        if (e.target === manageAdminsPopup) manageAdminsPopup.classList.add("hidden");
     });
 });
 
