@@ -154,6 +154,20 @@ html, body, #content, #map-container, #map {
     background-color: #0056b3;
 }
 
+.profileBtn {
+    float: center;
+    background: transparent;
+    color: white;
+    border: none;
+    padding: 4px 6px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.profileBtn:hover {
+    background-color: grey;
+}
+
 .profile-icon {
     position: fixed;
     bottom: 20px;

@@ -520,6 +520,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                 div.classList.add("admin-item");
                 div.innerHTML = `
                     <span>${admin.email}</span>
+                    <button class="profileBtn"> ℹ️</button>
                     <button class="delete-item-btn" data-id="${admin.id}">Delete</button>
                 `;
                 adminsListDiv.appendChild(div);
