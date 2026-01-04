@@ -640,7 +640,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
 
     window.addEventListener("click", e => {
-        if (e.target === manageAdminsPopup) manageAdminsPopup.classList.add("hidden");
+        if (e.target === manageAdminsPopup) 
+            manageAdminsPopup.classList.add("hidden");
     });
 });
 
