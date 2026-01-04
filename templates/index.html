@@ -170,7 +170,7 @@
                 <button class="admin-btn" id="viewAllBtn">View All Locations</button>
                 <button class="admin-btn" id="pendingApprovalsBtn">Pending Approvals</button>
                 <button class="admin-btn" id="manageAdminsBtn">Manage Admins</button>
-
+                <button class="admin-btn" id="viewReportBtn">View Reports</button>
             </div>
             <div id="signout-profile">
                 {% if session.get("admin_logged_in") %}
@@ -324,6 +324,22 @@
                 </div>
                 <div id="adminsList" class="popup-list">
                     <!-- Admins list here or whatever-->
+                </div>
+            </div>
+        </div>
+
+        <div id="viewReportsPopup" class="popup hidden">
+            <div class="popup-content">
+                <span id="closeViewReportsPopup" class="close-btn">&times;</span>
+                <h2>View Reports</h2>
+                <div class="popup-row header">
+                    <span>Name</span>
+                    <span></span>
+                    <span></span>
+                    <span>Action</span>
+                </div>
+                <div class="popup-list" id="reportsList">
+                    <!--Reports list here-->
                 </div>
             </div>
         </div>

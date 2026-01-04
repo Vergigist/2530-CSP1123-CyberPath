@@ -651,7 +651,7 @@ html, body, #content, #map-container, #map {
 
 /* Chatbot message styles */
 .thinkingDiv {
-   background: #e3f2fd;
+    background: #e3f2fd;
     padding: 10px;
     border-radius: 10px;
     margin: 10px 0;
@@ -739,3 +739,16 @@ html, body, #content, #map-container, #map {
     box-shadow: 0 3px 8px rgba(33, 150, 243, 0.3);
 }
 
+.view-report-btn{
+    float: right;
+    background: #6babff8f;
+    color: black;
+    border: none;
+    padding: 4px 6px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.view-report-btn:hover {
+    background: #5384c58f;
+}

@@ -352,6 +352,37 @@ async function populateDeleteList() {
     }
 }
 
+//View Reports
+document.addEventListener("DOMContentLoaded", () => {
+    const viewReportBtn = document.getElementById("viewReportBtn");
+    const viewReportsPopup = document.getElementById("viewReportsPopup");
+    const closeViewReportsPopup = document.getElementById("closeViewReportsPopup");
+    const reportsList = document.getElementById("reportsList");
+
+    viewReportBtn.addEventListener("click", () => {
+        viewReportsPopup.classList.remove("hidden");
+        reportsList.innerHTML = "";
+
+        // Placeholder until reports table exists
+        for (let i = 1; i <= 3; i++) {
+            const div = document.createElement("div");
+            div.classList.add("reports-item");
+            div.innerHTML = `
+                <span>Report #${i}</span>
+                <span></span>
+                <span></span>
+                <button class="view-report-btn">View</button>
+            `;
+            reportsList.appendChild(div);
+        }
+    });
+
+    closeViewReportsPopup.addEventListener("click", () => {
+        viewReportsPopup.classList.add("hidden");
+    });
+});
+
+
 
 // Profile 
 const profilePopup = document.getElementById("profilePopup");
