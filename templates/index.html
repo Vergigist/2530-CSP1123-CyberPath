@@ -116,6 +116,7 @@
                 <button class="user-btn" id="centerBtn">Recentralize</button>
                 <button class="user-btn" id="gpsButton">📍 Find My Location</button>
                 <button class="user-btn" id="userRemoveRouteButton">Clear Route</button>
+                <button class="user-btn" id="submitFeedback">Feedback</button>
             </div>
             <div id="sidebarBottom">
                 {% if not session.get("admin_logged_in") %}
@@ -170,7 +171,7 @@
                 <button class="admin-btn" id="viewAllBtn">View All Locations</button>
                 <button class="admin-btn" id="pendingApprovalsBtn">Pending Approvals</button>
                 <button class="admin-btn" id="manageAdminsBtn">Manage Admins</button>
-
+                <button class="admin-btn" id="viewFeedbackBtn">View Reports</button>
             </div>
             <div id="signout-profile">
                 {% if session.get("admin_logged_in") %}
@@ -328,6 +329,40 @@
             </div>
         </div>
 
+        <div id="viewFeedbackPopup" class="popup hidden">
+            <div class="popup-content">
+                <span id="closeViewFeedbackPopup" class="close-btn">&times;</span>
+                <h2>View Reports</h2>
+                <input type="text" id="searchLocation" class="popup-search" placeholder="Search reports...">
+                <div class="popup-row header">
+                    <span>Name</span>
+                    <span></span>
+                    <span></span>
+                    <span>Action</span>
+                </div>
+                <div class="popup-list" id="feedbackList">
+                    <!--Reports list here-->
+                </div>
+            </div>
+        </div>
+
+        <div id="feedbackPopup" class="popup hidden">
+            <div class="popup-content">
+                <span id="closeFeedbackPopup" class="close-btn">&times;</span>
+                <form id="feedbackForm" class="tab-form active">
+                    <h2>Feedback</h2>
+
+                    <label>Subject:</label>
+                    <input type="text">
+
+                    <label>Description:</label>
+                    <textarea class="about-box"></textarea>
+
+                    <button id="confirmSubmitFeedback" class="user-btn">Submit Feedback</button>
+                </form>
+            </div>
+        </div>
+
 
         <!--Profile container-->
         <div id="profilePopup" class ="popup hidden">
@@ -354,7 +389,6 @@
                     <label>About Me: </label>
                     <textarea id="profileAboutMe" class="about-box" spellcheck="false" placeholder="Write something about you.">{{ user.about_me or '' }}</textarea>
                     <small id="aboutStatus" style="opacity:0; transition: opacity 0.3s;"></small>
-
                 </div>
 
                 <!-- Action Buttons -->

@@ -352,6 +352,57 @@ async function populateDeleteList() {
     }
 }
 
+//Admin View Feedback
+document.addEventListener("DOMContentLoaded", () => {
+    const viewFeedbackBtn = document.getElementById("viewFeedbackBtn");
+    const viewFeedbackPopup = document.getElementById("viewFeedbackPopup");
+    const closeViewFeedbackPopup = document.getElementById("closeViewFeedbackPopup");
+    const feedbackList = document.getElementById("feedbackList");
+
+    viewFeedbackBtn.addEventListener("click", () => {
+        viewFeedbackPopup.classList.remove("hidden");
+        feedbackList.innerHTML = "";
+
+        // Placeholder until reports table exists
+        for (let i = 1; i <= 3; i++) {
+            const div = document.createElement("div");
+            div.classList.add("reports-item");
+            div.innerHTML = `
+                <span>Report #${i}</span>
+                <span></span>
+                <span></span>
+                <button class="view-report-btn">View</button>
+            `;
+            feedbackList.appendChild(div);
+        }
+    });
+
+    closeViewFeedbackPopup.addEventListener("click", () => {
+        viewFeedbackPopup.classList.add("hidden");
+    });
+});
+
+//User feedback
+document.addEventListener("DOMContentLoaded", () => {
+    const submitFeedback = document.getElementById("submitFeedback");
+    const feedbackPopup = document.getElementById("feedbackPopup");
+    const closeFeedbackPopup = document.getElementById("closeFeedbackPopup");
+    const feedbackForm = document.getElementById("feedbackForm");
+
+    submitFeedback.addEventListener("click", () => {
+        feedbackPopup.classList.remove("hidden");
+
+        feedbackForm.classList.add("active");
+    });
+
+    closeFeedbackPopup.addEventListener("click", () => {
+        feedbackPopup.classList.add("hidden");
+
+        feedbackForm.classList.remove("active");
+        feedbackForm.reset();
+    });
+});
+
 
 // Profile 
 const profilePopup = document.getElementById("profilePopup");
@@ -609,7 +660,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
 
     window.addEventListener("click", e => {
-        if (e.target === manageAdminsPopup) manageAdminsPopup.classList.add("hidden");
+        if (e.target === manageAdminsPopup) 
+            manageAdminsPopup.classList.add("hidden");
     });
 });
 
