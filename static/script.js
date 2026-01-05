@@ -352,16 +352,16 @@ async function populateDeleteList() {
     }
 }
 
-//View Reports
+//Admin View Feedback
 document.addEventListener("DOMContentLoaded", () => {
-    const viewReportBtn = document.getElementById("viewReportBtn");
-    const viewReportsPopup = document.getElementById("viewReportsPopup");
-    const closeViewReportsPopup = document.getElementById("closeViewReportsPopup");
-    const reportsList = document.getElementById("reportsList");
+    const viewFeedbackBtn = document.getElementById("viewFeedbackBtn");
+    const viewFeedbackPopup = document.getElementById("viewFeedbackPopup");
+    const closeViewFeedbackPopup = document.getElementById("closeViewFeedbackPopup");
+    const feedbackList = document.getElementById("feedbackList");
 
-    viewReportBtn.addEventListener("click", () => {
-        viewReportsPopup.classList.remove("hidden");
-        reportsList.innerHTML = "";
+    viewFeedbackBtn.addEventListener("click", () => {
+        viewFeedbackPopup.classList.remove("hidden");
+        feedbackList.innerHTML = "";
 
         // Placeholder until reports table exists
         for (let i = 1; i <= 3; i++) {
@@ -373,15 +373,35 @@ document.addEventListener("DOMContentLoaded", () => {
                 <span></span>
                 <button class="view-report-btn">View</button>
             `;
-            reportsList.appendChild(div);
+            feedbackList.appendChild(div);
         }
     });
 
-    closeViewReportsPopup.addEventListener("click", () => {
-        viewReportsPopup.classList.add("hidden");
+    closeViewFeedbackPopup.addEventListener("click", () => {
+        viewFeedbackPopup.classList.add("hidden");
     });
 });
 
+//User feedback
+document.addEventListener("DOMContentLoaded", () => {
+    const submitFeedback = document.getElementById("submitFeedback");
+    const feedbackPopup = document.getElementById("feedbackPopup");
+    const closeFeedbackPopup = document.getElementById("closeFeedbackPopup");
+    const feedbackForm = document.getElementById("feedbackForm");
+
+    submitFeedback.addEventListener("click", () => {
+        feedbackPopup.classList.remove("hidden");
+
+        feedbackForm.classList.add("active");
+    });
+
+    closeFeedbackPopup.addEventListener("click", () => {
+        feedbackPopup.classList.add("hidden");
+
+        feedbackForm.classList.remove("active");
+        feedbackForm.reset();
+    });
+});
 
 
 // Profile 
