@@ -1,23 +1,26 @@
-const outdoorMarkers = L.layerGroup().addTo(map);
-const indoorPolygons = L.layerGroup();
 const indoorMarkers = L.layerGroup();
 
-/* =========================
-    FCI LOCATION (OUTDOOR)
-========================= */
-const fciLatLng = [2.9286, 101.6411];
 
-const fciMarker = L.marker(fciLatLng).addTo(outdoorMarkers);
-fciMarker.bindPopup(`
-    <b>FCI Building</b><br>
-    <button onclick="enterIndoor()">Enter Building</button>
-`);
+let activeBuilding = null;
+let activeFloor = null;
+
+
+function createBuildingMarker(buildingId) {
+    const b = buildings[buildingId];
+
+    L.marker(b.center)
+        .addTo(outdoorMarkers)
+        .bindPopup(`
+            <b>${b.name}</b><br>
+            <button onclick="enterIndoor('${buildingId}')">Enter Building</button>
+        `);
+}
 
 /* =========================
     INDOOR DATA (DEMO ONLY)
     Each floor has its own shapes
 ========================= */
-const floors = {
+const FCIfloors = {
     0: {
         image: 'fci_floor_0.png',
         markers: [
@@ -36,9 +39,30 @@ const floors = {
 };
 
 /* =========================
+    FCI LOCATION (OUTDOOR)
+========================= */
+const buildings = {
+    fci: {
+        name: "FCI Building",
+        center: [2.9286, 101.6411],
+        floors: FCIfloors, // reuse what you already wrote
+    },
+
+    /*
+    fcm: {
+        name: "FCM Building",
+        center: [2.9279, 101.6424],
+        floors: fcmFloors,
+    }
+    */
+};
+
+/* =========================
     ENTER INDOOR MODE
 ========================= */
-function enterIndoor() {
+function enterIndoor(buildingId) {
+    activeBuilding = buildings[buildingId];
+
     outdoorMarkers.clearLayers();
 
     map.dragging.disable();
@@ -46,7 +70,7 @@ function enterIndoor() {
     map.doubleClickZoom.disable();
     map.touchZoom.disable();
 
-    map.flyTo(fciLatLng, 20);
+    map.flyTo(activeBuilding.center, 20);
 
     document.getElementById('indoorPanel').style.display = 'block';
     document.getElementById('indoorContainer').hidden = false;
@@ -54,24 +78,33 @@ function enterIndoor() {
     loadFloor(1);
 }
 
+
 /* =========================
     LOAD FLOOR
 ========================= */
 function loadFloor(floorNumber) {
-    const floor = floors[floorNumber];
-    const img = document.getElementById('floorImage');
-    const markerLayer = document.getElementById('indoorMarkers');
+    activeFloor = floorNumber;
 
-    img.src = `/static/floors/${floor.image}`;
-    markerLayer.innerHTML = '';
+    const floor = activeBuilding.floors[floorNumber];
 
+    // set image
+    const img = document.getElementById("floorImage");
+    //img.src = `${activeBuilding.imageBase}${floor.image}`;
+
+    // clear old indoor markers
+    const markerLayer = document.getElementById("indoorMarkers");
+    markerLayer.innerHTML = "";
+
+    // add new indoor markers (percentage-based)
     floor.markers.forEach(m => {
-        const el = document.createElement('div');
-        el.className = 'indoor-marker';
-        el.style.left = m.x + '%';
-        el.style.top = m.y + '%';
-        el.textContent = '📍';
-        el.title = m.label;
+        const el = document.createElement("div");
+        el.className = "indoor-marker";
+        el.style.left = m.x + "%";
+        el.style.top = m.y + "%";
+        el.innerText = "📍";
+
+        el.onclick = () => alert(m.label);
+
         markerLayer.appendChild(el);
     });
 }
@@ -80,6 +113,10 @@ function loadFloor(floorNumber) {
     EXIT INDOOR MODE
 ========================= */
 function exitIndoor() {
+    activeBuilding = null;
+
+    indoorMarkers.clearLayers();
+
     document.getElementById('indoorContainer').hidden = true;
     document.getElementById('indoorPanel').style.display = 'none';
 
@@ -88,11 +125,12 @@ function exitIndoor() {
     map.doubleClickZoom.enable();
     map.touchZoom.enable();
 
-    outdoorMarkers.addTo(map);
-
-    L.marker(fciLatLng).addTo(outdoorMarkers)
-        .bindPopup(`
-        <b>FCI Building</b><br>
-        <button onclick="enterIndoor()">Enter Building</button>
-        `);
+    initBuildings();
 }
+
+function initBuildings() {
+    window.outdoorMarkers = L.layerGroup().addTo(map);
+
+    createBuildingMarker("fci");
+}
+initBuildings();
