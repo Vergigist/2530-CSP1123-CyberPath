@@ -19,149 +19,38 @@ fciMarker.bindPopup(`
 ========================= */
 const floors = {
     0: {
-        polygons: [
-            {
-                coords: [
-                    [2.928876 , 101.640603],
-                    [2.928966 , 101.640692],
-                    [2.929039 , 101.640618],
-                    [2.929151 , 101.640707],
-                    [2.928552 , 101.641371],
-                    [2.928864 , 101.641377],
-                    [2.928863 , 101.641589],
-                    [2.928217 , 101.641590],
-                    [2.928217 , 101.641352],
-                    [2.928372 , 101.641352],
-                    [2.928372 , 101.641303],
-                    [2.928324 , 101.641290],
-                    [2.928284 , 101.641328],
-                    [2.928193 , 101.641238]
-                ],
-                style: { color: 'black', fillColor: 'black', fillOpacity: 1 }
-            }
-        ],
+        image: 'fci_floor_0.png',
         markers: [
-            { coords: [2.928612, 101.641204], label: 'Lab A' }
+            { x: 45, y: 60, label: 'Lab A' }
         ]
     },
     1: {
-        polygons: [
-            {
-                coords: [
-                    [2.928876 , 101.640603],
-                    [2.928966 , 101.640692],
-                    [2.929039 , 101.640618],
-                    [2.929151 , 101.640707],
-                    [2.928552 , 101.641371],
-                    [2.928864 , 101.641377],
-                    [2.928863 , 101.641589],
-                    [2.928217 , 101.641590],
-                    [2.928217 , 101.641352],
-                    [2.928372 , 101.641352],
-                    [2.928372 , 101.641303],
-                    [2.928324 , 101.641290],
-                    [2.928284 , 101.641328],
-                    [2.928193 , 101.641238]
-                ],
-                style: { color: 'black', fillColor: 'black', fillOpacity: 1 }
-            }
-
-        ],
+        image: 'fci_floor_1.png',
         markers: [
-            { coords: [2.928612, 101.641204], label: 'Tutorial Room 2' }
+            { x: 55, y: 40, label: 'Tutorial Room 2' }
         ]
     },
-    2: {
-        polygons: [
-            {
-                coords: [
-                    [2.928876 , 101.640603],
-                    [2.928966 , 101.640692],
-                    [2.929039 , 101.640618],
-                    [2.929151 , 101.640707],
-                    [2.928552 , 101.641371],
-                    [2.928864 , 101.641377],
-                    [2.928863 , 101.641589],
-                    [2.928217 , 101.641590],
-                    [2.928217 , 101.641352],
-                    [2.928372 , 101.641352],
-                    [2.928372 , 101.641303],
-                    [2.928324 , 101.641290],
-                    [2.928284 , 101.641328],
-                    [2.928193 , 101.641238]
-                ],
-                style: { color: 'black', fillColor: 'black', fillOpacity: 1 }
-            }
-        ]
-    },
-    3: {
-        polygons: [
-            {
-                coords: [
-                    [2.928876 , 101.640603],
-                    [2.928966 , 101.640692],
-                    [2.929039 , 101.640618],
-                    [2.929151 , 101.640707],
-                    [2.928552 , 101.641371],
-                    [2.928864 , 101.641377],
-                    [2.928863 , 101.641589],
-                    [2.928217 , 101.641590],
-                    [2.928217 , 101.641352],
-                    [2.928372 , 101.641352],
-                    [2.928372 , 101.641303],
-                    [2.928324 , 101.641290],
-                    [2.928284 , 101.641328],
-                    [2.928193 , 101.641238]
-                ],
-                style: { color: 'black', fillColor: 'black', fillOpacity: 1 }
-            }
-        ]
-    },
-    4: {
-        polygons: [
-            {
-                coords: [
-                    [2.928876 , 101.640603],
-                    [2.928966 , 101.640692],
-                    [2.929039 , 101.640618],
-                    [2.929151 , 101.640707],
-                    [2.928552 , 101.641371],
-                    [2.928864 , 101.641377],
-                    [2.928863 , 101.641589],
-                    [2.928217 , 101.641590],
-                    [2.928217 , 101.641352],
-                    [2.928372 , 101.641352],
-                    [2.928372 , 101.641303],
-                    [2.928324 , 101.641290],
-                    [2.928284 , 101.641328],
-                    [2.928193 , 101.641238]
-                ],
-                style: { color: 'black', fillColor: 'black', fillOpacity: 1 }
-            }
-        ]
-    },
+    2: { image: 'fci_floor_2.png', markers: [] },
+    3: { image: 'fci_floor_3.png', markers: [] },
+    4: { image: 'fci_floor_4.png', markers: [] }
 };
 
 /* =========================
     ENTER INDOOR MODE
 ========================= */
 function enterIndoor() {
-    // Remove outdoor markers
     outdoorMarkers.clearLayers();
 
-    // Lock map interaction
     map.dragging.disable();
     map.scrollWheelZoom.disable();
     map.doubleClickZoom.disable();
     map.touchZoom.disable();
 
-    // Focus on building
     map.flyTo(fciLatLng, 20);
 
-    // Show indoor UI
     document.getElementById('indoorPanel').style.display = 'block';
+    document.getElementById('indoorContainer').hidden = false;
 
-    // Load default floor
     loadFloor(1);
 }
 
@@ -169,29 +58,30 @@ function enterIndoor() {
     LOAD FLOOR
 ========================= */
 function loadFloor(floorNumber) {
-    indoorPolygons.clearLayers();
-    indoorMarkers.clearLayers();
-
     const floor = floors[floorNumber];
+    const img = document.getElementById('floorImage');
+    const markerLayer = document.getElementById('indoorMarkers');
 
-    floor.polygons.forEach(p => {
-        L.polygon(p.coords, p.style).addTo(indoorPolygons);
-    });
+    img.src = `/static/floors/${floor.image}`;
+    markerLayer.innerHTML = '';
 
     floor.markers.forEach(m => {
-        L.marker(m.coords).bindPopup(m.label).addTo(indoorMarkers);
+        const el = document.createElement('div');
+        el.className = 'indoor-marker';
+        el.style.left = m.x + '%';
+        el.style.top = m.y + '%';
+        el.textContent = '📍';
+        el.title = m.label;
+        markerLayer.appendChild(el);
     });
-
-    indoorPolygons.addTo(map);
-    indoorMarkers.addTo(map);
 }
 
 /* =========================
     EXIT INDOOR MODE
 ========================= */
 function exitIndoor() {
-    indoorPolygons.clearLayers();
-    indoorMarkers.clearLayers();
+    document.getElementById('indoorContainer').hidden = true;
+    document.getElementById('indoorPanel').style.display = 'none';
 
     map.dragging.enable();
     map.scrollWheelZoom.enable();
@@ -200,13 +90,8 @@ function exitIndoor() {
 
     outdoorMarkers.addTo(map);
 
-    document.getElementById('indoorPanel').style.display = 'none';
-
-    //map.flyTo([2.9245, 101.6423], 17);
-
-    // Restore outdoor marker
     L.marker(fciLatLng).addTo(outdoorMarkers)
-    .bindPopup(`
+        .bindPopup(`
         <b>FCI Building</b><br>
         <button onclick="enterIndoor()">Enter Building</button>
         `);
