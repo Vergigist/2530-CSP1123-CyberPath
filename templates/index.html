@@ -560,13 +560,24 @@
 
             </div>
         </div>
+
+        <div id="indoorPanel">
+            <h2>FCI Building</h2>
+            <button onclick="loadFloor(4)">Floor 4</button>
+            <button onclick="loadFloor(3)">Floor 3</button>
+            <button onclick="loadFloor(2)">Floor 2</button>
+            <button onclick="loadFloor(1)">Floor 1</button>
+            <button onclick="loadFloor(0)">Ground</button>
+            <button onclick="exitIndoor()">Exit Building</button>
+        </div>
+
+
     </div>
-
-
     <script src="{{ url_for('static', filename='routing.js') }}"></script>
     <script src="{{ url_for('static', filename='gps.js') }}"></script>
     <script src="{{ url_for('static', filename='script.js') }}"></script>
     <script src="{{ url_for('static', filename='chatbot.js') }}"></script>
+    <script src="{{ url_for('static', filename='indoor.js') }}"></script>
 
 
 </body>

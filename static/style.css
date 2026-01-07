@@ -752,3 +752,22 @@ html, body, #content, #map-container, #map {
 .view-report-btn:hover {
     background: #5384c58f;
 }
+
+#indoorPanel {
+    position: absolute;          /* not fixed */
+    top: 40%;
+    left: 20%;                  /* LEFT side */
+    width: 260px;
+    background: #fff;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+    border-radius: 8px;
+    padding: 12px;
+    display: none;
+    z-index: 1000;
+}
+
+#indoorPanel button {
+    width: 100%;
+    margin-bottom: 8px;
+    padding: 8px;
+}
