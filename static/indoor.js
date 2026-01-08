@@ -1,8 +1,10 @@
-const indoorMarkers = L.layerGroup();
+const indoorMarkers = L.layerGroup().addTo(map);
+let indoorImageOverlay = null;
 
-
+let activeBuildingId = null;
 let activeBuilding = null;
 let activeFloor = null;
+
 
 
 function createBuildingMarker(buildingId) {
@@ -18,25 +20,40 @@ function createBuildingMarker(buildingId) {
 
 /* =========================
     INDOOR DATA (DEMO ONLY)
-    Each floor has its own shapes
 ========================= */
 const FCIfloors = {
     0: {
-        image: 'fci_floor_0.png',
+        image: '/static/images/fci_floor1.png',
         markers: [
-            { x: 45, y: 60, label: 'Lab A' }
+            { lat: 2.928785 , lng: 101.641071, label : 'Stair' }
         ]
     },
     1: {
-        image: 'fci_floor_1.png',
+        image: '/static/images/fci_floor1.png',
         markers: [
-            { x: 55, y: 40, label: 'Tutorial Room 2' }
+            { lat: 2.928434 , lng: 101.641128, label : 'Lift' }
         ]
     },
-    2: { image: 'fci_floor_2.png', markers: [] },
-    3: { image: 'fci_floor_3.png', markers: [] },
-    4: { image: 'fci_floor_4.png', markers: [] }
+    2: { image: '/static/images/fci_floor1.png', 
+        markers: [
+            { lat: 2.928454 , lng: 101.641494, label : 'Stair' }
+        ] 
+    },
+    3: { image: '/static/images/fci_floor1.png', 
+        markers: [
+            { lat: 2.928714 , lng: 101.641126, label : 'CQAR 3005' }
+        ] 
+    },
+    4: { image: '/static/images/fci_floor1.png', 
+        markers: [
+            { lat: 2.929039 , lng: 101.640763, label : 'CQAR 4002' }
+        ] 
+    }
 };
+
+const FCMfloors = {
+
+}
 
 /* =========================
     FCI LOCATION (OUTDOOR)
@@ -44,23 +61,24 @@ const FCIfloors = {
 const buildings = {
     fci: {
         name: "FCI Building",
-        center: [2.9286, 101.6411],
-        floors: FCIfloors, // reuse what you already wrote
+        center: [2.928633, 101.64111],
+        floors: FCIfloors, 
     },
 
-    /*
+    
     fcm: {
         name: "FCM Building",
         center: [2.9279, 101.6424],
-        floors: fcmFloors,
+        floors: FCMfloors,
     }
-    */
+    
 };
 
 /* =========================
     ENTER INDOOR MODE
 ========================= */
 function enterIndoor(buildingId) {
+    activeBuildingId = buildingId;
     activeBuilding = buildings[buildingId];
 
     outdoorMarkers.clearLayers();
@@ -79,6 +97,7 @@ function enterIndoor(buildingId) {
 }
 
 
+
 /* =========================
     LOAD FLOOR
 ========================= */
@@ -86,34 +105,71 @@ function loadFloor(floorNumber) {
     activeFloor = floorNumber;
 
     const floor = activeBuilding.floors[floorNumber];
+    if (!floor || !floor.image) return;
 
-    // set image
-    const img = document.getElementById("floorImage");
-    //img.src = `${activeBuilding.imageBase}${floor.image}`;
+    // Remove previous floor image
+    if (indoorImageOverlay) {
+        map.removeLayer(indoorImageOverlay);
+        indoorImageOverlay = null;
+    }
 
-    // clear old indoor markers
-    const markerLayer = document.getElementById("indoorMarkers");
-    markerLayer.innerHTML = "";
+    // Generate bounds around building center
+    const bounds = boundsFromCenter(activeBuilding.center, 123);
 
-    // add new indoor markers (percentage-based)
+    // Add floor image as a Leaflet overlay
+    indoorImageOverlay = L.imageOverlay(
+        floor.image,
+        bounds,
+        { opacity: 1, interactive: false } // not blocking clicks
+    ).addTo(map);
+
+    // Clear old indoor markers
+    indoorMarkers.clearLayers();
+
+    // Add markers on top of floor image
     floor.markers.forEach(m => {
-        const el = document.createElement("div");
-        el.className = "indoor-marker";
-        el.style.left = m.x + "%";
-        el.style.top = m.y + "%";
-        el.innerText = "📍";
-
-        el.onclick = () => alert(m.label);
-
-        markerLayer.appendChild(el);
+        if (m.lat && m.lng) {
+            L.marker([m.lat, m.lng])
+                .bindPopup(m.label || "")
+                .addTo(indoorMarkers);
+        }
     });
+
+    // Make sure markers are visually above the image
+    indoorMarkers.bringToFront();
 }
+
+
+
+function boundsFromCenter(center, sizeMeters) {
+    const lat = center[0];
+    const lng = center[1];
+
+    const metersPerDegLat = 111320;
+    const metersPerDegLng = 111320 * Math.cos(lat * Math.PI / 180);
+
+    const dLat = (sizeMeters / 2) / metersPerDegLat;
+    const dLng = (sizeMeters / 2) / metersPerDegLng;
+
+    return [
+        [lat - dLat, lng - dLng],
+        [lat + dLat, lng + dLng]
+    ];
+}
+
 
 /* =========================
     EXIT INDOOR MODE
 ========================= */
 function exitIndoor() {
     activeBuilding = null;
+    activeBuildingId = null;
+    activeFloor = null;
+
+    if (indoorImageOverlay) {
+        map.removeLayer(indoorImageOverlay);
+        indoorImageOverlay = null;
+    }
 
     indoorMarkers.clearLayers();
 
@@ -128,9 +184,15 @@ function exitIndoor() {
     initBuildings();
 }
 
+
 function initBuildings() {
-    window.outdoorMarkers = L.layerGroup().addTo(map);
+    if (window.outdoorMarkers) {
+        outdoorMarkers.clearLayers();
+    } else {
+        window.outdoorMarkers = L.layerGroup().addTo(map);
+    }
 
     createBuildingMarker("fci");
 }
+
 initBuildings();
