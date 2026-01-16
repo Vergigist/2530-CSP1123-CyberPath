@@ -14,8 +14,13 @@ os.environ["GRPC_VERBOSITY"] = "ERROR"
 os.environ["GLOG_minloglevel"] = "2"
 
 app = Flask(__name__)
-app.config["SECRET_KEY"] = "sixseven67"
-app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///cyberpath.db"
+app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "dev-secret-key")
+
+database_url = os.environ.get('DATABASE_URL', 'sqlite:///cyberpath.db')
+if database_url and database_url.startswith("postgres://"):
+    database_url = database_url.replace("postgres://", "postgresql://", 1)
+app.config["SQLALCHEMY_DATABASE_URI"] = database_url
+
 app.config["MAIL_SERVER"] = "smtp.gmail.com"
 app.config["MAIL_PORT"] = 587
 app.config["MAIL_USE_TLS"] = True
@@ -535,8 +540,8 @@ def delete_marker(marker_id):
 
 
 
-gemini_api_key = "AIzaSyABz3uYHXkTVf-3G2H_PEiqvc2cy8wq45Q"
-openrouter_api_key = "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"
+gemini_api_key = os.environ.get("GEMINI_API_KEY") 
+openrouter_api_key = os.environ.get("OPENROUTER_API_KEY") #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
 
 # Initialize client as None
 gemini_client = None
@@ -744,4 +749,4 @@ def check_for_location(user_message):
 #---------------------------------------------------------------------------------------------------------------------------------
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(host='0.0.0.0', port=5000)
