@@ -37,29 +37,6 @@ app.config["MAIL_DEFAULT_SENDER"] = "cyberpathotp@gmail.com"
 mail = Mail(app)
 db = SQLAlchemy(app)
 
-def create_initial_admin():
-    """Create initial admin account if none exists"""
-    with app.app_context():
-        admin_email = "hozhenxiang@gmail.com"
-        
-        if not User.query.filter_by(verified=True).first():
-            # Create admin
-            hashed_password = generate_password_hash("xiang1234")
-            admin = User(
-                email=admin_email,
-                password=hashed_password,
-                about_me="Initial Administrator",
-                verified=True
-            )
-            db.session.add(admin)
-            db.session.commit()
-            print(f"✅ Created initial admin: {admin_email}")
-            print(f"   Password: xiang1234")
-            print("   ⚠️ Change password after first login!")
-
-# Call this after db initialization
-create_initial_admin()
-
 #---------------------------------------------------------------------------------------------------------------------------------
 # Database Models
 #---------------------------------------------------------------------------------------------------------------------------------
@@ -85,6 +62,30 @@ class Category(db.Model):
     name = db.Column(db.String(100), unique=True, nullable=False)
     markers = db.relationship("Marker", backref="category", lazy=True)
 
+#------------
+# Super Admin
+#------------
+
+def create_initial_admin():
+    """Create initial admin account if none exists"""
+    with app.app_context():
+        admin_email = "hozhenxiang@gmail.com"
+        
+        if not User.query.filter_by(verified=True).first():
+            # Create admin
+            hashed_password = generate_password_hash("xiang1234")
+            admin = User(
+                email=admin_email,
+                password=hashed_password,
+                about_me="Initial Administrator",
+                verified=True
+            )
+            db.session.add(admin)
+            db.session.commit()
+            print(f"✅ Created initial admin: {admin_email}")
+            print(f"   Password: xiang1234")
+            print("   ⚠️ Change password after first login!")
+
 
 with app.app_context():
     #db.drop_all()
@@ -101,6 +102,8 @@ with app.app_context():
             Category(name="Others")
         ])
         db.session.commit()
+
+    create_initial_admin()
    
 
 @app.route("/")
@@ -769,6 +772,10 @@ def check_for_location(user_message):
                                 "location_description": marker.description, 
                                 }
     return {}
+
+
+# Call this after db initialization
+create_initial_admin()
 
 
 
