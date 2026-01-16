@@ -9,6 +9,7 @@ import os
 from dotenv import load_dotenv
 from openai import OpenAI
 from fuzzywuzzy import fuzz, process
+from urllib.parse import urlparse
 load_dotenv()
 
 os.environ["GRPC_VERBOSITY"] = "ERROR"
@@ -18,8 +19,12 @@ app = Flask(__name__)
 app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "dev-secret-key")
 
 database_url = os.environ.get('DATABASE_URL', 'sqlite:///cyberpath.db')
-if database_url and database_url.startswith("postgres://"):
-    database_url = database_url.replace("postgres://", "postgresql+pg8000://", 1)
+if database_url:
+    if database_url.startswith("postgres://"):
+        database_url = database_url.replace("postgres://", "postgresql+pg8000://", 1)
+    elif database_url.startswith("postgresql://") and "+" not in database_url:
+        # If it's already postgresql:// but no driver specified, add pg8000
+        database_url = database_url.replace("postgresql://", "postgresql+pg8000://", 1)
 app.config["SQLALCHEMY_DATABASE_URI"] = database_url
 
 app.config["MAIL_SERVER"] = "smtp.gmail.com"
