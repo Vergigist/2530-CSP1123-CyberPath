@@ -2,8 +2,11 @@ services:
   - type: web
     name: cyberpath
     env: python
+    pythonVersion: "3.11.9"
     buildCommand: pip install -r requirements.txt
     startCommand: gunicorn app:app
     envVars:
-      - key: PYTHON_VERSION
-        value: 3.13.0
+      - key: DATABASE_URL
+        fromDatabase:
+          name: cyberpath-db
+          property: connectionString
