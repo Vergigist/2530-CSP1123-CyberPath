@@ -44,7 +44,7 @@ db = SQLAlchemy(app)
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(150), unique=True, nullable=False)
-    password = db.Column(db.String(150), nullable=False)
+    password = db.Column(db.String(300), nullable=False)
     about_me = db.Column(db.String(500))
     verified = db.Column(db.Boolean, default=False)
 
