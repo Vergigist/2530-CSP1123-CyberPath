@@ -605,18 +605,74 @@ load_dotenv()
 gemini_api_key = os.getenv("GEMINI_API_KEY")
 
 # Initialize client as None
-client = None
+gemini_client = None
+openrouter_client = None
 
 if gemini_api_key:
     # Just use the new method - no fallback
     try:
-        client = genai.Client(api_key=gemini_api_key)
+        gemini_client = genai.Client(api_key=gemini_api_key)
         print("✅ Gemini API configured successfully.")
     except Exception as e:
         print(f"❌ Failed to create Gemini client: {e}")
-        client = None
+        gemini_client = None
 else:
     print("⚠️ GEMINI_API_KEY not found in environment variables.")
+
+if openrouter_api_key:
+    try:
+        openrouter_client = OpenAI(
+            api_key=openrouter_api_key,
+            base_url="https://openrouter.ai/api/v1"
+        )
+        print("✅ OpenRouter API client created")
+    except Exception as e:
+        print(f"❌ OpenRouter client failed: {e}")
+        openrouter_client = None
+else:
+    print("⚠️ OPENROUTER_API_KEY not found")
+
+def get_ai_response(user_message, campus_info):
+    """Try multiple AI providers in order"""
+    full_prompt = f"{campus_info}\n\nUser asks: {user_message}\n\nYour helpful answer:"
+    
+
+    # 1. FIRST try Gemini (your current working model)
+    if gemini_client:
+        try:
+            print("🔄 Trying Gemini...")
+            response = gemini_client.models.generate_content(
+                model="gemini-3-flash-preview",
+                contents=full_prompt
+            )
+            answer = response.text
+            print("✅ Gemini succeeded")
+            return answer
+        except Exception as e:
+            print(f"❌ Gemini failed: {e}")
+    
+    # 2. SECOND try OpenRouter (free fallback)
+    if openrouter_client:
+        try:
+            print("🔄 Trying OpenRouter...")
+            response = openrouter_client.chat.completions.create(
+                model="google/gemma-3-27b-it:free",  # Free model
+                messages=[
+                    {"role": "system", "content": campus_info},
+                    {"role": "user", "content": user_message}
+                ],
+                
+            )
+            answer = response.choices[0].message.content
+            print("✅ OpenRouter succeeded")
+            return answer
+        except Exception as e:
+            print(f"❌ OpenRouter failed: {e}")
+
+    print("❌ All AI providers failed")
+    return "I'm here to help with campus navigation! Try asking about specific locations like the library, labs, or cafeteria."
+    
+
 
 
 @app.route("/chatbot/ask", methods=["POST"])
@@ -626,6 +682,48 @@ def chatbot_ask():
         return jsonify({"success": False, "message": "Please type a question"})
 
     try:
+        
+        markers = Marker.query.all()
+        
+        locationNames = [marker.name for marker in markers]
+
+        campus_info = f"""
+            You are CyberPath, a friendly, smart and slightly fun campus assistant for Multimedia University (MMU) Cyberjaya.
+
+            You can chat naturally with users for greetings, thanks, or general conversation.
+            You are polite, helpful, and a little cheerful — but still professional.
+
+            You are connected to a live campus location database.
+
+            ALL AVAILABLE LOCATIONS:
+            {', '.join(locationNames)}
+
+            VERY IMPORTANT RULES:
+            • If a location is NOT in the list, say: "I don't have that location in my database."
+            • NEVER invent location names.
+            • NEVER recommend Google Maps or external apps.
+            • Always suggest using the CyberPath navigation system.
+            • Keep all answers short (1–2 sentences).
+
+            HOW TO RESPOND:
+
+            1. If the user greets you (hi, hello, thanks, who are you, etc):
+            → Reply in a friendly, fun, helpful way.
+
+            2. If the user asks about a general campus topic:
+            → Give a short helpful answer.
+
+            3. If the user asks about a location:
+            → Only use locations from the database list.
+
+            
+            You help users find lecture halls, labs, offices, food places, and campus facilities.
+
+            Be warm, clear, and friendly — but accurate.
+            """
+
+        answer = get_ai_response(user_message, campus_info)
+        print(f"✅ AI Response: {answer[:100]}...")  # Debug
         campus_info = """
         You are a helpful assistant for Multimedia University (MMU) Cyberjaya campus.
         Your name is CyberPath Assistant.
@@ -671,9 +769,9 @@ def chatbot_ask():
         return jsonify({
             "success": True,
             "response": answer,
-            "coordinates": location_data.get("coordinates"),
-            "location_name": location_data.get("location_name"),
-            "location_description": location_data.get("location_description")
+            "coordinates": location_data.get("coordinates") or None,
+            "location_name": location_data.get("location_name") or None,
+            "location_description": location_data.get("location_description") or None
         })
     
     except Exception as e:
@@ -686,18 +784,64 @@ def chatbot_ask():
 
 def check_for_location(user_message):
     markers = Marker.query.all()
-        
-    for marker in markers:
-        if marker.name.lower() in user_message.lower():
-            # Found a matching location!
-            return {
-                    "coordinates": {
-                    "latitude": marker.latitude, 
-                    "longitude": marker.longitude,
-                    },
-                    "location_name": marker.name,
-                    "location_description": marker.description, 
+    locationNames = [marker.name for marker in markers]
+    result = process.extractOne(user_message, locationNames, scorer=fuzz.token_sort_ratio)
+    userLower = user_message.lower()
+
+    location_keywords = [
+        "where", "location", "place", "find", "directions",
+        "navigate", "route", "path", "how to get", "way to",
+        "show me", "take me", "guide me", "locate", "find"
+    ]
+
+    locationQuestion = False
+    for keyword in location_keywords:
+        if keyword in userLower:
+            locationQuestion = True
+            break
+
+    shortform = {
+        "dtc": "Dewan Tun Canselor",
+        "mmu": "Multimedia University",
+        "lib": "Library",
+        "lab": "Computer Lab",
+        "caf": "Cafeteria",
+        "hall": "Lecture Hall",
+        "food": "Cafeteria",
+        "restaurant": "Cafeteria",
+    }
+
+    for short, long in shortform.items():
+        if f" {short} " in f" {userLower} " or userLower == short:
+            for marker in markers:
+                if long.lower() in marker.name.lower():
+                     return {
+                        "coordinates": {
+                            "latitude": marker.latitude, 
+                            "longitude": marker.longitude,
+                        },
+                        "location_name": marker.name,
+                        "location_description": marker.description, 
                     }
+    
+    if locationQuestion:
+        if result:  
+            best_match, score = result
+            print(f"🔍 Fuzzy match: '{user_message}' → '{best_match}' (score: {score})")
+            
+            if score > 40:  # 60% similarity threshold
+                for marker in markers:
+                    if marker.name == best_match:   
+            
+                        # Found a matching location!
+                        return {
+                                "coordinates": {
+                                "latitude": marker.latitude, 
+                                "longitude": marker.longitude,
+                                },
+                                "location_name": marker.name,
+                                "location_description": marker.description, 
+                                }
     return {}
 
 
