@@ -2,11 +2,9 @@ from flask import Flask, render_template, request, redirect, url_for, flash, ses
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_mail import Mail, Message
-import random
 from datetime import datetime
-import google.genai as genai
-import os
 from dotenv import load_dotenv
+import random, google.genai as genai, os, re
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = "sixseven67"
@@ -39,7 +37,7 @@ class Marker(db.Model):
     latitude = db.Column(db.Float, nullable=False)
     longitude = db.Column(db.Float, nullable=False)
     description = db.Column(db.Text)
-    timeadded = db.Column(db.DateTime, default=db.func.current_timestamp())
+    timeadded = db.Column(db.DateTime, default=datetime.now)
     category_id = db.Column(db.Integer, db.ForeignKey("category.id"), nullable=True)
     
 class Category(db.Model):
@@ -47,6 +45,11 @@ class Category(db.Model):
     name = db.Column(db.String(100), unique=True, nullable=False)
     markers = db.relationship("Marker", backref="category", lazy=True)
 
+class Feedback(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    subject = db.Column(db.Text, nullable=False)
+    description = db.Column(db.Text, nullable=False)
+    time_submitted = db.Column(db.DateTime, default=datetime.now)
 
 with app.app_context():
     #db.drop_all()
@@ -73,15 +76,28 @@ def index():
         user = User.query.filter_by(email=user_email).first()
 
     categories = Category.query.all()
-
     return render_template("index.html", user=user, categories=categories)
 
 
 #---------------------------------------------------------------------------------------------------------------------------------
-# Account Functionality
+# Admin Functionality
 #---------------------------------------------------------------------------------------------------------------------------------
 
 referral_code = 961523
+
+
+def is_valid_password(password):
+    if len(password) < 8:
+        return False
+
+    if not re.search(r"[A-Z]", password):
+        return False
+
+    if not re.search(r"\d", password):
+        return False
+
+    return True
+
 
 @app.route("/signup", methods=["POST"])
 def signup():
@@ -89,15 +105,16 @@ def signup():
     email = request.form["email"]
     password = request.form["password"]
 
+    if referral and int(referral) != referral_code:
+        return jsonify({"success": False, "field": "referral", "message": "Invalid referral code!"})
+    
     existing = User.query.filter_by(email=email).first()
     if existing:
-        flash("Email already exists!", "error")
-        return redirect(url_for("index"))
+        return jsonify({"success": False, "field": "email", "message": "Email already exists!"})
 
-    if referral and int(referral) != referral_code:
-        flash("Invalid referral code!", "error")   
-        return redirect(url_for("index"))
-
+    if not is_valid_password(password):
+        return jsonify({"success": False, "field": "password", "message": "Password must have at least 8 characters, including 1 uppercase and 1 number."})
+    
     hashed_password = generate_password_hash(password)
 
     if email.lower() == "hozhenxiang@gmail.com":
@@ -297,6 +314,9 @@ def verify_forgot_otp():
     if new_password != confirm_password:
         return jsonify({"success": False, "message": "Passwords do not match"})
 
+    if not is_valid_password(new_password):
+        return jsonify({"success": False, "message": "Passwords must be at least 8 characters long, contain at least one uppercase letter and one number."})
+    
     user = User.query.filter_by(email=session["forgot_email"]).first()
 
     if check_password_hash(user.password, new_password):
@@ -368,6 +388,7 @@ def get_admins():
         })
     return jsonify(result)
 
+
 @app.route("/api/admin/<int:user_id>")
 def get_admin_profile(user_id):
     if not session.get("admin_logged_in"):
@@ -427,6 +448,10 @@ def change_password():
         flash("Current password is incorrect!", "change_password_error")
         return redirect(url_for("index"))
 
+    if not is_valid_password(new_password):
+        flash("Password must be at least 8 characters long, contain at least one uppercase letter and one number.", "change_password_error")
+        return redirect(url_for("index"))
+
     if new_password != confirm_password:
         flash("New passwords do not match!", "change_password_error")
         return redirect(url_for("index"))
@@ -439,6 +464,39 @@ def change_password():
     db.session.commit()
 
     flash("Password changed successfully!", "success")
+    return redirect(url_for("index"))
+
+
+@app.route("/api/feedbacks")
+def get_feedbacks():
+    if not session.get("admin_logged_in"):
+        return jsonify({"success": False}), 403
+
+    feedbacks = Feedback.query.order_by(Feedback.time_submitted.desc()).all()
+
+    return jsonify({
+        "success": True,
+        "feedbacks": [
+            {
+                "id": fb.id,
+                "subject": fb.subject,
+                "description": fb.description,
+                "time": fb.time_submitted.strftime("%Y-%m-%d %H:%M")
+            }
+            for fb in feedbacks
+        ]
+    })
+   
+
+@app.route("/delete-feedback/<int:feedback_id>", methods=["POST"])
+def delete_feedback(feedback_id):
+    if not session.get("admin_logged_in"):
+        return redirect(url_for("index"))
+    
+    feedback = Feedback.query.get_or_404(feedback_id)
+    db.session.delete(feedback)
+    db.session.commit()
+
     return redirect(url_for("index"))
 
 #---------------------------------------------------------------------------------------------------------------------------------
@@ -524,11 +582,24 @@ def delete_marker(marker_id):
 
     return redirect(url_for("index"))
 
-# ===========================================
-# AI CHATBOT SECTION
-# ===========================================
+#---------------------------------------------------------------------------------------------------------------------------------
+# User functions
+#---------------------------------------------------------------------------------------------------------------------------------
 
+@app.route("/feedback", methods=["POST"])
+def feedback():
+    subject = request.form["subject"]
+    description = request.form["description"]
 
+    new_feedback = Feedback(subject=subject, description=description)
+    db.session.add(new_feedback)
+    db.session.commit()
+
+    flash("Feedback submitted successfully!", "success")
+    return redirect(url_for("index"))
+#---------------------------------------------------------------------------------------------------------------------------------
+# AI chatbot
+#---------------------------------------------------------------------------------------------------------------------------------
 
 load_dotenv()  
 gemini_api_key = os.getenv("GEMINI_API_KEY")
@@ -546,6 +617,7 @@ if gemini_api_key:
         client = None
 else:
     print("⚠️ GEMINI_API_KEY not found in environment variables.")
+
 
 @app.route("/chatbot/ask", methods=["POST"])
 def chatbot_ask():
@@ -566,10 +638,10 @@ def chatbot_ask():
         
         The campus has:
         - Lecture halls
-        - Computer labs
+        - Labs
         - Offices
         - Food places
-        - Buildings
+        - Recreations
         - Other facilities
         
         If someone asks about a location, try to give helpful information.
@@ -611,6 +683,7 @@ def chatbot_ask():
             "response": "I'm here to help with campus navigation! Try asking about locations or directions."
         })
     
+
 def check_for_location(user_message):
     markers = Marker.query.all()
         
@@ -626,7 +699,6 @@ def check_for_location(user_message):
                     "location_description": marker.description, 
                     }
     return {}
-
 
 
 #---------------------------------------------------------------------------------------------------------------------------------
