@@ -752,3 +752,10 @@ html, body, #content, #map-container, #map {
 .view-report-btn:hover {
     background: #5384c58f;
 }
+
+.error-message {
+    color: red;
+    font-size: 0.9rem;
+    display: block;
+    margin-bottom: 1px;
+}

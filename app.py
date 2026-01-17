@@ -1,14 +1,10 @@
 from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
-from flask_mail import Mail, Message
-import random
 from datetime import datetime
-import google.genai as genai
-import os
-from dotenv import load_dotenv
 from openai import OpenAI
 from fuzzywuzzy import fuzz, process
+import random, google.genai as genai, os, re, resend
 
 os.environ["GRPC_VERBOSITY"] = "ERROR"
 os.environ["GLOG_minloglevel"] = "2"
@@ -16,14 +12,6 @@ os.environ["GLOG_minloglevel"] = "2"
 app = Flask(__name__)
 app.config["SECRET_KEY"] = "sixseven67"
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///cyberpath.db"
-app.config["MAIL_SERVER"] = "smtp.gmail.com"
-app.config["MAIL_PORT"] = 587
-app.config["MAIL_USE_TLS"] = True
-app.config["MAIL_USE_SSL"] = False
-app.config["MAIL_USERNAME"] = "cyberpathotp@gmail.com" 
-app.config["MAIL_PASSWORD"] = "onjl mije yxkv ruit"
-app.config["MAIL_DEFAULT_SENDER"] = "cyberpathotp@gmail.com"
-mail = Mail(app)
 db = SQLAlchemy(app)
 
 
@@ -44,7 +32,7 @@ class Marker(db.Model):
     latitude = db.Column(db.Float, nullable=False)
     longitude = db.Column(db.Float, nullable=False)
     description = db.Column(db.Text)
-    timeadded = db.Column(db.DateTime, default=db.func.current_timestamp())
+    timeadded = db.Column(db.DateTime, default=datetime.now)
     category_id = db.Column(db.Integer, db.ForeignKey("category.id"), nullable=True)
     
 class Category(db.Model):
@@ -52,6 +40,11 @@ class Category(db.Model):
     name = db.Column(db.String(100), unique=True, nullable=False)
     markers = db.relationship("Marker", backref="category", lazy=True)
 
+class Feedback(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    subject = db.Column(db.Text, nullable=False)
+    description = db.Column(db.Text, nullable=False)
+    time_submitted = db.Column(db.DateTime, default=datetime.now)
 
 with app.app_context():
     #db.drop_all()
@@ -78,15 +71,41 @@ def index():
         user = User.query.filter_by(email=user_email).first()
 
     categories = Category.query.all()
-
     return render_template("index.html", user=user, categories=categories)
 
 
 #---------------------------------------------------------------------------------------------------------------------------------
-# Account Functionality
+# Admin Functionality
 #---------------------------------------------------------------------------------------------------------------------------------
 
 referral_code = 961523
+
+resend.api_key = "pretend-this-is-a-real-resend-api-key"
+
+def send_email(to, subject, body):
+    try:
+        resend.Emails.send({
+            "from": "CyberPath <no-reply@cyberpath.app>",
+            "to": to,
+            "subject": subject,
+            "text": body
+        })
+    except Exception as e:
+        print("Resend email failed:", e)
+
+
+def is_valid_password(password):
+    if len(password) < 8:
+        return False
+
+    if not re.search(r"[A-Z]", password):
+        return False
+
+    if not re.search(r"\d", password):
+        return False
+
+    return True
+
 
 @app.route("/signup", methods=["POST"])
 def signup():
@@ -94,15 +113,16 @@ def signup():
     email = request.form["email"]
     password = request.form["password"]
 
+    if referral and int(referral) != referral_code:
+        return jsonify({"success": False, "field": "referral", "message": "Invalid referral code!"})
+    
     existing = User.query.filter_by(email=email).first()
     if existing:
-        flash("Email already exists!", "error")
-        return redirect(url_for("index"))
+        return jsonify({"success": False, "field": "email", "message": "Email already exists!"})
 
-    if referral and int(referral) != referral_code:
-        flash("Invalid referral code!", "error")   
-        return redirect(url_for("index"))
-
+    if not is_valid_password(password):
+        return jsonify({"success": False, "field": "password", "message": "Password must have at least 8 characters, including 1 uppercase and 1 number."})
+    
     hashed_password = generate_password_hash(password)
 
     if email.lower() == "hozhenxiang@gmail.com":
@@ -160,18 +180,6 @@ def signin():
     else:
         flash("Invalid email or password!", "error")
         return redirect(url_for("index"))
-    
-
-def send_email(to, subject, body):
-    try:
-        msg = Message(
-            subject=subject,
-            recipients=[to],
-            body=body
-        )
-        mail.send(msg)
-    except Exception as e:
-        print("Email failed:", e)
 
 
 @app.route("/admin/approve/<int:user_id>", methods=["POST"])
@@ -302,6 +310,9 @@ def verify_forgot_otp():
     if new_password != confirm_password:
         return jsonify({"success": False, "message": "Passwords do not match"})
 
+    if not is_valid_password(new_password):
+        return jsonify({"success": False, "message": "Passwords must be at least 8 characters long, contain at least one uppercase letter and one number."})
+    
     user = User.query.filter_by(email=session["forgot_email"]).first()
 
     if check_password_hash(user.password, new_password):
@@ -373,6 +384,7 @@ def get_admins():
         })
     return jsonify(result)
 
+
 @app.route("/api/admin/<int:user_id>")
 def get_admin_profile(user_id):
     if not session.get("admin_logged_in"):
@@ -430,6 +442,10 @@ def change_password():
 
     if not user or not check_password_hash(user.password, current_password):
         flash("Current password is incorrect!", "change_password_error")
+        return redirect(url_for("index"))
+
+    if not is_valid_password(new_password):
+        flash("Password must be at least 8 characters long, contain at least one uppercase letter and one number.", "change_password_error")
         return redirect(url_for("index"))
 
     if new_password != confirm_password:
@@ -529,14 +545,61 @@ def delete_marker(marker_id):
 
     return redirect(url_for("index"))
 
-# ===========================================
-# AI CHATBOT SECTION
-# ===========================================
+#---------------------------------------------------------------------------------------------------------------------------------
+# Feedback functions
+#---------------------------------------------------------------------------------------------------------------------------------
+
+@app.route("/feedback", methods=["POST"])
+def feedback():
+    subject = request.form["subject"]
+    description = request.form["description"]
+
+    new_feedback = Feedback(subject=subject, description=description)
+    db.session.add(new_feedback)
+    db.session.commit()
+
+    flash("Feedback submitted successfully!", "success")
+    return redirect(url_for("index"))
 
 
+@app.route("/api/feedbacks")
+def get_feedbacks():
+    if not session.get("admin_logged_in"):
+        return jsonify({"success": False}), 403
 
-gemini_api_key = "AIzaSyABz3uYHXkTVf-3G2H_PEiqvc2cy8wq45Q"
-openrouter_api_key = "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"
+    feedbacks = Feedback.query.order_by(Feedback.time_submitted.desc()).all()
+
+    return jsonify({
+        "success": True,
+        "feedbacks": [
+            {
+                "id": fb.id,
+                "subject": fb.subject,
+                "description": fb.description,
+                "time": fb.time_submitted.strftime("%Y-%m-%d %H:%M")
+            }
+            for fb in feedbacks
+        ]
+    })
+   
+
+# @app.route("/delete-feedback/<int:feedback_id>", methods=["POST"])
+# def delete_feedback(feedback_id):
+#     if not session.get("admin_logged_in"):
+#         return redirect(url_for("index"))
+    
+#     feedback = Feedback.query.get_or_404(feedback_id)
+#     db.session.delete(feedback)
+#     db.session.commit()
+
+#     return redirect(url_for("index"))
+
+#---------------------------------------------------------------------------------------------------------------------------------
+# AI chatbot
+#---------------------------------------------------------------------------------------------------------------------------------
+
+gemini_api_key = "pretend-this-is-a-real-gemini-api-key"
+openrouter_api_key = "pretend-this-is-a-real-openrouter-api-key"
 
 # Initialize client as None
 gemini_client = None
@@ -607,7 +670,6 @@ def get_ai_response(user_message, campus_info):
     return "I'm here to help with campus navigation! Try asking about specific locations like the library, labs, or cafeteria."
     
 
-
 @app.route("/chatbot/ask", methods=["POST"])
 def chatbot_ask():
     user_message = request.json.get("message", "").strip()
@@ -657,6 +719,45 @@ def chatbot_ask():
 
         answer = get_ai_response(user_message, campus_info)
         print(f"✅ AI Response: {answer[:100]}...")  # Debug
+        campus_info = """
+        You are a helpful assistant for Multimedia University (MMU) Cyberjaya campus.
+        Your name is CyberPath Assistant.
+        
+        You help with:
+        1. Finding locations on campus
+        2. Giving directions
+        3. Answering questions about campus facilities
+        4. Navigation help
+        
+        The campus has:
+        - Lecture halls
+        - Labs
+        - Offices
+        - Food places
+        - Recreations
+        - Other facilities
+        
+        If someone asks about a location, try to give helpful information.
+        If they want directions, explain they can use the navigation system.
+        Be friendly and helpful.
+        Keep answers short and clear.   
+        """
+
+        full_prompt = f"{campus_info}\n\nUser asks: {user_message}\n\nYour helpful answer:"
+
+        if client:
+            try:
+                response = client.models.generate_content(
+                    model="gemini-3-flash-preview",
+                    contents=full_prompt
+                )
+                answer = response.text
+                print(f"✅ AI Response: {answer[:100]}...")  # Debug
+            except Exception as e:
+                print(f"Gemini API error: {e}")
+                answer = "Sorry, I'm having trouble accessing the chatbot service right now."
+        else:   
+            answer = "Chatbot is currently unavailable."    
 
         location_data = check_for_location(user_message)
 
@@ -675,6 +776,7 @@ def chatbot_ask():
             "response": "I'm here to help with campus navigation! Try asking about locations or directions."
         })
     
+
 def check_for_location(user_message):
     markers = Marker.query.all()
     locationNames = [marker.name for marker in markers]
@@ -736,7 +838,6 @@ def check_for_location(user_message):
                                 "location_description": marker.description, 
                                 }
     return {}
-
 
 
 #---------------------------------------------------------------------------------------------------------------------------------
