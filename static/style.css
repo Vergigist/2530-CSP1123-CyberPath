@@ -739,7 +739,7 @@ html, body, #content, #map-container, #map {
     box-shadow: 0 3px 8px rgba(33, 150, 243, 0.3);
 }
 
-.view-report-btn{
+.view-feedback-btn{
     float: right;
     background: #6babff8f;
     color: black;
@@ -749,8 +749,26 @@ html, body, #content, #map-container, #map {
     cursor: pointer;
 }
 
-.view-report-btn:hover {
+.view-feedback-btn:hover {
     background: #5384c58f;
+}
+
+#approveFeedbackBtn{
+    background:rgb(19, 133, 4) ;
+    color: white;
+}
+
+#approveFeedbackBtn:hover {
+    background:#26ad0b ;
+}
+
+#ignoreFeedbackBtn{
+    background: #b30000;
+    color: white;
+}
+
+#ignoreFeedbackBtn:hover {
+    background: #e60000;
 }
 
 /* Indoor control panel (UI) */
@@ -792,7 +810,8 @@ html, body, #content, #map-container, #map {
 /* Old #floorImage and #indoorMarkers are no longer needed */
 #floorImage, #indoorMarkers {
     display: none;
-  
+}
+
 .error-message {
     color: red;
     font-size: 0.9rem;
