@@ -391,7 +391,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const feedbackDescription = document.getElementById("feedbackDescription");
     const feedbackTimeSubmitted = document.getElementById("feedbackTimeSubmitted");
 
-    const deleteFeedbackBtn = document.getElementById("deleteFeedbackBtn");
+    const approveFeedbackBtn = document.getElementById("approveFeedbackBtn");
+    const ignoreFeedbackBtn = document.getElementById("ignoreFeedbackBtn");
 
     async function loadFeedbacks() {
         const feedbackList = document.getElementById("feedbackList");
@@ -432,32 +433,12 @@ document.addEventListener("DOMContentLoaded", () => {
             alert("Error loading feedbacks.");
         }
     }
+    approveFeedbackBtn.addEventListener("click", async () => {
+        
+    });
 
-    deleteFeedbackBtn.addEventListener("click", async () => {
-        if (!currentFeedbackId) return;
-
-        if (!confirm("Are you sure you want to delete this feedback?")) return;
-
-        try {
-            const res = await fetch(`/delete-feedback/${currentFeedbackId}`, {
-                method: "POST"
-            });
-
-            if (res.ok) {
-                alert("Feedback deleted successfully!");
-                feedbackDetailsPopup.classList.add("hidden");
-                viewFeedbackPopup.classList.remove("hidden");
-
-                await loadFeedbacks();
-
-                currentFeedbackId = null;
-            } else {
-                alert("Failed to delete feedback.");
-            }
-        } catch (err) {
-            console.error(err);
-            alert("Error deleting feedback.");
-        }
+    ignoreFeedbackBtn.addEventListener("click", async () => {
+        
     });
 
     viewFeedbackBtn.addEventListener("click", async () => {

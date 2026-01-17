@@ -1,22 +1,17 @@
 from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
-from flask_mail import Mail, Message
 from datetime import datetime
-from dotenv import load_dotenv
-import random, google.genai as genai, os, re
+from openai import OpenAI
+from fuzzywuzzy import fuzz, process
+import random, google.genai as genai, os, re, resend
+
+os.environ["GRPC_VERBOSITY"] = "ERROR"
+os.environ["GLOG_minloglevel"] = "2"
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = "sixseven67"
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///cyberpath.db"
-app.config["MAIL_SERVER"] = "smtp.gmail.com"
-app.config["MAIL_PORT"] = 587
-app.config["MAIL_USE_TLS"] = True
-app.config["MAIL_USE_SSL"] = False
-app.config["MAIL_USERNAME"] = "cyberpathotp@gmail.com" 
-app.config["MAIL_PASSWORD"] = "onjl mije yxkv ruit"
-app.config["MAIL_DEFAULT_SENDER"] = "cyberpathotp@gmail.com"
-mail = Mail(app)
 db = SQLAlchemy(app)
 
 
@@ -84,6 +79,19 @@ def index():
 #---------------------------------------------------------------------------------------------------------------------------------
 
 referral_code = 961523
+
+resend.api_key = "pretend-this-is-a-real-resend-api-key"
+
+def send_email(to, subject, body):
+    try:
+        resend.Emails.send({
+            "from": "CyberPath <no-reply@cyberpath.app>",
+            "to": to,
+            "subject": subject,
+            "text": body
+        })
+    except Exception as e:
+        print("Resend email failed:", e)
 
 
 def is_valid_password(password):
@@ -172,18 +180,6 @@ def signin():
     else:
         flash("Invalid email or password!", "error")
         return redirect(url_for("index"))
-    
-
-def send_email(to, subject, body):
-    try:
-        msg = Message(
-            subject=subject,
-            recipients=[to],
-            body=body
-        )
-        mail.send(msg)
-    except Exception as e:
-        print("Email failed:", e)
 
 
 @app.route("/admin/approve/<int:user_id>", methods=["POST"])
@@ -466,39 +462,6 @@ def change_password():
     flash("Password changed successfully!", "success")
     return redirect(url_for("index"))
 
-
-@app.route("/api/feedbacks")
-def get_feedbacks():
-    if not session.get("admin_logged_in"):
-        return jsonify({"success": False}), 403
-
-    feedbacks = Feedback.query.order_by(Feedback.time_submitted.desc()).all()
-
-    return jsonify({
-        "success": True,
-        "feedbacks": [
-            {
-                "id": fb.id,
-                "subject": fb.subject,
-                "description": fb.description,
-                "time": fb.time_submitted.strftime("%Y-%m-%d %H:%M")
-            }
-            for fb in feedbacks
-        ]
-    })
-   
-
-@app.route("/delete-feedback/<int:feedback_id>", methods=["POST"])
-def delete_feedback(feedback_id):
-    if not session.get("admin_logged_in"):
-        return redirect(url_for("index"))
-    
-    feedback = Feedback.query.get_or_404(feedback_id)
-    db.session.delete(feedback)
-    db.session.commit()
-
-    return redirect(url_for("index"))
-
 #---------------------------------------------------------------------------------------------------------------------------------
 # Location Management Functionality
 #---------------------------------------------------------------------------------------------------------------------------------
@@ -583,7 +546,7 @@ def delete_marker(marker_id):
     return redirect(url_for("index"))
 
 #---------------------------------------------------------------------------------------------------------------------------------
-# User functions
+# Feedback functions
 #---------------------------------------------------------------------------------------------------------------------------------
 
 @app.route("/feedback", methods=["POST"])
@@ -597,12 +560,46 @@ def feedback():
 
     flash("Feedback submitted successfully!", "success")
     return redirect(url_for("index"))
+
+
+@app.route("/api/feedbacks")
+def get_feedbacks():
+    if not session.get("admin_logged_in"):
+        return jsonify({"success": False}), 403
+
+    feedbacks = Feedback.query.order_by(Feedback.time_submitted.desc()).all()
+
+    return jsonify({
+        "success": True,
+        "feedbacks": [
+            {
+                "id": fb.id,
+                "subject": fb.subject,
+                "description": fb.description,
+                "time": fb.time_submitted.strftime("%Y-%m-%d %H:%M")
+            }
+            for fb in feedbacks
+        ]
+    })
+   
+
+# @app.route("/delete-feedback/<int:feedback_id>", methods=["POST"])
+# def delete_feedback(feedback_id):
+#     if not session.get("admin_logged_in"):
+#         return redirect(url_for("index"))
+    
+#     feedback = Feedback.query.get_or_404(feedback_id)
+#     db.session.delete(feedback)
+#     db.session.commit()
+
+#     return redirect(url_for("index"))
+
 #---------------------------------------------------------------------------------------------------------------------------------
 # AI chatbot
 #---------------------------------------------------------------------------------------------------------------------------------
 
-load_dotenv()  
-gemini_api_key = os.getenv("GEMINI_API_KEY")
+gemini_api_key = "pretend-this-is-a-real-gemini-api-key"
+openrouter_api_key = "pretend-this-is-a-real-openrouter-api-key"
 
 # Initialize client as None
 gemini_client = None
@@ -672,8 +669,6 @@ def get_ai_response(user_message, campus_info):
     print("❌ All AI providers failed")
     return "I'm here to help with campus navigation! Try asking about specific locations like the library, labs, or cafeteria."
     
-
-
 
 @app.route("/chatbot/ask", methods=["POST"])
 def chatbot_ask():
