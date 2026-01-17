@@ -753,6 +753,46 @@ html, body, #content, #map-container, #map {
     background: #5384c58f;
 }
 
+/* Indoor control panel (UI) */
+#indoorPanel {
+    position: absolute;
+    top: 40%;
+    left: 20%;
+    width: 260px;
+    background: #fff;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+    border-radius: 8px;
+    padding: 12px;
+    display: none;
+    z-index: 1000;
+}
+
+#indoorPanel button {
+    width: 100%;
+    margin-bottom: 8px;
+    padding: 8px;
+}
+
+/* Indoor container for floor image */
+#indoorContainer {
+    position: absolute;
+    top: 10%;
+    left: 15%;
+    width: 70%;
+    height: 70%;
+    z-index: 800;
+    pointer-events: none; /* pass clicks to Leaflet map */
+}
+
+/* If buttons inside container */
+#indoorContainer button {
+    pointer-events: auto; /* buttons remain clickable */
+}
+
+/* Old #floorImage and #indoorMarkers are no longer needed */
+#floorImage, #indoorMarkers {
+    display: none;
+  
 .error-message {
     color: red;
     font-size: 0.9rem;
