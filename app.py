@@ -778,8 +778,7 @@ def check_for_location(user_message):
     return {}
 
 
-# Call this after db initialization
-create_initial_admin()
+
 
 
 
