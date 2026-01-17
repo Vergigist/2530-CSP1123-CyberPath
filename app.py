@@ -576,7 +576,7 @@ def delete_marker(marker_id):
 
 
 gemini_api_key = os.environ.get("GEMINI_API_KEY") 
-openrouter_api_key = os.environ.get("OPENROUTER_API_KEY") #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
+openrouter_api_key = os.environ.get("OPENROUTER_API_KEY")
 
 # Initialize client as None
 gemini_client = None
