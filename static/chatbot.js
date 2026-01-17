@@ -116,8 +116,8 @@ function setupChatbot() {
             // Check if GPS is available
             if (window.userLocation) {
                 // Use your existing routing system
-                if (window.router && typeof window.router.createRoute === 'function') {
-                    window.router.createRoute(lat, lng);
+                if (window.router && typeof window.router.createNodeRoute === 'function') {
+                    window.router.createNodeRoute(lat, lng);
                     addMessageToChat(`✅ Creating route to ${locationName}! Check the map for the blue path.`, false);
                     
                     // Close chatbot to show map

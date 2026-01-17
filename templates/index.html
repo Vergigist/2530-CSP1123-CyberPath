@@ -175,6 +175,7 @@
                 <button class="admin-btn" id="pendingApprovalsBtn">Pending Approvals</button>
                 <button class="admin-btn" id="manageAdminsBtn">Manage Admins</button>
                 <button class="admin-btn" id="viewFeedbackBtn">View Reports</button>
+                <button class="admin-btn" id="nodeControlsBtn">Manage Walking Paths</button>
             </div>
             <div id="signout-profile">
                 {% if session.get("admin_logged_in") %}
@@ -609,12 +610,48 @@
         </div>
 
 
+<div id="nodePanel" class="popup hidden">
+    <div class="popup-content" style="width: 400px; max-height: 500px;">
+        <span class="close-btn" id="closeNodePanel">&times;</span>
+        <h2 style="margin-top: 0;">Manage Walking Paths</h2>
+        
+        <div style="margin-bottom: 20px;">
+            <button id="addNodeBtn" class="admin-btn" style="width: 100%; margin-bottom: 10px;">
+                Add New Node
+            </button>
+            <button id="connectNodesBtn" class="admin-btn" style="width: 100%;">
+                Connect Nodes
+            </button>
+        </div>
+        
+        <div id="nodeStatus" style="
+            padding: 12px;
+            background: #f5f5f5;
+            border-radius: 5px;
+            border-left: 4px solid #2196F3;
+            margin: 10px 0;
+            min-height: 40px;
+            font-size: 14px;
+        ">
+            Click a button above to start
+        </div>
+        
+        <div style="margin-top: 20px; border-top: 1px solid #eee; padding-top: 15px;">
+            <h4>Existing Nodes:</h4>
+            <div id="nodeList" style="max-height: 200px; overflow-y: auto;">
+                <!-- Nodes will be listed here -->
+            </div>
+        </div>
+    </div>
+</div>
+
     </div>
     <script src="{{ url_for('static', filename='routing.js') }}"></script>
     <script src="{{ url_for('static', filename='gps.js') }}"></script>
     <script src="{{ url_for('static', filename='script.js') }}"></script>
     <script src="{{ url_for('static', filename='indoor.js') }}"></script>
     <script src="{{ url_for('static', filename='chatbot.js') }}"></script>
+    <script src="{{ url_for('static', filename='nodes.js') }}"></script>
 
 
 

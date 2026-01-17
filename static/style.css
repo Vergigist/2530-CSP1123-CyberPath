@@ -818,3 +818,84 @@ html, body, #content, #map-container, #map {
     display: block;
     margin-bottom: 1px;
 }
+
+/* Node Admin Styles */
+#nodeControlsBtn {
+    background: #444;
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+#nodeControlsBtn:hover {
+    background: #666; /* Changed from #444 to #666 for hover effect */
+}
+
+/* FIX: Changed from .node-panel to #nodePanel to match your HTML */
+#nodePanel {
+    position: fixed; /* Changed from absolute to fixed for better positioning */
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+    z-index: 2000;
+    width: 400px;
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+#nodePanel h3 {
+    margin: 0 0 15px 0;
+    color: #333;
+}
+
+#nodePanel button {
+    display: block;
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 10px;
+    background: #2196F3;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+#nodePanel button:hover {
+    background: #1976D2;
+}
+
+/* FIX: Removed duplicate - keep this one only */
+#nodeStatus {
+    margin: 10px 0;
+    padding: 12px;
+    background: #f5f5f5;
+    border-radius: 5px;
+    font-size: 14px;
+    min-height: 40px;
+    border-left: 4px solid #2196F3;
+    transition: all 0.3s ease;
+}
+
+.hidden {
+    display: none !important;
+}
+
+/* Visual guide for add node mode */
+.crosshair-cursor {
+    cursor: crosshair !important;
+}
+
+/* Node Markers - keep as is */
+.node-marker {
+    background: transparent;
+    border: none;
+}

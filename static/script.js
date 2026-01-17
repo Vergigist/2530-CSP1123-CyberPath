@@ -230,7 +230,7 @@ locationList.addEventListener("click", (e) => {
     }
 
     // Create the route
-    const routeHere = router.createRoute(targetLat, targetLng);
+    const routeHere = router.createNodeRoute(targetLat, targetLng);
     alert(`✅ Route created to ${locationName}! Follow the directions on the map. `);
     
     if (!routeHere) {

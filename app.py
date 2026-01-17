@@ -2,6 +2,7 @@ from flask import Flask, render_template, request, redirect, url_for, flash, ses
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime
+import math
 from openai import OpenAI
 from fuzzywuzzy import fuzz, process
 import random, google.genai as genai, os, re, resend
@@ -14,6 +15,338 @@ app.config["SECRET_KEY"] = "sixseven67"
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///cyberpath.db"
 db = SQLAlchemy(app)
 
+#---------------------------------------------------------------------------------------------------------------------------------
+# Node-based Routing Models
+#---------------------------------------------------------------------------------------------------------------------------------
+
+class Node(db.Model):
+    """Walking path node/intersection"""
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100))
+    latitude = db.Column(db.Float, nullable=False)
+    longitude = db.Column(db.Float, nullable=False)
+    type = db.Column(db.String(50))  # 'intersection', 'entrance', 'stair', 'ramp', 'landmark'
+    is_indoor = db.Column(db.Boolean, default=False)
+    building_id = db.Column(db.String(50), nullable=True)  # 'fci', 'fcm', etc.
+    floor = db.Column(db.Integer, nullable=True)
+    
+class Edge(db.Model):
+    """Connection between nodes with walking info"""
+    id = db.Column(db.Integer, primary_key=True)
+    node_a_id = db.Column(db.Integer, db.ForeignKey('node.id'), nullable=False)
+    node_b_id = db.Column(db.Integer, db.ForeignKey('node.id'), nullable=False)
+    distance = db.Column(db.Float)  # in meters
+    walking_time = db.Column(db.Float)  # in seconds
+    is_bidirectional = db.Column(db.Boolean, default=True)
+    path_type = db.Column(db.String(50))  # 'sidewalk', 'pedestrian', 'stair', 'ramp', 'hallway'
+    is_indoor = db.Column(db.Boolean, default=False)
+    
+    # Relationships
+    node_a = db.relationship('Node', foreign_keys=[node_a_id])
+    node_b = db.relationship('Node', foreign_keys=[node_b_id])
+
+class LocationNode(db.Model):
+    """Connect markers (destinations) to nearest nodes"""
+    id = db.Column(db.Integer, primary_key=True)
+    marker_id = db.Column(db.Integer, db.ForeignKey('marker.id'), nullable=False)
+    node_id = db.Column(db.Integer, db.ForeignKey('node.id'), nullable=False)
+    
+    # Relationships
+    marker = db.relationship('Marker')
+    node = db.relationship('Node')
+
+    #---------------------------------------------------------------------------------------------------------------------------------
+# Node Management API
+#---------------------------------------------------------------------------------------------------------------------------------
+
+@app.route("/api/nodes", methods=["GET"])
+def get_nodes():
+    nodes = Node.query.all()
+    return jsonify([{
+        "id": n.id,
+        "name": n.name,
+        "latitude": n.latitude,
+        "longitude": n.longitude,
+        "type": n.type,
+        "is_indoor": n.is_indoor,
+        "building_id": n.building_id,
+        "floor": n.floor
+    } for n in nodes])
+
+@app.route("/api/edges", methods=["GET"])
+def get_edges():
+    edges = Edge.query.all()
+    return jsonify([{
+        "id": e.id,
+        "node_a_id": e.node_a_id,
+        "node_b_id": e.node_b_id,
+        "distance": e.distance,
+        "walking_time": e.walking_time,
+        "path_type": e.path_type,
+        "is_bidirectional": e.is_bidirectional
+    } for e in edges])
+
+@app.route("/api/location-nodes", methods=["GET"])
+def get_location_nodes():
+    connections = LocationNode.query.all()
+    return jsonify([{
+        "id": c.id,
+        "marker_id": c.marker_id,
+        "node_id": c.node_id,
+        "marker_name": c.marker.name,
+        "node_name": c.node.name
+    } for c in connections])
+
+@app.route("/api/add-node", methods=["POST"])
+def add_node():
+    if not session.get("admin_logged_in"):
+        return jsonify({"success": False, "message": "Unauthorized"}), 403
+    
+    data = request.get_json()
+    
+    # Validate coordinates
+    try:
+        lat = float(data["latitude"])
+        lng = float(data["longitude"])
+    except:
+        return jsonify({"success": False, "message": "Invalid coordinates"})
+    
+    new_node = Node(
+        name=data.get("name", ""),
+        latitude=lat,
+        longitude=lng,
+        type=data.get("type", "intersection"),
+        is_indoor=data.get("is_indoor", False),
+        building_id=data.get("building_id"),
+        floor=data.get("floor")
+    )
+    
+    db.session.add(new_node)
+    db.session.commit()
+    
+    return jsonify({"success": True, "id": new_node.id, "message": "Node added"})
+
+@app.route("/api/add-edge", methods=["POST"])
+def add_edge():
+    if not session.get("admin_logged_in"):
+        return jsonify({"success": False, "message": "Unauthorized"}), 403
+    
+    data = request.get_json()
+    
+    # Calculate distance
+    node_a = Node.query.get(data["node_a_id"])
+    node_b = Node.query.get(data["node_b_id"])
+    
+    if not node_a or not node_b:
+        return jsonify({"success": False, "message": "Invalid nodes"})
+    
+    # Calculate distance in meters
+    distance = calculate_distance(
+        node_a.latitude, node_a.longitude,
+        node_b.latitude, node_b.longitude
+    )
+    
+    # Estimate walking time (assuming 1.4 m/s walking speed)
+    walking_time = distance / 1.4
+    
+    new_edge = Edge(
+        node_a_id=data["node_a_id"],
+        node_b_id=data["node_b_id"],
+        distance=distance,
+        walking_time=walking_time,
+        is_bidirectional=data.get("is_bidirectional", True),
+        path_type=data.get("path_type", "sidewalk"),
+        is_indoor=data.get("is_indoor", False)
+    )
+    
+    db.session.add(new_edge)
+    db.session.commit()
+    
+    return jsonify({"success": True, "id": new_edge.id, "message": "Path added"})
+
+@app.route("/api/connect-location", methods=["POST"])
+def connect_location():
+    if not session.get("admin_logged_in"):
+        return jsonify({"success": False, "message": "Unauthorized"}), 403
+    
+    data = request.get_json()
+    
+    # Check if connection already exists
+    existing = LocationNode.query.filter_by(
+        marker_id=data["marker_id"],
+        node_id=data["node_id"]
+    ).first()
+    
+    if existing:
+        return jsonify({"success": False, "message": "Already connected"})
+    
+    new_connection = LocationNode(
+        marker_id=data["marker_id"],
+        node_id=data["node_id"]
+    )
+    
+    db.session.add(new_connection)
+    db.session.commit()
+    
+    return jsonify({"success": True, "message": "Location connected to node"})
+
+# Helper function for distance calculation
+def calculate_distance(lat1, lon1, lat2, lon2):
+    """Calculate distance between two points in meters using Haversine formula"""
+    R = 6371000  # Earth's radius in meters
+    
+    φ1 = math.radians(lat1)
+    φ2 = math.radians(lat2)
+    Δφ = math.radians(lat2 - lat1)
+    Δλ = math.radians(lon2 - lon1)
+    
+    a = math.sin(Δφ/2) * math.sin(Δφ/2) + \
+        math.cos(φ1) * math.cos(φ2) * \
+        math.sin(Δλ/2) * math.sin(Δλ/2)
+    
+    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1-a))
+    
+    return R * c
+
+#---------------------------------------------------------------------------------------------------------------------------------
+# Pathfinding Algorithm
+#---------------------------------------------------------------------------------------------------------------------------------
+
+@app.route("/api/calculate-route", methods=["POST"])
+def calculate_route():
+    data = request.get_json()
+    
+    start_lat = data["start_lat"]
+    start_lng = data["start_lng"]
+    end_lat = data["end_lat"]
+    end_lng = data["end_lng"]
+    
+    # 1. Find nearest nodes to start and end
+    all_nodes = Node.query.filter_by(is_indoor=False).all()  # Outdoor only for now
+    
+    start_node = find_nearest_node(start_lat, start_lng, all_nodes)
+    end_node = find_nearest_node(end_lat, end_lng, all_nodes)
+    
+    if not start_node or not end_node:
+        return jsonify({
+            "success": False, 
+            "message": "No path nodes found near start/end points"
+        })
+    
+    # 2. Find path using Dijkstra's algorithm
+    path_nodes = find_shortest_path(start_node.id, end_node.id)
+    
+    if not path_nodes:
+        return jsonify({"success": False, "message": "No path found"})
+    
+    # 3. Format path for Leaflet
+    path_coordinates = []
+    total_distance = 0
+    total_time = 0
+    
+    for i in range(len(path_nodes) - 1):
+        node_a = path_nodes[i]
+        node_b = path_nodes[i + 1]
+        
+        # Get edge between these nodes
+        edge = Edge.query.filter(
+            ((Edge.node_a_id == node_a.id) & (Edge.node_b_id == node_b.id)) |
+            ((Edge.node_a_id == node_b.id) & (Edge.node_b_id == node_a.id))
+        ).first()
+        
+        if edge:
+            total_distance += edge.distance
+            total_time += edge.walking_time
+        
+        # Add coordinates for polyline
+        path_coordinates.append([node_a.latitude, node_a.longitude])
+    
+    # Add final node
+    if path_nodes:
+        last_node = path_nodes[-1]
+        path_coordinates.append([last_node.latitude, last_node.longitude])
+    
+    return jsonify({
+        "success": True,
+        "path": path_coordinates,
+        "distance": round(total_distance, 1),
+        "time": round(total_time, 1),
+        "steps": len(path_nodes) - 1,
+        "start_node": {"id": start_node.id, "name": start_node.name},
+        "end_node": {"id": end_node.id, "name": end_node.name}
+    })
+
+def find_nearest_node(lat, lng, nodes):
+    """Find the nearest node to given coordinates"""
+    nearest = None
+    min_distance = float('inf')
+    
+    for node in nodes:
+        distance = calculate_distance(lat, lng, node.latitude, node.longitude)
+        if distance < min_distance and distance < 100:  # Within 100 meters
+            min_distance = distance
+            nearest = node
+    
+    return nearest
+
+def find_shortest_path(start_node_id, end_node_id):
+    """Dijkstra's algorithm for shortest path"""
+    # Get all edges
+    edges = Edge.query.filter_by(is_bidirectional=True).all()
+    
+    # Build graph
+    graph = {}
+    for edge in edges:
+        if edge.node_a_id not in graph:
+            graph[edge.node_a_id] = []
+        if edge.node_b_id not in graph:
+            graph[edge.node_b_id] = []
+        
+        graph[edge.node_a_id].append((edge.node_b_id, edge.distance))
+        if edge.is_bidirectional:
+            graph[edge.node_b_id].append((edge.node_a_id, edge.distance))
+    
+    # Dijkstra's algorithm
+    distances = {node_id: float('inf') for node_id in graph}
+    previous = {node_id: None for node_id in graph}
+    distances[start_node_id] = 0
+    
+    unvisited = set(graph.keys())
+    
+    while unvisited:
+        # Get unvisited node with smallest distance
+        current = min(unvisited, key=lambda node_id: distances[node_id])
+        
+        if distances[current] == float('inf'):
+            break
+        
+        unvisited.remove(current)
+        
+        # If we reached the destination
+        if current == end_node_id:
+            break
+        
+        # Update distances to neighbors
+        for neighbor, weight in graph.get(current, []):
+            if neighbor in unvisited:
+                new_distance = distances[current] + weight
+                if new_distance < distances[neighbor]:
+                    distances[neighbor] = new_distance
+                    previous[neighbor] = current
+    
+    # Reconstruct path
+    if previous[end_node_id] is None:
+        return None
+    
+    path = []
+    current = end_node_id
+    while current is not None:
+        node = Node.query.get(current)
+        if node:
+            path.insert(0, node)
+        current = previous[current]
+    
+    return path
 
 #---------------------------------------------------------------------------------------------------------------------------------
 # Database Models
@@ -799,6 +1132,8 @@ def check_for_location(user_message):
                                 "location_description": marker.description, 
                                 }
     return {}
+
+
 
 
 #---------------------------------------------------------------------------------------------------------------------------------
