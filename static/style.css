@@ -792,7 +792,8 @@ html, body, #content, #map-container, #map {
 /* Old #floorImage and #indoorMarkers are no longer needed */
 #floorImage, #indoorMarkers {
     display: none;
-  
+}
+                
 .error-message {
     color: red;
     font-size: 0.9rem;
