@@ -121,7 +121,7 @@ def index():
 
 referral_code = 961523
 
-resend.api_key = "pretend-this-is-a-real-resend-api-key"
+resend.api_key = os.environ.get("RESEND_API_KEY")
 
 def send_email(to, subject, body):
     try:
