@@ -583,6 +583,22 @@ def get_feedbacks():
     })
    
 
+@app.route("/approve-feedback/<int:feedback_id>", methods=["POST"])
+def approve_feedback(feedback_id):
+    feedback = Feedback.query.get_or_404(feedback_id)
+
+
+    return redirect(url_for("index"))
+
+
+@app.route("/ignore-feedback/<int:feedback_id>", methods=["POST"])
+def ignore_feedback(feedback_id):
+    feedback = Feedback.query.get_or_404(feedback_id)
+    
+
+    return redirect(url_for("index"))
+
+
 # @app.route("/delete-feedback/<int:feedback_id>", methods=["POST"])
 # def delete_feedback(feedback_id):
 #     if not session.get("admin_logged_in"):
