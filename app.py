@@ -19,17 +19,14 @@ app = Flask(__name__)
 app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "dev-secret-key")
 
 database_url = os.environ.get('DATABASE_URL', 'sqlite:///cyberpath.db')
-if database_url:
-    if database_url.startswith("postgres://"):
-        database_url = database_url.replace("postgres://", "postgresql+pg8000://", 1)
-    elif database_url.startswith("postgresql://") and "+" not in database_url:
-        # If it's already postgresql:// but no driver specified, add pg8000
-        database_url = database_url.replace("postgresql://", "postgresql+pg8000://", 1)
+if database_url and database_url.startswith("postgres://"):
+    database_url = database_url.replace("postgres://", "postgresql+psycopg2://", 1)
+
 app.config["SQLALCHEMY_DATABASE_URI"] = database_url
 app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
     "pool_recycle": 300,  # Recycle connections after 5 minutes
     "pool_pre_ping": True,  # Verify connections before using
-    "pool_size": 5,  # Small pool for free tier
+    "pool_size": 3,  # Small pool for free tier
     "max_overflow": 2,
 }
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
