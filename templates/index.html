@@ -130,6 +130,11 @@
         <div id="map-container">
             <div id="map"></div>
             <div id="coords-display">Click on the map to get coordinates</div>
+            
+            <!-- Indoor overlay -->
+            <div id="indoorContainer" hidden>
+                <img id="floorImage">
+            </div>
         </div>
 
         <!-- Chatbot -->
@@ -330,8 +335,15 @@
         <div id="viewFeedbackPopup" class="popup hidden">
             <div class="popup-content">
                 <span id="closeViewFeedbackPopup" class="close-btn">&times;</span>
-                <h2>View Reports</h2>
-                <input type="text" id="searchLocation" class="popup-search" placeholder="Search reports...">
+                
+                <!--View Reports list-->
+                <div class="tab-header">
+                    <button id="viewFeedbackTabBtn" class="tab-btn active">View Feedback</button>
+                    <button id="viewHistoryTabBtn" class="tab-btn">View History</button>
+                </div>
+                
+                <h2 id="popupTitle">View Feedback</h2>
+                <input type="text" id="searchLocation" class="popup-search" placeholder="Search feedbacks...">
                 <div class="popup-row header">
                     <span>Name</span>
                     <span></span>
@@ -376,8 +388,10 @@
                     <label>Description:</label>
                     <textarea id="feedbackDescription" class="about-box" readonly></textarea>
 
-                    <button id="approveFeedbackBtn" class="admin-btn">Approve</button>
-                    <button id="ignoreFeedbackBtn" class="admin-btn">Ignore</button>
+                    <div class="tab-header">
+                        <button id="approveFeedbackBtn" class="admin-btn">Approve</button>
+                        <button id="ignoreFeedbackBtn" class="admin-btn">Ignore</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -583,13 +597,25 @@
 
             </div>
         </div>
+
+        <div id="indoorPanel">
+            <h2>FCI Building</h2>
+            <button onclick="loadFloor(4)">Floor 4</button>
+            <button onclick="loadFloor(3)">Floor 3</button>
+            <button onclick="loadFloor(2)">Floor 2</button>
+            <button onclick="loadFloor(1)">Floor 1</button>
+            <button onclick="loadFloor(0)">Ground</button>
+            <button onclick="exitIndoor()">Exit Building</button>
+        </div>
+
+
     </div>
-
-
     <script src="{{ url_for('static', filename='routing.js') }}"></script>
     <script src="{{ url_for('static', filename='gps.js') }}"></script>
     <script src="{{ url_for('static', filename='script.js') }}"></script>
+    <script src="{{ url_for('static', filename='indoor.js') }}"></script>
     <script src="{{ url_for('static', filename='chatbot.js') }}"></script>
+
 
 
 </body>

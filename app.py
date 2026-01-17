@@ -735,46 +735,7 @@ def chatbot_ask():
 
         answer = get_ai_response(user_message, campus_info)
         print(f"✅ AI Response: {answer[:100]}...")  # Debug
-        campus_info = """
-        You are a helpful assistant for Multimedia University (MMU) Cyberjaya campus.
-        Your name is CyberPath Assistant.
         
-        You help with:
-        1. Finding locations on campus
-        2. Giving directions
-        3. Answering questions about campus facilities
-        4. Navigation help
-        
-        The campus has:
-        - Lecture halls
-        - Labs
-        - Offices
-        - Food places
-        - Recreations
-        - Other facilities
-        
-        If someone asks about a location, try to give helpful information.
-        If they want directions, explain they can use the navigation system.
-        Be friendly and helpful.
-        Keep answers short and clear.   
-        """
-
-        full_prompt = f"{campus_info}\n\nUser asks: {user_message}\n\nYour helpful answer:"
-
-        if client:
-            try:
-                response = client.models.generate_content(
-                    model="gemini-3-flash-preview",
-                    contents=full_prompt
-                )
-                answer = response.text
-                print(f"✅ AI Response: {answer[:100]}...")  # Debug
-            except Exception as e:
-                print(f"Gemini API error: {e}")
-                answer = "Sorry, I'm having trouble accessing the chatbot service right now."
-        else:   
-            answer = "Chatbot is currently unavailable."    
-
         location_data = check_for_location(user_message)
 
         return jsonify({

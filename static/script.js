@@ -380,6 +380,7 @@ async function populateDeleteList() {
 //Admin View Feedback
 document.addEventListener("DOMContentLoaded", () => {
     let currentFeedbackId = null;
+    let currentView = "feedback";
 
     const viewFeedbackBtn = document.getElementById("viewFeedbackBtn");
     const viewFeedbackPopup = document.getElementById("viewFeedbackPopup");
@@ -393,6 +394,31 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const approveFeedbackBtn = document.getElementById("approveFeedbackBtn");
     const ignoreFeedbackBtn = document.getElementById("ignoreFeedbackBtn");
+
+    const viewFeedbackTabBtn = document.getElementById("viewFeedbackTabBtn");
+    const viewHistoryTabBtn = document.getElementById("viewHistoryTabBtn");
+    const popupTitle = document.getElementById("popupTitle");
+
+    viewFeedbackTabBtn.addEventListener("click", () => {
+        currentView = "feedback";
+        viewFeedbackTabBtn.classList.add("active");
+        viewHistoryTabBtn.classList.remove("active");
+        popupTitle.textContent = "View Reports";
+
+        feedbackDetailsPopup
+        .querySelector(".tab-form")
+        .classList.add("active"); // ← FIX
+
+        loadFeedbacks();
+    });
+
+    viewHistoryTabBtn.addEventListener("click", () => {
+        currentView = "history";
+        viewHistoryTabBtn.classList.add("active");
+        viewFeedbackTabBtn.classList.remove("active");
+        popupTitle.textContent = "View History";
+        loadHistory();
+    });
 
     async function loadFeedbacks() {
         const feedbackList = document.getElementById("feedbackList");
@@ -413,10 +439,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 div.innerHTML = `
                     <span>${fb.subject}</span>
-                    <button class="view-report-btn">View</button>
+                    <button class="view-feedback-btn">View</button>
                 `;
 
-                div.querySelector(".view-report-btn").addEventListener("click", () => {
+                div.querySelector(".view-feedback-btn").addEventListener("click", () => {
                     feedbackSubject.value = fb.subject;
                     feedbackTimeSubmitted.value = fb.time;
                     feedbackDescription.value = fb.description;
@@ -433,6 +459,47 @@ document.addEventListener("DOMContentLoaded", () => {
             alert("Error loading feedbacks.");
         }
     }
+
+    async function loadHistory() {
+        const feedbackList = document.getElementById("feedbackList");
+        feedbackList.innerHTML = "";
+
+        try {
+            const res = await fetch("/api/feedbacks/history");
+            const data = await res.json();
+
+            if (!data.success) {
+                alert("Failed to load history.");
+                return;
+            }
+
+            data.history.forEach(item => {
+                const div = document.createElement("div");
+                div.classList.add("reports-item");
+
+                div.innerHTML = `
+                    <span>${item.subject}</span>
+                    <button class="view-feedback-btn">View</button>
+                `;
+
+                div.querySelector(".view-feedback-btn").addEventListener("click", () => {
+                    feedbackSubject.value = item.subject;
+                    feedbackTimeSubmitted.value = item.time;
+                    feedbackDescription.value = item.description;
+
+                    currentFeedbackId = item.id;
+                    viewFeedbackPopup.classList.add("hidden");
+                    feedbackDetailsPopup.classList.remove("hidden");
+                });
+
+                feedbackList.appendChild(div);
+            });
+        } catch (err) {
+            console.error("Error loading history:", err);
+            alert("Error loading history.");
+        }
+    }
+    
     approveFeedbackBtn.addEventListener("click", async () => {
         
     });
