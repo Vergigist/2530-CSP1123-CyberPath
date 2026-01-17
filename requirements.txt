@@ -17,7 +17,7 @@ openai==1.30.0
 fuzzywuzzy==0.18.0
 python-Levenshtein==0.27.3
 gunicorn==21.2.0  # ADD THIS FOR RENDER
-pg8000==1.30.4  # ADD THIS FOR POSTGRESQL
+psycopg2-binary==2.9.9  # ADD THIS FOR POSTGRESQL
 
 # download Flask, and Flask -SQLAlchemy
 # run these in command prompt in the terminal:
