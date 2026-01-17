@@ -126,7 +126,7 @@ resend.api_key = os.environ.get("RESEND_API_KEY")
 def send_email(to, subject, body):
     try:
         resend.Emails.send({
-            "from": "CyberPath <cyberpath@resend.dev>",
+            "from": "CyberPath <no-reply@cyberpath.app>",
             "to": to,
             "subject": subject,
             "text": body
