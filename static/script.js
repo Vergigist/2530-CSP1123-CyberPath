@@ -45,7 +45,32 @@ const adminBtn = document.getElementById('adminBtn');
 const adminPopup = document.getElementById('adminPopup');
 const closePopupAdmin = document.getElementById('closePopup');
 
-adminBtn.addEventListener('click', () => adminPopup.style.display = 'flex');
+const signupForm = document.getElementById("signupForm");
+if (signupForm) {
+    signupForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        document.querySelectorAll(".error-message").forEach(el => el.textContent = "");
+
+        const formData = new FormData(signupForm);
+        const res = await fetch(signupForm.action, { method: "POST", body: formData });
+        const data = await res.json();
+
+        if (!data.success) {
+            if (data.field) {
+                const errorSpan = document.getElementById(data.field + "Error");
+                if (errorSpan) errorSpan.textContent = data.message;
+            }
+            return;
+        }
+    });
+}
+
+adminBtn.addEventListener('click', () => {
+    adminPopup.style.display = 'flex';
+    signupForm.querySelectorAll("input").forEach(input => input.value = "");
+    signupForm.querySelectorAll(".error-message").forEach(span => span.textContent = "");
+});
+
 closePopupAdmin.addEventListener('click', () => adminPopup.style.display = 'none');
 window.addEventListener('click', (e) => { if(e.target === adminPopup) adminPopup.style.display = 'none'; });
 
@@ -354,31 +379,80 @@ async function populateDeleteList() {
 
 //Admin View Feedback
 document.addEventListener("DOMContentLoaded", () => {
+    let currentFeedbackId = null;
+
     const viewFeedbackBtn = document.getElementById("viewFeedbackBtn");
     const viewFeedbackPopup = document.getElementById("viewFeedbackPopup");
     const closeViewFeedbackPopup = document.getElementById("closeViewFeedbackPopup");
-    const feedbackList = document.getElementById("feedbackList");
 
-    viewFeedbackBtn.addEventListener("click", () => {
-        viewFeedbackPopup.classList.remove("hidden");
+    const feedbackDetailsPopup = document.getElementById("feedbackDetailsPopup");
+    const closeFeedbackDetails = document.getElementById("closeFeedbackDetailsPopup");
+    const feedbackSubject = document.getElementById("feedbackSubject");
+    const feedbackDescription = document.getElementById("feedbackDescription");
+    const feedbackTimeSubmitted = document.getElementById("feedbackTimeSubmitted");
+
+    const approveFeedbackBtn = document.getElementById("approveFeedbackBtn");
+    const ignoreFeedbackBtn = document.getElementById("ignoreFeedbackBtn");
+
+    async function loadFeedbacks() {
+        const feedbackList = document.getElementById("feedbackList");
         feedbackList.innerHTML = "";
 
-        // Placeholder until reports table exists
-        for (let i = 1; i <= 3; i++) {
-            const div = document.createElement("div");
-            div.classList.add("reports-item");
-            div.innerHTML = `
-                <span>Report #${i}</span>
-                <span></span>
-                <span></span>
-                <button class="view-report-btn">View</button>
-            `;
-            feedbackList.appendChild(div);
+        try {
+            const res = await fetch("/api/feedbacks");
+            const data = await res.json();
+
+            if (!data.success) {
+                alert("Failed to load feedback.");
+                return;
+            }
+
+            data.feedbacks.forEach(fb => {
+                const div = document.createElement("div");
+                div.classList.add("reports-item");
+
+                div.innerHTML = `
+                    <span>${fb.subject}</span>
+                    <button class="view-report-btn">View</button>
+                `;
+
+                div.querySelector(".view-report-btn").addEventListener("click", () => {
+                    feedbackSubject.value = fb.subject;
+                    feedbackTimeSubmitted.value = fb.time;
+                    feedbackDescription.value = fb.description;
+
+                    currentFeedbackId = fb.id;
+                    viewFeedbackPopup.classList.add("hidden");
+                    feedbackDetailsPopup.classList.remove("hidden");
+                });
+
+                feedbackList.appendChild(div);
+            });
+        } catch (err) {
+            console.error("Error loading feedbacks:", err);
+            alert("Error loading feedbacks.");
         }
+    }
+    approveFeedbackBtn.addEventListener("click", async () => {
+        
+    });
+
+    ignoreFeedbackBtn.addEventListener("click", async () => {
+        
+    });
+
+    viewFeedbackBtn.addEventListener("click", async () => {
+        viewFeedbackPopup.classList.remove("hidden");
+        await loadFeedbacks();
     });
 
     closeViewFeedbackPopup.addEventListener("click", () => {
         viewFeedbackPopup.classList.add("hidden");
+    });
+
+    closeFeedbackDetails.addEventListener("click", () => {
+        feedbackDetailsPopup.classList.add("hidden");
+        viewFeedbackPopup.classList.remove("hidden");
     });
 });
 
@@ -401,7 +475,7 @@ document.addEventListener("DOMContentLoaded", () => {
         feedbackForm.classList.remove("active");
         feedbackForm.reset();
     });
-});
+})
 
 
 // Profile 
@@ -438,6 +512,7 @@ async function openProfile(userId = null, editable = true) {
         return false;
     }
 }
+
 
 document.getElementById("profileBtn")?.addEventListener("click", () => {
     openedFromManageAdmins = false;
