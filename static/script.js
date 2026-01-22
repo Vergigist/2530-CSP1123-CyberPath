@@ -8,6 +8,36 @@ var map = L.map('map', {
     maxZoom: 20   // allow zooming in super close
 });
 
+let campusGeoJSON = null;
+
+fetch("static/newcampus.geojson")
+  
+.then(response => response.json())
+  
+  .then(data => {
+    
+    campusGeoJSON = data;
+    console.log("Loaded GeoJSON!");
+    console.log("First coordinate:", campusGeoJSON.features[0].geometry.coordinates[0]);
+
+    const walkwayLayer = L.geoJSON(campusGeoJSON, {
+      style: {
+        color: "#000000",
+        weight: 2,
+        opacity: 0.1,
+        dashArray: "5, 5",
+        smoothFactor: 1.5
+      }
+    }).addTo(map);
+
+    map.fitBounds(walkwayLayer.getBounds());
+    
+    if (typeof buildGraphFromGeoJSON === "function") {
+      buildGraphFromGeoJSON();
+    }
+  })
+  .catch(error => console.error("Error loading GeoJSON:", error));
+
 // Add tile layer
 L.tileLayer(
     'https://{s}.basemaps.cartocdn.com/rastertiles/voyager_nolabels/{z}/{x}/{y}{r}.png',
@@ -206,36 +236,42 @@ searchInput.addEventListener("input", () => {
 });
 
 //danish pathing
+// Use a flag to prevent double clicks
+let routingInProgress = false;
+
 locationList.addEventListener("click", (e) => {
     const btn = e.target.closest(".path-btn");
     if (!btn) return;
 
-    const targetLat = parseFloat(btn.dataset.lat);
-    const targetLng = parseFloat(btn.dataset.lng);
-    const locationName = btn.dataset.name;
+    if (routingInProgress) return; // ignore if already routing
+    routingInProgress = true;
 
-    console.log("Pathing to: " + locationName + " (" + targetLat + ", " + targetLng + ")");
+    try {
+        const targetLat = parseFloat(btn.dataset.lat);
+        const targetLng = parseFloat(btn.dataset.lng);
+        const locationName = btn.dataset.name;
 
-    // if user location is not available
-    if (window.userLocation == null) {
-        alert("📍 Please enable GPS first by clicking 'Find My Location'!");
-        return;
+        if (!window.userLocation) {
+            alert("📍 Please enable GPS first!");
+            return;
+        }
+
+        if (!router?.createRoute) {
+            alert("Routing system not ready. Please refresh.");
+            return;
+        }
+
+        const routeHere = router.createRoute(targetLat, targetLng);
+        if (routeHere) {
+            alert(`✅ Route created to ${locationName}!`);
+        } else {
+            alert(`⚠️ Failed to create route to ${locationName}.`);
+        }
+    } finally {
+        routingInProgress = false; // reset flag
     }
-
-    // if router or createRoute is not available
-    if (!router || !router.createRoute) {
-        console.error("Router system not loaded!");
-        alert("Routing system error. Please refresh the page.");
-        return;
-    }
-
-    // Create the route
-    const routeHere = router.createRoute(targetLat, targetLng);
-    alert(`✅ Route created to ${locationName}! Follow the directions on the map. `);
-    
-    if (!routeHere) {
-        console.log("Failed to create route. Please try again."); }
 });
+
 
 // Edit Location
 const editLocationBtn = document.getElementById("editLocationBtn");

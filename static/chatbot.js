@@ -101,6 +101,7 @@ function setupChatbot() {
         <button class="directions-btn" 
                 data-lat="${coordinates.latitude}" 
                 data-lng="${coordinates.longitude}"
+                data-name="${escapeHtml(locationName)}"
                 style="padding: 8px 16px; background: #2196f3; color: white; border: none; border-radius: 4px; cursor: pointer;">
             🗺️ Get Walking Directions
         </button>
@@ -109,29 +110,46 @@ function setupChatbot() {
         chatMessages.appendChild(buttonDiv);
         
         const button = buttonDiv.querySelector('.directions-btn');
-        button.addEventListener('click', function() {
-            const lat = parseFloat(this.dataset.lat);
-            const lng = parseFloat(this.dataset.lng);
-            
-            // Check if GPS is available
-            if (window.userLocation) {
-                // Use your existing routing system
-                if (window.router && typeof window.router.createRoute === 'function') {
-                    window.router.createRoute(lat, lng);
-                    addMessageToChat(`✅ Creating route to ${locationName}! Check the map for the blue path.`, false);
-                    
-                    // Close chatbot to show map
-                    chatbotPopup.classList.add('hidden');
-                } else {
-                    alert("Routing system not available. Please refresh the page.");
+
+        // Remove existing listener first (optional but safe)
+        const newButton = button.cloneNode(true);
+        button.parentNode.replaceChild(newButton, button);
+
+        // Use a routing flag to prevent double-triggering
+        let routingInProgress = false;
+
+        newButton.addEventListener('click', function () {
+            if (routingInProgress) return; // ignore if already routing
+            routingInProgress = true;
+
+            try {
+                const lat = parseFloat(this.dataset.lat);
+                const lng = parseFloat(this.dataset.lng);
+                const locationName = this.dataset.name; // ensure you have a name attribute
+
+                if (!window.userLocation) {
+                    addMessageToChat("📍 Please click 'Find My Location' first.", false);
+                    return;
                 }
-            } else {
-                addMessageToChat("📍 Please click 'Find My Location' button first to enable GPS.", false);
+
+                if (!window.router?.createRoute) {
+                    alert("Routing system not ready. Please refresh the page.");
+                    return;
+                }
+
+                const routeLayer = window.router.createRoute(lat, lng);
+                if (routeLayer) {
+                    addMessageToChat(`✅ Creating route to ${locationName}! Check the map for the blue path.`, false);
+                    chatbotPopup.classList.add('hidden'); // close chatbot
+                } else {
+                    addMessageToChat(`⚠️ Failed to create route to ${locationName}.`, false);
+                }
+            } finally {
+                routingInProgress = false; // reset flag
             }
         });
-
-        chatMessages.scrollTop = chatMessages.scrollHeight;
-    }
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
 
     function escapeHtml(text) {
         const div = document.createElement('div');
