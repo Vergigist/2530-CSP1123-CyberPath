@@ -46,14 +46,16 @@ function setupChatbot() {
 
     function showThinking() {
         const thinkingDiv = document.createElement('div');
+        const isDark = document.body.classList.contains('dark-mode')
         thinkingDiv.innerHTML = `<strong>Assistant:</strong> Thinking...`;
         thinkingDiv.style.cssText = `
-            background: #e3f2fd;
+            background: ${isDark? '#1565c0' : 'e3f2fd'};
             padding: 10px;
             border-radius: 10px;
             margin: 10px 0;
             max-width: 80%;
-            border-left: 4px solid #2196f3;
+            border-left: 4px solid ${isDark ? '#0d47a1' : '#2196f3'};
+            color: ${isDark ? '#fff' : '#000'};
         `;
         chatMessages.appendChild(thinkingDiv);
         chatMessages.scrollTop = chatMessages.scrollHeight;
