@@ -1,22 +1,12 @@
-const indoorMarkers = L.layerGroup().addTo(map);
+const indoorMarkers = L.layerGroup();
 let indoorImageOverlay = null;
 
 let activeBuildingId = null;
 let activeBuilding = null;
 let activeFloor = null;
 
+let isIndoor = false;
 
-
-function createBuildingMarker(buildingId) {
-    const b = buildings[buildingId];
-
-    L.marker(b.center)
-        .addTo(outdoorMarkers)
-        .bindPopup(`
-            <b>${b.name}</b><br>
-            <button onclick="enterIndoor('${buildingId}')">Enter Building</button>
-        `);
-}
 
 /* =========================
     INDOOR DATA (DEMO ONLY)
@@ -81,7 +71,16 @@ function enterIndoor(buildingId) {
     activeBuildingId = buildingId;
     activeBuilding = buildings[buildingId];
 
-    outdoorMarkers.clearLayers();
+    isIndoor = true;
+    document.getElementById('outdoorCategoryDiv').style.display = 'none';
+    document.getElementById('indoorCategoryDiv').style.display = 'block';
+
+    // Hide outdoor markers
+    map.removeLayer(outdoorMarkers);
+    map.removeLayer(buildingMarkers);
+
+    // Show indoor markers
+    indoorMarkers.addTo(map);
 
     map.dragging.disable();
     map.scrollWheelZoom.disable();
@@ -96,50 +95,46 @@ function enterIndoor(buildingId) {
     loadFloor(1);
 }
 
-
-
 /* =========================
     LOAD FLOOR
 ========================= */
-function loadFloor(floorNumber) {
+async function loadFloor(floorNumber) {
     activeFloor = floorNumber;
 
     const floor = activeBuilding.floors[floorNumber];
     if (!floor || !floor.image) return;
 
-    // Remove previous floor image
     if (indoorImageOverlay) {
         map.removeLayer(indoorImageOverlay);
-        indoorImageOverlay = null;
     }
 
-    // Generate bounds around building center
     const bounds = boundsFromCenter(activeBuilding.center, 123);
 
-    // Add floor image as a Leaflet overlay
     indoorImageOverlay = L.imageOverlay(
         floor.image,
         bounds,
-        { opacity: 1, interactive: false } // not blocking clicks
+        { opacity: 1, interactive: false }
     ).addTo(map);
 
-    // Clear old indoor markers
     indoorMarkers.clearLayers();
 
-    // Add markers on top of floor image
-    floor.markers.forEach(m => {
-        if (m.lat && m.lng) {
-            L.marker([m.lat, m.lng])
-                .bindPopup(m.label || "")
-                .addTo(indoorMarkers);
-        }
+    // Load real indoor markers from DB
+    const response = await fetch("/api/indoor-markers");
+    const indoorData = await response.json();
+
+    const filtered = indoorData.filter(m =>
+        m.building === activeBuildingId &&
+        m.floor == activeFloor
+    );
+
+    filtered.forEach(m => {
+        L.marker([m.latitude, m.longitude])
+            .bindPopup(`<b>${m.name}</b><br>${m.description || ""}`)
+            .addTo(indoorMarkers);
     });
 
-    // Make sure markers are visually above the image
     indoorMarkers.bringToFront();
 }
-
-
 
 function boundsFromCenter(center, sizeMeters) {
     const lat = center[0];
@@ -171,7 +166,15 @@ function exitIndoor() {
         indoorImageOverlay = null;
     }
 
+    map.removeLayer(indoorMarkers);
     indoorMarkers.clearLayers();
+
+    isIndoor = false;
+    document.getElementById('outdoorCategoryDiv').style.display = 'block';
+    document.getElementById('indoorCategoryDiv').style.display = 'none';
+
+    buildingMarkers.addTo(map);
+    outdoorMarkers.addTo(map);
 
     document.getElementById('indoorContainer').hidden = true;
     document.getElementById('indoorPanel').style.display = 'none';
@@ -184,15 +187,21 @@ function exitIndoor() {
     initBuildings();
 }
 
+function createBuildingMarker(buildingId) {
+    const b = buildings[buildingId];
+
+    L.marker(b.center)
+        .addTo(buildingMarkers)
+        .bindPopup(`
+            <b>${b.name}</b><br>
+            <button onclick="enterIndoor('${buildingId}')">Enter Building</button>
+        `);
+}
+
 
 function initBuildings() {
-    if (window.outdoorMarkers) {
-        outdoorMarkers.clearLayers();
-    } else {
-        window.outdoorMarkers = L.layerGroup().addTo(map);
-    }
-
+    buildingMarkers.clearLayers();
     createBuildingMarker("fci");
 }
 
-initBuildings();
+
