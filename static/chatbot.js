@@ -95,13 +95,17 @@ function setupChatbot() {
 
     function addDirectionsButton(coordinates, locationName) {
         const buttonDiv = document.createElement('div');
+
+        const isDark = document.body.classList.contains('dark-mode');
+
         buttonDiv.style.cssText = `
-            background: #fff8e1;
+            background: ${isDark ? '#af9a46' : '#fff8e1'};
             padding: 12px;
             border-radius: 10px;
             margin: 10px 0;
-            border: 1px solid #ffd54f;
-            border-left: 4px solid #ffb300;
+            border: 1px solid ${isDark ? '#ad8912' : '#ffd54f'};
+            border-left: 4px solid ${isDark ? '#b58f00' : '#ffb300'};
+            color: ${isDark ? '#1a1a1a' : '#000'};
         `;
     
         //changed coords to coordinates

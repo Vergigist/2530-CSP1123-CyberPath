@@ -819,6 +819,45 @@ html, body, #content, #map-container, #map {
     margin-bottom: 1px;
 }
 
+/*Chatbot-Suggestions-Box*/
+.suggestions-bar {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 8px;
+  border-top: 1px solid #eee;
+}
+
+.suggestion-chip {
+  background: #e3f2fd;
+  border-radius: 16px;
+  padding: 6px 12px;
+  font-size: 13px;
+  cursor: pointer;
+  border: 1px solid #bbdefb;
+  transition: background 0.2s;
+}
+
+.suggestion-chip:hover {
+  background: #bbdefb;
+}
+
+/* Dark mode for suggestions bar */
+body.dark-mode .suggestions-bar {
+  border-top: 1px solid #555; /* darker divider */
+}
+
+/* Dark mode for individual chips */
+body.dark-mode .suggestion-chip {
+  background: #2b2b2b; /* darker background */
+  border: 1px solid #444; /* darker border */
+  color: #fff; /* text color */
+}
+
+body.dark-mode .suggestion-chip:hover {
+  background: #3a3a3a; /* slightly lighter on hover */
+}
+
 /*Dark-Mode*/
 /* Dark mode for entire page */
 body.dark-mode {
