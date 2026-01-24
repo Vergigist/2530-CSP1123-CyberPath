@@ -38,13 +38,18 @@ class Marker(db.Model):
 class Category(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), unique=True, nullable=False)
+    indoor_only = db.Column(db.Boolean, default=False)
     markers = db.relationship("Marker", backref="category", lazy=True)
 
-class Feedback(db.Model):
+class IndoorMarker(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    subject = db.Column(db.Text, nullable=False)
-    description = db.Column(db.Text, nullable=False)
-    time_submitted = db.Column(db.DateTime, default=datetime.now)
+    building = db.Column(db.String(100), nullable=False)
+    floor = db.Column(db.String(50), nullable=False)
+    name = db.Column(db.String(150), nullable=False)
+    longitude = db.Column(db.Float, nullable=False)
+    latitude = db.Column(db.Float, nullable=False)
+    description = db.Column(db.Text)
+    timeadded = db.Column(db.DateTime, default=datetime.now)
 
 with app.app_context():
     #db.drop_all()
@@ -52,13 +57,14 @@ with app.app_context():
 
     if not Category.query.first():
         db.session.add_all([
-            Category(name="Lecture Halls"),
-            Category(name="Labs"),
-            Category(name="Offices"),
-            Category(name="Food & Drinks"),
-            Category(name="Facilities"),
-            Category(name="Recreation"),
-            Category(name="Others")
+            Category(name="Classroom", indoor_only=True),
+            Category(name="Office", indoor_only=True),
+
+            Category(name="Lecture Hall", indoor_only=False),
+            Category(name="Food & Drinks", indoor_only=False),
+            Category(name="Facilities", indoor_only=False),
+            Category(name="Recreation", indoor_only=False),
+            Category(name="Others", indoor_only=False)
         ])
         db.session.commit()
    
@@ -70,8 +76,9 @@ def index():
         user_email = session["user_email"]
         user = User.query.filter_by(email=user_email).first()
 
-    categories = Category.query.all()
-    return render_template("index.html", user=user, categories=categories)
+    outdoor_categories = Category.query.filter_by(indoor_only=False).all()
+    indoor_categories = Category.query.filter_by(indoor_only=True).all()
+    return render_template("index.html", outdoor_categories=outdoor_categories, indoor_categories=indoor_categories, user=user)
 
 
 #---------------------------------------------------------------------------------------------------------------------------------
@@ -134,12 +141,9 @@ def signup():
     db.session.add(new_user)
     db.session.commit()
 
-    if verified_status:
-        flash("Account created and automatically verified!", "success")
-    else:
-        flash("Account created! Waiting for admin verification.", "success")
-
-    return redirect(url_for("index"))
+    message = "Account created and automatically verified!" if verified_status else "Account created! Waiting for admin verification."
+    
+    return jsonify({"success": True, "message": message})
 
 
 @app.route("/api/admins")
@@ -483,6 +487,24 @@ def api_markers():
     return jsonify(markers_list)
 
 
+@app.route("/api/indoor-markers")
+def api_indoor_markers():
+    IndoorMarkers = IndoorMarker.query.order_by(IndoorMarker.id).all()
+    IndoorMarkers_list = [
+        {
+            "id": im.id,
+            "building": im.building,
+            "floor": im.floor,
+            "name": im.name,
+            "latitude": im.latitude,
+            "longitude": im.longitude,
+            "description": im.description
+        }
+        for im in IndoorMarkers
+    ]
+    return jsonify(IndoorMarkers_list)
+
+
 @app.route("/add-marker", methods=["POST"])
 def add_marker():
     if not session.get("admin_logged_in"):
@@ -497,10 +519,25 @@ def add_marker():
         return redirect(url_for("index"))
 
     description = request.form["description"]
-    timeadded = datetime.now()
     category_id = request.form.get("category_id")
 
-    new_marker = Marker(name=name, latitude=latitude, longitude=longitude, description=description, timeadded=timeadded, category_id=category_id)
+    building_id = request.form.get("building_id")
+    floor = request.form.get("floor")
+    is_indoor = request.form.get("is_indoor") == "1"
+
+    if is_indoor:
+        if not building_id or not floor:
+            flash("Indoor locations must have a building and floor", "error")
+            return redirect(url_for("index"))
+        
+        new_indoor_marker = IndoorMarker(building=building_id, floor=floor, name=name, latitude=latitude, longitude=longitude, description=description)
+        db.session.add(new_indoor_marker)
+        db.session.commit()
+
+        flash("Indoor marker added successfully!", "success")
+        return redirect(url_for("index"))
+
+    new_marker = Marker(name=name, latitude=latitude, longitude=longitude, description=description, category_id=category_id)
     db.session.add(new_marker)
     db.session.commit()
 
@@ -512,22 +549,29 @@ def add_marker():
 def edit_marker(marker_id):
     if not session.get("admin_logged_in"):
         return redirect(url_for("index"))
-    
-    marker = Marker.query.get_or_404(marker_id)
+
+    marker_id = request.form["marker_id"]
+    is_indoor = request.form.get("is_indoor") == "1"
+
+    if is_indoor:
+        marker = IndoorMarker.query.get_or_404(marker_id)
+        marker.building = request.form["building_id"]
+        marker.floor = request.form["floor"]
+    else:
+        marker = Marker.query.get_or_404(marker_id)
 
     marker.name = request.form["name"]
-    coords = request.form["coords"]
+    marker.description = request.form["description"]
+
     try:
-        marker.latitude, marker.longitude = map(float, coords.split(","))
+        marker.latitude, marker.longitude = map(
+            float, request.form["coords"].split(",")
+        )
     except ValueError:
-        flash("Invalid coordinates!", "error")
+        flash("Invalid coordinates", "error")
         return redirect(url_for("index"))
 
-    marker.description = request.form["description"]
-    marker.category_id = request.form.get("category_id")
-
     marker.timeadded = datetime.now()
-
     db.session.commit()
 
     flash("Marker updated successfully!", "success")
@@ -538,61 +582,19 @@ def edit_marker(marker_id):
 def delete_marker(marker_id):
     if not session.get("admin_logged_in"):
         return redirect(url_for("index"))
-    
-    marker = Marker.query.get_or_404(marker_id)
-    db.session.delete(marker)
+
+    marker = Marker.query.get(marker_id)
+    if marker:
+        db.session.delete(marker)
+        db.session.commit()
+        return redirect(url_for("index"))
+
+    indoor_marker = IndoorMarker.query.get_or_404(marker_id)
+    db.session.delete(indoor_marker)
     db.session.commit()
 
     return redirect(url_for("index"))
 
-#---------------------------------------------------------------------------------------------------------------------------------
-# Feedback functions
-#---------------------------------------------------------------------------------------------------------------------------------
-
-@app.route("/feedback", methods=["POST"])
-def feedback():
-    subject = request.form["subject"]
-    description = request.form["description"]
-
-    new_feedback = Feedback(subject=subject, description=description)
-    db.session.add(new_feedback)
-    db.session.commit()
-
-    flash("Feedback submitted successfully!", "success")
-    return redirect(url_for("index"))
-
-
-@app.route("/api/feedbacks")
-def get_feedbacks():
-    if not session.get("admin_logged_in"):
-        return jsonify({"success": False}), 403
-
-    feedbacks = Feedback.query.order_by(Feedback.time_submitted.desc()).all()
-
-    return jsonify({
-        "success": True,
-        "feedbacks": [
-            {
-                "id": fb.id,
-                "subject": fb.subject,
-                "description": fb.description,
-                "time": fb.time_submitted.strftime("%Y-%m-%d %H:%M")
-            }
-            for fb in feedbacks
-        ]
-    })
-   
-
-# @app.route("/delete-feedback/<int:feedback_id>", methods=["POST"])
-# def delete_feedback(feedback_id):
-#     if not session.get("admin_logged_in"):
-#         return redirect(url_for("index"))
-    
-#     feedback = Feedback.query.get_or_404(feedback_id)
-#     db.session.delete(feedback)
-#     db.session.commit()
-
-#     return redirect(url_for("index"))
 
 #---------------------------------------------------------------------------------------------------------------------------------
 # AI chatbot
