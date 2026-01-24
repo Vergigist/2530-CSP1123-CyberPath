@@ -63,24 +63,28 @@ function setupChatbot() {
     function addMessageToChat(message, isUser) {
         const messageDiv = document.createElement('div');
 
+        const isDark = document.body.classList.contains('dark-mode');
+
         if (isUser) {
             messageDiv.style.cssText = `
-                background: #dcf8c6;
+                background: ${isDark ? '#2e7d32' : '#dcf8c6'};
                 padding: 10px;
                 border-radius: 10px;
                 margin: 10px 0 10px auto;
                 max-width: 80%;
-                border-right: 4px solid #4caf50;
+                border-right: 4px solid ${isDark ? '#1b5e20' : '#4caf50'};
+                color: ${isDark ? '#fff' : '#000'};
             `;
             messageDiv.innerHTML = `<strong>You:</strong> ${escapeHtml(message)}`; // FIXED: message not text
         } else {
             messageDiv.style.cssText = `
-                background: #e3f2fd;
+                background: ${isDark? '#1565c0' : 'e3f2fd'};
                 padding: 10px;
                 border-radius: 10px;
                 margin: 10px 0;
                 max-width: 80%;
-                border-left: 4px solid #2196f3;
+                border-left: 4px solid ${isDark ? '#0d47a1' : '#2196f3'};
+                color: ${isDark ? '#fff' : '#000'};
             `;
             messageDiv.innerHTML = `<strong>Assistant:</strong> ${escapeHtml(message)}`; // FIXED: message not text
         }
