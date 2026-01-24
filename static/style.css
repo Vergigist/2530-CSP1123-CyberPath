@@ -818,3 +818,276 @@ html, body, #content, #map-container, #map {
     display: block;
     margin-bottom: 1px;
 }
+
+/*Dark-Mode*/
+/* Dark mode for entire page */
+body.dark-mode {
+    background-color: #121212;
+    color: #e0e0e0;
+}
+
+/* Chat bubble adjustments */
+body.dark-mode #chatMessages div {
+    color: #e0e0e0;
+}
+
+body.dark-mode #chatMessages div[style*="background: #e3f2fd"] {
+    background: #1e1e1e !important;
+    border-left-color: #90caf9 !important;
+}
+
+body.dark-mode #chatMessages div[style*="background: #dcf8c6"] {
+    background: #333 !important;
+    border-right-color: #81c784 !important;
+}
+
+/* Buttons */
+body.dark-mode button {
+    background-color: #333 !important;
+    color: #fff !important;
+    border-color: #555 !important;
+}
+
+/* Map & other panels */
+body.dark-mode .leaflet-container {
+    filter: brightness(0.8) contrast(1.1); /* optional darken map */
+}
+
+body.dark-mode button:hover {
+    background-color: #666 !important;
+}
+
+body.dark-mode ::-webkit-scrollbar {
+    width: 8px;
+}
+body.dark-mode ::-webkit-scrollbar-thumb {
+    background-color: #555;
+    border-radius: 4px;
+}
+body.dark-mode ::-webkit-scrollbar-track {
+    background-color: #1e1e1e;
+}
+
+.sidebarTop img,
+body.dark-mode .sidebarTop img {
+    max-width: 150px;  /* same for light & dark */
+    height: auto;
+    display: block;
+}
+
+body.dark-mode .logoWrapper {
+    background-color: #ffffff;
+    padding: 10px;
+    border-radius: 8px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.logoWrapper {
+    background-color: #ffffff;
+    padding: 10px;
+    border-radius: 8px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+/* Logo inside wrapper in dark mode */
+body.dark-mode .logoWrapper img {
+    max-width: 150px;  /* same size as light mode */
+    height: auto;
+}
+
+body,
+#sidebar,
+#content,
+#chatbotPopup,
+button {
+    transition: background-color 0.3s, color 0.3s, border-color 0.3s;
+}
+
+.dark-mode {
+    background-color: #1e1e1e;
+    color: #ddd;
+}
+
+/* Sidebar panel */
+.dark-mode #sidebar,
+.dark-mode #content {
+    background-color: #2c2c2c;
+    color: #ddd;
+    border-color: #444; /* optional, if there are borders */
+}
+
+/* Buttons inside sidebar */
+.dark-mode #sidebar button {
+    background-color: #555;
+    color: #ddd;
+}
+
+/* Chatbot popup */
+.dark-mode #chatbotPopup {
+    background-color: #2c2c2c;
+    color: #ddd;
+}
+
+/* Map controls (optional for leaflet controls) */
+.dark-mode .leaflet-control {
+    background-color: #333;
+    color: #ddd;
+}
+
+.dark-mode #adminSidebar,
+.dark-mode #content {
+    background-color: #2c2c2c;
+    color: #ddd;
+    border-color: #444; /* optional, if there are borders */
+}
+
+/* Buttons inside sidebar */
+.dark-mode #admin-controls {
+    background-color: #555;
+    color: #ddd;
+}
+
+.dark-mode #adminSidebar {
+    background-color: #2c2c2c;
+    color: #ddd;
+    border-color: #444; /* optional, if there are borders */
+}
+
+/* Dark mode for all popups / modals */
+body.dark-mode .modal,
+body.dark-mode .popup,
+body.dark-mode .admin-popup {
+    background-color: #2c2c2c; /* dark background */
+    color: #ddd;               /* light text */
+    border: 1px solid #444;    /* subtle border */
+    border-radius: 8px;        /* optional rounded corners */
+    box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+}
+
+/* Popup headers */
+body.dark-mode .modal-header,
+body.dark-mode .popup-header,
+body.dark-mode .admin-popup-header {
+    background-color: #1e1e1e;
+    color: #fff;
+    padding: 10px 16px;
+    border-bottom: 1px solid #444;
+}
+
+/* Popup content */
+body.dark-mode .modal-content,
+body.dark-mode .popup-content,
+body.dark-mode .admin-popup-content {
+    background-color: #2c2c2c;
+    color: #ddd;
+    padding: 12px 16px;
+}
+
+/* Popup buttons */
+body.dark-mode .modal button,
+body.dark-mode .popup button,
+body.dark-mode .admin-popup button {
+    background-color: #555;
+    color: #fff;
+    border: 1px solid #666;
+    border-radius: 4px;
+    padding: 6px 12px;
+    cursor: pointer;
+}
+
+/* Optional: hover effect */
+body.dark-mode .modal button:hover,
+body.dark-mode .popup button:hover,
+body.dark-mode .admin-popup button:hover {
+    background-color: #666;
+}
+
+/* Inputs inside popups */
+body.dark-mode .modal input,
+body.dark-mode .popup input,
+body.dark-mode .admin-popup input,
+body.dark-mode .modal select,
+body.dark-mode .popup select,
+body.dark-mode .admin-popup select,
+body.dark-mode .modal textarea,
+body.dark-mode .popup textarea,
+body.dark-mode .admin-popup textarea {
+    background-color: #444;
+    color: #ddd;
+    border: 1px solid #666;
+}
+
+
+/* Inputs inside sidebar / forms */
+.dark-mode input,
+.dark-mode select,
+.dark-mode textarea {
+    background-color: #444;
+    color: #ddd;
+    border: 1px solid #666;
+}
+
+#darkmodeToggle {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    background: #555;
+    color: white;
+    cursor: pointer;
+    margin-top: 10px;
+    width: 100%;
+ }
+
+/* ---------------------------- */
+/* Chatbot - Light Mode Styling */
+/* ---------------------------- */
+/* Chatbot Popup Light Mode */
+#chatbotPopup .popup-content {
+    background: #f9f9f9;
+    color: #000;
+}
+
+#chatMessages {
+    background: #ffffff;  /* white behind chats in light mode */
+    color: #000;
+}
+
+#chatMessages .bot-message {
+    background: #e3f2fd;  /* bot message light blue */
+    border-left-color: #2196f3;
+}
+
+/* Dark Mode */
+body.dark-mode #chatbotPopup .popup-content {
+    background: #1e1e1e;  /* dark popup background */
+    color: #fff;
+}
+
+body.dark-mode #chatMessages {
+    background: #2b2b2b;  /* dark background behind all chat messages */
+    color: #fff;
+}
+
+body.dark-mode #chatMessages .bot-message {
+    background: #3a3a3a;  /* slightly lighter than chat background */
+    border-left-color: #2196f3; /* keeps the blue accent */
+    color: #fff;
+}
+
+body.dark-mode #chatInput {
+    background-color: #333;
+    color: #fff;
+    border: 1px solid #555;
+}
+
+body.dark-mode #sendChatBtn {
+    background-color: #444;
+    color: #fff;
+    border: none;
+}

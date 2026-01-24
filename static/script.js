@@ -8,6 +8,7 @@ var map = L.map('map', {
     maxZoom: 20   // allow zooming in super close
 });
 
+const darkModeToggle = document.getElementById('darkModeToggle');
 let campusGeoJSON = null;
 
 fetch("static/newcampus.geojson")
@@ -1047,6 +1048,26 @@ function addMarkersToMap(data) {
         markers.push(marker);
     });
 }
+
+darkModeToggle.addEventListener('click', () => {
+    document.body.classList.toggle('dark-mode');
+
+    if (document.body.classList.contains('dark-mode')) {
+        darkModeToggle.textContent = "☀️ Light Mode";
+    } else {
+        darkModeToggle.textContent = "🌙 Dark Mode";
+    }
+
+    // Optional: store preference in localStorage
+    localStorage.setItem('darkMode', document.body.classList.contains('dark-mode'));
+});
+
+// Restore mode on page load
+if (localStorage.getItem('darkMode') === 'true') {
+    document.body.classList.add('dark-mode');
+    darkModeToggle.textContent = "☀️ Light Mode";
+}
+
 
 // ---------- INIT ----------
 document.addEventListener("DOMContentLoaded", () => {

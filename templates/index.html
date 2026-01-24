@@ -108,13 +108,17 @@
         <!-- Sidebar -->
         <div id="sidebar" class="sidebar">
             <div class = "sidebarTop">
+                <!-- Logo wrapper -->
+                <div class="logoWrapper">
                 <img src="https://www.mmu.edu.my/wp-content/themes/mmu2018/assets/images/logo-mmu2x.png">
+                </div>
                 <h2>Cyberpath : Smart <br/>Campus Navigator</h2>
                 <button class="user-btn" id="gpsButton">📍 Find My Location</button>
                 <button class="user-btn" id="viewAllBtnUser">View Locations</button>
                 <button class="user-btn" id="userRemoveRouteButton">Clear Route</button>
                 <button class="user-btn" id="centerBtn">Recentralize</button>
                 <button class="user-btn" id="submitFeedback">Feedback</button>
+                <button class="user-btn" id= "darkModeToggle">🌙 Dark Mode</button>
             </div>
             <div id="sidebarBottom">
                 {% if not session.get("admin_logged_in") %}
@@ -147,7 +151,7 @@
                 <h3 style="margin: 0 0 15px 0;">Campus Assistant 🤖</h3>
                 
                 <!-- Chat messages area -->
-                <div id="chatMessages" style="flex: 1; overflow-y: auto; margin: 10px 0; padding: 10px; border: 1px solid #ddd; border-radius: 8px; background: #f9f9f9;">
+                <div id="chatMessages" style="flex: 1; overflow-y: auto; margin: 10px 0; padding: 10px; border: 1px solid #ddd; border-radius: 8px;">
                     <!--Message from bot -->
                     <div style="background: #e3f2fd; padding: 10px; border-radius: 10px; margin-bottom: 10px; border-left: 4px solid #2196f3;">
                         <strong>Assistant:</strong> Hello! I'm your campus AI assistant. Ask me about locations, directions, or anything about MMU campus!
@@ -186,7 +190,7 @@
                 <div class="profile-icon" id="profileBtn">👤</div>
             </div>
         </div>
-
+            
         <!--Add location container-->
         <div id="addLocationForm" class="popup hidden">
             <div class="popup-content">
