@@ -10,6 +10,7 @@ function setupChatbot() {
     const sendBtn = document.getElementById('sendChatBtn');
     const chatInput = document.getElementById('chatInput');
     const chatMessages = document.getElementById('chatMessages');
+    const suggestionsBar = document.getElementById("suggestionsBar");
 
     if (!chatbotIcon || !chatbotPopup) {
         console.log("Chatbot elements not found");
@@ -19,7 +20,13 @@ function setupChatbot() {
     chatbotIcon.addEventListener('click', function() {
         console.log("Opening chatbot");
         chatbotPopup.classList.remove('hidden');
-        chatInput.focus(); // Add focus to input
+        chatInput.focus();
+
+            showSuggestions([
+            "🗺️ Directions to the library",
+            "🚶 Walking route to DTC",
+            "📍 How do I get to Haji Tapah?",
+        ]);
     });
 
     closeBtn.addEventListener('click', function() {
@@ -190,6 +197,20 @@ function setupChatbot() {
 
             if (data.success) {
                 addMessageToChat(data.response, false);
+
+                if (data.coordinates && data.location_name) {
+                    showSuggestions([
+                        `🗺️ Get directions to ${data.location_name}`,
+                        `⏱️ How to get to ${data.location_name}?`,
+                        `📍 Show walking route to ${data.location_name}`
+                    ]);
+                    } else {
+                        showSuggestions([
+                            "🗺️ Directions to the library",
+                            "🚶 Walking route to DTC",
+                            "📍 How do I get to Haji Tapah?",
+                        ]);
+                    }
                 
                 // Wait 1 second, then show directions suggestion
                 if (data.coordinates && data.location_name) {
@@ -216,4 +237,28 @@ function setupChatbot() {
             addMessageToChat("Sorry, I couldn't reach the server. Please try again later.", false);
         }
     }
+
+    function showSuggestions(suggestions) {
+        suggestionsBar.innerHTML = "";
+        suggestionsBar.classList.remove("hidden");
+
+        suggestions.forEach(text => {
+            const chip = document.createElement("div");
+            chip.className = "suggestion-chip";
+            chip.textContent = text;
+
+            chip.addEventListener("click", () => {
+                chatInput.value = text;
+                hideSuggestions();
+            });
+
+            suggestionsBar.appendChild(chip);
+        });
+    }
+
+    function hideSuggestions() {
+        suggestionsBar.classList.add("hidden");
+        suggestionsBar.innerHTML = "";
+    }
+
 }

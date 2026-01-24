@@ -818,3 +818,26 @@ html, body, #content, #map-container, #map {
     display: block;
     margin-bottom: 1px;
 }
+
+/*Chatbot-Suggestions-Box*/
+.suggestions-bar {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 8px;
+  border-top: 1px solid #eee;
+}
+
+.suggestion-chip {
+  background: #e3f2fd;
+  border-radius: 16px;
+  padding: 6px 12px;
+  font-size: 13px;
+  cursor: pointer;
+  border: 1px solid #bbdefb;
+  transition: background 0.2s;
+}
+
+.suggestion-chip:hover {
+  background: #bbdefb;
+}
