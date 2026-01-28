@@ -423,11 +423,11 @@
 
                 <form id="changeEmailForm" class="tab-form active" method="POST" action="/change-email">
                     <label>New Email:</label>
-                    <input type="email" id="newEmailInput" name="new_email" autocomplete="new-password" required>
+                    <input type="email" id="newEmailInput" name="new_email" autocomplete="new-password" required placeholder="Enter a vaild email address">
 
                     <label>Current Password:</label>
                     <div class="password-wrapper">
-                        <input type="password" id="confirmEmailpassword" name="password" class="password-field" required>
+                        <input type="password" id="confirmEmailpassword" name="password" class="password-field" required placeholder="Enter current password">
                         <i class="fa-solid fa-eye-slash toggle-password"></i>
                     </div>
 
@@ -447,19 +447,19 @@
 
                     <label>Current Password:</label>
                     <div class="password-wrapper">
-                        <input type="password" id="curPasswordInput" name="current_password" class="password-field" required>
+                        <input type="password" id="curPasswordInput" name="current_password" class="password-field" required placeholder="Enter current password">
                         <i class="fa-solid fa-eye-slash toggle-password"></i>
                     </div>
 
                     <label>New Password:</label>
                     <div class="password-wrapper">
-                        <input type="password" id="newPasswordInput" name="new_password" class="password-field" required>
+                        <input type="password" id="newPasswordInput" name="new_password" class="password-field" required placeholder="8 characters, including 1 uppercase and 1 number.">
                         <i class="fa-solid fa-eye-slash toggle-password"></i>
                     </div>
 
                     <label>Confirm Password:</label>
                     <div class="password-wrapper">
-                        <input type="password" id="confirmPasswordInput" name="confirm_password" class="password-field" required>
+                        <input type="password" id="confirmPasswordInput" name="confirm_password" class="password-field" required placeholder="Must be same as new password">
                         <i class="fa-solid fa-eye-slash toggle-password"></i>
                     </div>
 
@@ -492,11 +492,11 @@
                 <form id="signinForm" class="tab-form active"  action="/signin" method="POST" >
 
                     <label for="signinEmail">Email:</label>
-                    <input type="email" id="signinEmail" name="email" autocomplete="new-password" required>
+                    <input type="email" id="signinEmail" name="email" autocomplete="new-password" required placeholder="Enter a vaild email address">
 
                     <label for="password">Password:</label>
                     <div class="password-wrapper">
-                        <input type="password" id="signinPassword" name="password" class="password-field" autocomplete="new-password" required>
+                        <input type="password" id="signinPassword" name="password" class="password-field" autocomplete="new-password" required placeholder="8 characters, including 1 uppercase and 1 number.">
                         <i class="fa-solid fa-eye-slash toggle-password"></i>
                     </div>
 
@@ -512,12 +512,12 @@
                     <span id="referralError" class="error-message"></span> 
 
                     <label for="email">Email:</label>
-                    <input type="email" id="signupEmail" name="email" autocomplete="new-password" required>
+                    <input type="email" id="signupEmail" name="email" autocomplete="new-password" required placeholder="Enter a vaild email address">
                     <span id="emailError" class="error-message"></span>
 
                     <label for="signupPassword">Password:</label>
                     <div class="password-wrapper">
-                        <input type="password" id="signupPassword" name="password" class="password-field" autocomplete="new-password" required>
+                        <input type="password" id="signupPassword" name="password" class="password-field" autocomplete="new-password" required placeholder="8 characters, including 1 uppercase and 1 number.">
                         <i class="fa-solid fa-eye-slash toggle-password"></i>
                     </div>
                     <span id="passwordError" class="error-message"></span>
@@ -540,7 +540,7 @@
 
                 <form id="sendOtpForm" class="tab-form active">
                 <label>Email</label>
-                <input type="email" name="email" required autocomplete="new-password">
+                <input type="email" name="email" required autocomplete="new-password" placeholder="Enter a vaild email address">
                 <button id="sendOtpBtn" type="submit" class="admin-btn">Send OTP</button>
                 </form>
             </div>

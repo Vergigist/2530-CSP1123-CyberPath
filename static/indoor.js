@@ -12,33 +12,11 @@ let isIndoor = false;
     INDOOR DATA (DEMO ONLY)
 ========================= */
 const FCIfloors = {
-    0: {
-        image: '/static/images/fci_floor1.png',
-        markers: [
-            { lat: 2.928785 , lng: 101.641071, label : 'Stair' }
-        ]
-    },
-    1: {
-        image: '/static/images/fci_floor1.png',
-        markers: [
-            { lat: 2.928434 , lng: 101.641128, label : 'Lift' }
-        ]
-    },
-    2: { image: '/static/images/fci_floor1.png', 
-        markers: [
-            { lat: 2.928454 , lng: 101.641494, label : 'Stair' }
-        ] 
-    },
-    3: { image: '/static/images/fci_floor1.png', 
-        markers: [
-            { lat: 2.928714 , lng: 101.641126, label : 'CQAR 3005' }
-        ] 
-    },
-    4: { image: '/static/images/fci_floor1.png', 
-        markers: [
-            { lat: 2.929039 , lng: 101.640763, label : 'CQAR 4002' }
-        ] 
-    }
+    0: { image: '/static/images/fci_floor1.png', },
+    1: { image: '/static/images/fci_floor1.png', },
+    2: { image: '/static/images/fci_floor1.png', },
+    3: { image: '/static/images/fci_floor1.png', },
+    4: { image: '/static/images/fci_floor1.png', }
 };
 
 const FCMfloors = {
