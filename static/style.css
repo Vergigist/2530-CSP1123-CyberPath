@@ -793,3 +793,9 @@ html, body, #content, #map-container, #map {
 #floorImage, #indoorMarkers {
     display: none;
 }
+.error-message {
+    color: red;
+    font-size: 0.9rem;
+    display: block;
+    margin-bottom: 1px;
+}
