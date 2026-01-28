@@ -43,7 +43,7 @@ const FCMfloors = {
 
 
 /* =========================
-    FCI LOCATION (OUTDOOR)
+    Building marker locations(OUTDOOR)
 ========================= */
 const buildings = {
     fci: {
