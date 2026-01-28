@@ -55,18 +55,30 @@ const sidebar = document.getElementById('sidebar');
 const toggleBtn = document.getElementById('toggleBtn');
 const centerBtn = document.getElementById('centerBtn');
 
+// Function to update toggleBtn position
+function updateTogglePosition() {
+    toggleBtn.style.left = sidebar.classList.contains('active') ? '270px' : '10px';
+}
+
+// Initial load
+updateTogglePosition();
+
+// Toggle sidebar on button click
 toggleBtn.addEventListener('click', () => {
     content.classList.toggle('sidebar-open');
     sidebar.classList.toggle('active');
+    updateTogglePosition(); // update button dynamically
     setTimeout(() => {
         map.invalidateSize();
     }, 310);
 });
 
+// Center map
 centerBtn.addEventListener('click', () => {
     map.setView([2.928, 101.64192], 16);
 });
 
+// Update map size after sidebar transition
 sidebar.addEventListener('transitionend', () => {
     map.invalidateSize();
 });
@@ -74,7 +86,7 @@ sidebar.addEventListener('transitionend', () => {
 // Admin 
 const adminBtn = document.getElementById('adminBtn');
 const adminPopup = document.getElementById('adminPopup');
-const closePopupAdmin = document.getElementById('closePopup');
+const closeAdminPopup = document.getElementById('closePopup');
 
 const signupForm = document.getElementById("signupForm");
 if (signupForm) {
@@ -105,8 +117,14 @@ adminBtn.addEventListener('click', () => {
     signupForm.querySelectorAll(".error-message").forEach(span => span.textContent = "");
 });
 
-closePopupAdmin.addEventListener('click', () => adminPopup.style.display = 'none');
-window.addEventListener('click', (e) => { if(e.target === adminPopup) adminPopup.style.display = 'none'; });
+closeAdminPopup.addEventListener('click', () => {
+    adminPopup.style.display = 'none'
+});
+
+window.addEventListener('click', (e) => { 
+    if(e.target === adminPopup) 
+        adminPopup.style.display = 'none'; 
+});
 
 const tabs = document.querySelectorAll('.tab-btn');
 const forms = document.querySelectorAll('.tab-form');
@@ -185,6 +203,41 @@ if (closeLocationFormBtn) {
         addLocationForm.classList.add("hidden");
         pickMode = false;
     });
+}
+
+//marker icon change
+
+const ICONS = {
+    "Lecture Hall": L.icon({
+        iconUrl: "/static/icons/default.png",
+        iconSize: [28, 34],
+        iconAnchor: [14, 28],
+        popupAnchor: [0, -28]
+    }),
+    "Food & Drinks": L.icon({
+        iconUrl: "/static/icons/food&drinks.png",
+        iconSize: [28, 34],
+        iconAnchor: [14, 28]
+    }),
+    "Facilities": L.icon({
+        iconUrl: "/static/icons/default.png",
+        iconSize: [28, 34],
+        iconAnchor: [14, 28]
+    }),
+    "Recreation": L.icon({
+        iconUrl: "/static/icons/recreation.png",
+        iconSize: [28, 34],
+        iconAnchor: [14, 28]
+    }),
+    "default": L.icon({
+        iconUrl: "/static/icons/default.png",
+        iconSize: [28, 34],
+        iconAnchor: [13, 26]
+    })
+};
+
+function getCategoryIcon(category) {
+    return ICONS[category] || ICONS.default;
 }
 
 // Map picking for both add + edit
@@ -941,13 +994,17 @@ async function loadMarkers() {
 // ---------- ADD MARKERS ----------
 function addMarkersToMap(data) {
     outdoorMarkers.clearLayers();
+    markers.length = 0;
+
     data.forEach(m => {
-        const marker = L.marker([m.latitude, m.longitude])
-            .bindPopup(`
-                <strong>${m.name}</strong><br>
-                ${m.description || ""}
-            `)
-            .addTo(outdoorMarkers);
+        const marker = L.marker([m.latitude, m.longitude], {
+            icon: getCategoryIcon(m.category)
+        })
+        .bindPopup(`
+            <strong>${m.name}</strong><br>
+            ${m.description || ""}
+        `)
+        .addTo(outdoorMarkers);
 
         markers.push(marker);
     });
