@@ -8,6 +8,37 @@ var map = L.map('map', {
     maxZoom: 20   // allow zooming in super close
 });
 
+const darkModeToggle = document.getElementById('darkModeToggle');
+let campusGeoJSON = null;
+
+fetch("static/newcampus.geojson")
+  
+.then(response => response.json())
+  
+  .then(data => {
+    
+    campusGeoJSON = data;
+    console.log("Loaded GeoJSON!");
+    console.log("First coordinate:", campusGeoJSON.features[0].geometry.coordinates[0]);
+
+    const walkwayLayer = L.geoJSON(campusGeoJSON, {
+      style: {
+        color: "#000000",
+        weight: 2,
+        opacity: 0.1,
+        dashArray: "5, 5",
+        smoothFactor: 1.5
+      }
+    }).addTo(map);
+
+    map.fitBounds(walkwayLayer.getBounds());
+    
+    if (typeof buildGraphFromGeoJSON === "function") {
+      buildGraphFromGeoJSON();
+    }
+  })
+  .catch(error => console.error("Error loading GeoJSON:", error));
+
 // Add tile layer
 L.tileLayer(
     'https://{s}.basemaps.cartocdn.com/rastertiles/voyager_nolabels/{z}/{x}/{y}{r}.png',
@@ -62,6 +93,9 @@ if (signupForm) {
             }
             return;
         }
+
+        alert(data.message);
+        adminPopup.style.display = 'none';
     });
 }
 
@@ -206,35 +240,63 @@ searchInput.addEventListener("input", () => {
 });
 
 //danish pathing
+// Use a flag to prevent double clicks
+let routingInProgress = false;
+
 locationList.addEventListener("click", (e) => {
     const btn = e.target.closest(".path-btn");
     if (!btn) return;
 
-    const targetLat = parseFloat(btn.dataset.lat);
-    const targetLng = parseFloat(btn.dataset.lng);
-    const locationName = btn.dataset.name;
+    if (routingInProgress) return; // ignore if already routing
+    routingInProgress = true;
 
-    console.log("Pathing to: " + locationName + " (" + targetLat + ", " + targetLng + ")");
+    try {
+        const targetLat = parseFloat(btn.dataset.lat);
+        const targetLng = parseFloat(btn.dataset.lng);
+        const locationName = btn.dataset.name;
 
-    // if user location is not available
-    if (window.userLocation == null) {
-        alert("📍 Please enable GPS first by clicking 'Find My Location'!");
-        return;
+        if (!window.userLocation) {
+            alert("📍 Please enable GPS first!");
+            return;
+        }
+
+        if (!router?.createRoute) {
+            alert("Routing system not ready. Please refresh.");
+            return;
+        }
+
+        const routeHere = router.createRoute(targetLat, targetLng);
+        if (routeHere) {
+            alert(`✅ Route created to ${locationName}!`);
+        } else {
+            alert(`⚠️ Failed to create route to ${locationName}.`);
+        }
+    } finally {
+        routingInProgress = false; // reset flag
     }
+});
 
-    // if router or createRoute is not available
-    if (!router || !router.createRoute) {
-        console.error("Router system not loaded!");
-        alert("Routing system error. Please refresh the page.");
-        return;
+document.getElementById("markerForm").addEventListener("submit", () => {
+    const isIndoorInput = document.querySelector('[name="is_indoor"]');
+    const buildingInput = document.querySelector('[name="building_id"]');
+    const floorInput = document.querySelector('[name="floor"]');
+    const outdoorCategory = document.getElementById("outdoorCategory");
+    const indoorCategory = document.getElementById("indoorCategory");
+
+    if (isIndoor === true) {
+        isIndoorInput.value = "1";
+        buildingInput.value = activeBuildingId;
+        floorInput.value = activeFloor;
+        outdoorCategory.disabled = true;
+        indoorCategory.disabled = false;
+    } else {
+        isIndoorInput.value = "0";
+        buildingInput.value = "";
+        floorInput.value = "";
+        isIndoorInput.value = "0";
+        outdoorCategory.disabled = false;
+        indoorCategory.disabled = true;
     }
-
-    // Create the route
-    const routeHere = router.createRoute(targetLat, targetLng);
-    alert(`✅ Route created to ${locationName}! Follow the directions on the map. `);
-    
-    if (!routeHere) {
-        console.log("Failed to create route. Please try again."); }
 });
 
 // Edit Location
@@ -248,9 +310,15 @@ function openLocationPopup(mode) {
     viewLocationPopup.classList.remove("hidden");
     locationList.innerHTML = "";
 
-    fetchMarkersByCategory()
-        .then(markers => {
-            markers.forEach(loc => {
+    Promise.all([fetchMarkersByCategory(), fetchIndoorMarkers()])
+        .then(([outdoorMarkers, indoorMarkers]) => {
+
+            const allMarkers = [
+                ...outdoorMarkers,
+                ...indoorMarkers.map(m => ({ ...m, type: "indoor" }))
+            ];
+
+            allMarkers.forEach(loc => {
                 const row = document.createElement("div");
                 row.className = "popup-row";
                 row.innerHTML = `
@@ -262,13 +330,16 @@ function openLocationPopup(mode) {
                             data-name="${loc.name}">
                         Get directions
                     </button>
-                    ${mode === "edit" ? `<button class="edit-btn" data-id="${loc.id}">Edit</button>` : ""}
+                    ${mode === "edit" ? `<button class="edit-btn" data-id="${loc.id}" data-type="${loc.type || 'outdoor'}">Edit</button>` : ""}
                 `;
+
                 locationList.appendChild(row);
             });
+
             attachEditButtons();
         });
 }
+
 
 // Edit location form
 const editFormPopup = document.getElementById("editLocationFormPopup");
@@ -276,35 +347,56 @@ const editFormClose = document.getElementById("closeEditFormPopup");
 const editCoordsInput = document.getElementById("editLocCoords");
 
 function attachEditButtons() {
-    const buttons = document.querySelectorAll(".edit-btn");
-    buttons.forEach(btn => {
+    document.querySelectorAll(".edit-btn").forEach(btn => {
         btn.addEventListener("click", () => {
-            const locId = btn.dataset.id;
-            openEditForm(locId);
+            const id = btn.dataset.id;
+            const type = btn.dataset.type;
+            openEditForm(id, type);
         });
     });
 }
 
-function openEditForm(id) {
+function openEditForm(id, type) {
     viewLocationPopup.classList.add("hidden");
     editFormPopup.classList.remove("hidden");
 
-    fetchMarkersByCategory()
-        .then(markers => {
+    if (type === "indoor") {
+        fetchIndoorMarkers().then(markers => {
             const marker = markers.find(m => m.id == id);
             if (!marker) return;
+
+            document.getElementById("editMarkerId").value = marker.id;
             document.getElementById("editLocName").value = marker.name;
             document.getElementById("editLocDesc").value = marker.description;
             document.getElementById("editLocCoords").value = `${marker.latitude}, ${marker.longitude}`;
+
+            document.getElementById("editIsIndoor").value = "1";
+            document.getElementById("editBuildingId").value = marker.building;
+            document.getElementById("editFloor").value = marker.floor;
         });
+    } else {
+        fetchMarkersByCategory().then(markers => {
+            const marker = markers.find(m => m.id == id);
+            if (!marker) return;
 
-        document.getElementById("editLocationForm").action = `/edit-marker/${id}`;
+            document.getElementById("editMarkerId").value = marker.id;
+            document.getElementById("editLocName").value = marker.name;
+            document.getElementById("editLocDesc").value = marker.description;
+            document.getElementById("editLocCoords").value = `${marker.latitude}, ${marker.longitude}`;
 
+            document.getElementById("editIsIndoor").value = "0";
+            document.getElementById("editBuildingId").value = "";
+            document.getElementById("editFloor").value = "";
+        });
+    }
+
+    document.getElementById("editLocationForm").action = `/edit-marker/${id}`;
     pickMode = false;
 }
 
 editFormClose.addEventListener("click", () => {
     editFormPopup.classList.add("hidden");
+    openLocationPopup("edit");
 });
 
 editPickFromMapBtn.addEventListener("click", () => {
@@ -315,6 +407,7 @@ editPickFromMapBtn.addEventListener("click", () => {
     pickMode = true;
 
 })
+
 
 // Delete location
 const deleteLocationBtn = document.getElementById("deleteLocationBtn");
@@ -345,11 +438,19 @@ searchDeleteLocation.addEventListener("input", () => {
 
 async function populateDeleteList() {
     try {
-       const markers = await fetchMarkersByCategory();
+        const [outdoorMarkers, indoorMarkers] = await Promise.all([
+            fetchMarkersByCategory(),
+            fetchIndoorMarkers()
+        ]);
+
+        const allMarkers = [
+            ...outdoorMarkers,
+            ...indoorMarkers.map(m => ({ ...m, type: "indoor" }))
+        ];
 
         deleteLocationList.innerHTML = "";
 
-        markers.forEach(marker => {
+        allMarkers.forEach(marker => {
             const row = document.createElement("div");
             row.className = "popup-item";
             row.style.padding = "6px 0";
@@ -364,7 +465,7 @@ async function populateDeleteList() {
             delBtn.addEventListener("click", async () => {
                 if (confirm(`Delete "${marker.name}"?`)) {
                     await fetch(`/delete-marker/${marker.id}`, { method: "POST" });
-                    populateDeleteList(); 
+                    populateDeleteList();
                 }
             });
 
@@ -376,107 +477,6 @@ async function populateDeleteList() {
         console.error("Failed to fetch markers:", err);
     }
 }
-
-//Admin View Feedback
-document.addEventListener("DOMContentLoaded", () => {
-    let currentFeedbackId = null;
-
-    const viewFeedbackBtn = document.getElementById("viewFeedbackBtn");
-    const viewFeedbackPopup = document.getElementById("viewFeedbackPopup");
-    const closeViewFeedbackPopup = document.getElementById("closeViewFeedbackPopup");
-
-    const feedbackDetailsPopup = document.getElementById("feedbackDetailsPopup");
-    const closeFeedbackDetails = document.getElementById("closeFeedbackDetailsPopup");
-    const feedbackSubject = document.getElementById("feedbackSubject");
-    const feedbackDescription = document.getElementById("feedbackDescription");
-    const feedbackTimeSubmitted = document.getElementById("feedbackTimeSubmitted");
-
-    const approveFeedbackBtn = document.getElementById("approveFeedbackBtn");
-    const ignoreFeedbackBtn = document.getElementById("ignoreFeedbackBtn");
-
-    async function loadFeedbacks() {
-        const feedbackList = document.getElementById("feedbackList");
-        feedbackList.innerHTML = "";
-
-        try {
-            const res = await fetch("/api/feedbacks");
-            const data = await res.json();
-
-            if (!data.success) {
-                alert("Failed to load feedback.");
-                return;
-            }
-
-            data.feedbacks.forEach(fb => {
-                const div = document.createElement("div");
-                div.classList.add("reports-item");
-
-                div.innerHTML = `
-                    <span>${fb.subject}</span>
-                    <button class="view-report-btn">View</button>
-                `;
-
-                div.querySelector(".view-report-btn").addEventListener("click", () => {
-                    feedbackSubject.value = fb.subject;
-                    feedbackTimeSubmitted.value = fb.time;
-                    feedbackDescription.value = fb.description;
-
-                    currentFeedbackId = fb.id;
-                    viewFeedbackPopup.classList.add("hidden");
-                    feedbackDetailsPopup.classList.remove("hidden");
-                });
-
-                feedbackList.appendChild(div);
-            });
-        } catch (err) {
-            console.error("Error loading feedbacks:", err);
-            alert("Error loading feedbacks.");
-        }
-    }
-    approveFeedbackBtn.addEventListener("click", async () => {
-        
-    });
-
-    ignoreFeedbackBtn.addEventListener("click", async () => {
-        
-    });
-
-    viewFeedbackBtn.addEventListener("click", async () => {
-        viewFeedbackPopup.classList.remove("hidden");
-        await loadFeedbacks();
-    });
-
-    closeViewFeedbackPopup.addEventListener("click", () => {
-        viewFeedbackPopup.classList.add("hidden");
-    });
-
-    closeFeedbackDetails.addEventListener("click", () => {
-        feedbackDetailsPopup.classList.add("hidden");
-        viewFeedbackPopup.classList.remove("hidden");
-    });
-});
-
-//User feedback
-document.addEventListener("DOMContentLoaded", () => {
-    const submitFeedback = document.getElementById("submitFeedback");
-    const feedbackPopup = document.getElementById("feedbackPopup");
-    const closeFeedbackPopup = document.getElementById("closeFeedbackPopup");
-    const feedbackForm = document.getElementById("feedbackForm");
-
-    submitFeedback.addEventListener("click", () => {
-        feedbackPopup.classList.remove("hidden");
-
-        feedbackForm.classList.add("active");
-    });
-
-    closeFeedbackPopup.addEventListener("click", () => {
-        feedbackPopup.classList.add("hidden");
-
-        feedbackForm.classList.remove("active");
-        feedbackForm.reset();
-    });
-})
-
 
 // Profile 
 const profilePopup = document.getElementById("profilePopup");
@@ -609,6 +609,10 @@ function fetchMarkersByCategory() {
         : "/api/markers";
 
     return fetch(url).then(res => res.json());
+}
+
+function fetchIndoorMarkers() {
+    return fetch("/api/indoor-markers").then(res => res.json());
 }
 
 const pendingApprovalsBtn = document.getElementById("pendingApprovalsBtn");
@@ -922,7 +926,10 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 // Array to store marker instances (optional, useful if you want later)
+
 let markers = [];
+const outdoorMarkers = L.layerGroup().addTo(map);
+const buildingMarkers = L.layerGroup().addTo(map);
 
 // ---------- LOAD MARKERS ----------
 async function loadMarkers() {
@@ -933,19 +940,41 @@ async function loadMarkers() {
 
 // ---------- ADD MARKERS ----------
 function addMarkersToMap(data) {
+    outdoorMarkers.clearLayers();
     data.forEach(m => {
         const marker = L.marker([m.latitude, m.longitude])
-            .addTo(map)
             .bindPopup(`
                 <strong>${m.name}</strong><br>
                 ${m.description || ""}
-            `);
+            `)
+            .addTo(outdoorMarkers);
 
         markers.push(marker);
     });
 }
 
+darkModeToggle.addEventListener('click', () => {
+    document.body.classList.toggle('dark-mode');
+
+    if (document.body.classList.contains('dark-mode')) {
+        darkModeToggle.textContent = "☀️ Light Mode";
+    } else {
+        darkModeToggle.textContent = "🌙 Dark Mode";
+    }
+
+    // Optional: store preference in localStorage
+    localStorage.setItem('darkMode', document.body.classList.contains('dark-mode'));
+});
+
+// Restore mode on page load
+if (localStorage.getItem('darkMode') === 'true') {
+    document.body.classList.add('dark-mode');
+    darkModeToggle.textContent = "☀️ Light Mode";
+}
+
+
 // ---------- INIT ----------
 document.addEventListener("DOMContentLoaded", () => {
     loadMarkers();
+    initBuildings();
 });

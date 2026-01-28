@@ -108,13 +108,16 @@
         <!-- Sidebar -->
         <div id="sidebar" class="sidebar">
             <div class = "sidebarTop">
+                <!-- Logo wrapper -->
+                <div class="logoWrapper">
                 <img src="https://www.mmu.edu.my/wp-content/themes/mmu2018/assets/images/logo-mmu2x.png">
+                </div>
                 <h2>Cyberpath : Smart <br/>Campus Navigator</h2>
                 <button class="user-btn" id="gpsButton">📍 Find My Location</button>
                 <button class="user-btn" id="viewAllBtnUser">View Locations</button>
                 <button class="user-btn" id="userRemoveRouteButton">Clear Route</button>
                 <button class="user-btn" id="centerBtn">Recentralize</button>
-                <button class="user-btn" id="submitFeedback">Feedback</button>
+                <button class="user-btn" id= "darkModeToggle">🌙 Dark Mode</button>
             </div>
             <div id="sidebarBottom">
                 {% if not session.get("admin_logged_in") %}
@@ -147,7 +150,7 @@
                 <h3 style="margin: 0 0 15px 0;">Campus Assistant 🤖</h3>
                 
                 <!-- Chat messages area -->
-                <div id="chatMessages" style="flex: 1; overflow-y: auto; margin: 10px 0; padding: 10px; border: 1px solid #ddd; border-radius: 8px; background: #f9f9f9;">
+                <div id="chatMessages" style="flex: 1; overflow-y: auto; margin: 10px 0; padding: 10px; border: 1px solid #ddd; border-radius: 8px;">
                     <!--Message from bot -->
                     <div style="background: #e3f2fd; padding: 10px; border-radius: 10px; margin-bottom: 10px; border-left: 4px solid #2196f3;">
                         <strong>Assistant:</strong> Hello! I'm your campus AI assistant. Ask me about locations, directions, or anything about MMU campus!
@@ -161,6 +164,7 @@
                         autocomplete="off">
                     <button id="sendChatBtn" class="admin-btn" style="padding: 10px 20px;">Send</button>
                 </div>
+                <div id="suggestionsBar" class="suggestions-bar hidden"></div>
             </div>
         </div>
 
@@ -174,7 +178,6 @@
                 <button class="admin-btn" id="viewAllBtn">View All Locations</button>
                 <button class="admin-btn" id="pendingApprovalsBtn">Pending Approvals</button>
                 <button class="admin-btn" id="manageAdminsBtn">Manage Admins</button>
-                <button class="admin-btn" id="viewFeedbackBtn">View Reports</button>
             </div>
             <div id="signout-profile">
                 {% if session.get("admin_logged_in") %}
@@ -186,28 +189,48 @@
                 <div class="profile-icon" id="profileBtn">👤</div>
             </div>
         </div>
-
+            
         <!--Add location container-->
         <div id="addLocationForm" class="popup hidden">
             <div class="popup-content">
                 <span class="close-btn" id="closeAddLocation">&times;</span>
                 <form id="markerForm" class="tab-form active" action="/add-marker" method="POST">
                     <h2>Add Location</h2>
-                    
+
+                    <input type="hidden" name="is_indoor" id="addIsIndoor" value="0">
+                    <input type="hidden" name="building_id" id="addBuildingId">
+                    <input type="hidden" name="floor" id="addFloor">
+
                     <label>Name:</label> <br>
                     <input type="text" id="locName" name="name" autocomplete="new-password"> <br> 
 
                     <label>Description:</label><br>
                     <input id="locDesc" name="description" required autocomplete="new-password"></input> <br>
 
-                    <label>Category:</label> <br>
-                    <select class="admin-btn" id="category" name="category_id" required>
+                    <div id="outdoorCategoryDiv">
+                    <label>Category:</label>
+                    <select id="outdoorCategory" name="category_id">
                         <option value="">Select category</option>
-                        {% for category in categories %}
+                        {% for category in outdoor_categories %}
                             <option value="{{ category.id }}">{{ category.name }}</option>
                         {% endfor %}
-                    </select> <br>
+                    </select>
+                    </div>
+
+                    <div id="indoorCategoryDiv" style="display:none;">
+                    <label>Category:</label>
+                    <select id="indoorCategory" name="category_id">
+                        <option value="">Select category</option>
+                        {% for category in indoor_categories %}
+                            <option value="{{ category.id }}">{{ category.name }}</option>
+                        {% endfor %}
+                    </select>
+                    </div>
+
                     <br>
+
+                    <input type="hidden" id="addIsIndoor" name="is_indoor" value="0">
+
                     <label>Location (lat, lng):</label><br>
                     <input type="text" id="locCoords" name="coords" placeholder="Click map or type manually" autocomplete="new-password">
                     <button type="button" id="pickFromMapBtn">Pick From Map</button><br>
@@ -233,6 +256,15 @@
                 <h3>Edit Location</h3>
 
                 <form id="editLocationForm" class="tab-form active" method="POST">
+
+                    <input type="hidden" name="marker_id" id="editMarkerId">
+
+                    <input type="hidden" name="is_indoor" id="editIsIndoor">
+
+                    <input type="hidden" name="building_id" id="editBuildingId">
+
+                    <input type="hidden" name="floor" id="editFloor">
+
                     <label>Name:</label>
                     <input type="text" id="editLocName" name="name" required autocomplete="new-password">
 
@@ -241,13 +273,29 @@
                     <input id="editLocDesc" name="description" required autocomplete="new-password"></input>
                     <br>
 
-                    <label>Category:</label> <br>
-                    <select class="admin-btn" id="editCategory" name="category_id" required>
+                    <div id="outdoorCategoryDiv">
+                    <label>Category:</label>
+                    <select id="outdoorCategory" name="category_id">
                         <option value="">Select category</option>
-                        {% for category in categories %}
+                        {% for category in outdoor_categories %}
                             <option value="{{ category.id }}">{{ category.name }}</option>
                         {% endfor %}
-                    </select> <br>
+                    </select>
+                    </div>
+
+                    <div id="indoorCategoryDiv" style="display:none;">
+                    <label>Category:</label>
+                    <select id="indoorCategory" name="category_id">
+                        <option value="">Select category</option>
+                        {% for category in indoor_categories %}
+                            <option value="{{ category.id }}">{{ category.name }}</option>
+                        {% endfor %}
+                    </select>
+                    </div>
+
+                    <br>
+
+                    <input type="hidden" id="addIsIndoor" name="is_indoor" value="0">
 
                     <label>Location (lat, lng):</label>
                     <input type="text" id="editLocCoords" name="coords" placeholder="Click map or type manually" autocomplete="new-password">
@@ -332,61 +380,6 @@
             </div>
         </div>
 
-        <div id="viewFeedbackPopup" class="popup hidden">
-            <div class="popup-content">
-                <span id="closeViewFeedbackPopup" class="close-btn">&times;</span>
-                <h2>View Reports</h2>
-                <input type="text" id="searchLocation" class="popup-search" placeholder="Search reports...">
-                <div class="popup-row header">
-                    <span>Name</span>
-                    <span></span>
-                    <span></span>
-                    <span>Action</span>
-                </div>
-                <div class="popup-list" id="feedbackList">
-                    <!--Reports list here-->
-                </div>
-            </div>
-        </div>
-        
-        <div id="feedbackPopup" class="popup hidden">
-            <div class="popup-content">
-                <span id="closeFeedbackPopup" class="close-btn">&times;</span>
-                <form id="feedbackForm" class="tab-form active" method="POST" action="/feedback">
-                    <h2>Feedback</h2>
-
-                    <label>Subject:</label>
-                    <input type="text" name="subject" autocomplete="new-password" required>
-
-                    <label>Description:</label>
-                    <textarea class="about-box" name="description"></textarea>
-
-                    <button id="confirmSubmitFeedback" class="user-btn">Submit Feedback</button>
-                </form>
-            </div>
-        </div>
-
-        <div id="feedbackDetailsPopup" class="popup hidden">
-            <div class="popup-content">
-                <span id="closeFeedbackDetailsPopup" class="close-btn">&times;</span>
-                <div class="tab-form active">
-                    <h2>Feedback Details</h2>
-
-                    <label>Subject:</label>
-                    <input type="text" id="feedbackSubject" readonly>
-
-                    <label>Time Submitted:</label>
-                    <input type="text" id="feedbackTimeSubmitted" readonly>
-
-                    <label>Description:</label>
-                    <textarea id="feedbackDescription" class="about-box" readonly></textarea>
-
-                    <button id="approveFeedbackBtn" class="admin-btn">Approve</button>
-                    <button id="ignoreFeedbackBtn" class="admin-btn">Ignore</button>
-                </div>
-            </div>
-        </div>
-
         <!--Profile container-->
         <div id="profilePopup" class ="popup hidden">
             <div class="popup-content">
@@ -430,11 +423,11 @@
 
                 <form id="changeEmailForm" class="tab-form active" method="POST" action="/change-email">
                     <label>New Email:</label>
-                    <input type="email" id="newEmailInput" name="new_email" autocomplete="new-password" required>
+                    <input type="email" id="newEmailInput" name="new_email" autocomplete="new-password" required placeholder="Enter a vaild email address">
 
                     <label>Current Password:</label>
                     <div class="password-wrapper">
-                        <input type="password" id="confirmEmailpassword" name="password" class="password-field" required>
+                        <input type="password" id="confirmEmailpassword" name="password" class="password-field" required placeholder="Enter current password">
                         <i class="fa-solid fa-eye-slash toggle-password"></i>
                     </div>
 
@@ -454,19 +447,19 @@
 
                     <label>Current Password:</label>
                     <div class="password-wrapper">
-                        <input type="password" id="curPasswordInput" name="current_password" class="password-field" required>
+                        <input type="password" id="curPasswordInput" name="current_password" class="password-field" required placeholder="Enter current password">
                         <i class="fa-solid fa-eye-slash toggle-password"></i>
                     </div>
 
                     <label>New Password:</label>
                     <div class="password-wrapper">
-                        <input type="password" id="newPasswordInput" name="new_password" class="password-field" required>
+                        <input type="password" id="newPasswordInput" name="new_password" class="password-field" required placeholder="8 characters, including 1 uppercase and 1 number.">
                         <i class="fa-solid fa-eye-slash toggle-password"></i>
                     </div>
 
                     <label>Confirm Password:</label>
                     <div class="password-wrapper">
-                        <input type="password" id="confirmPasswordInput" name="confirm_password" class="password-field" required>
+                        <input type="password" id="confirmPasswordInput" name="confirm_password" class="password-field" required placeholder="Must be same as new password">
                         <i class="fa-solid fa-eye-slash toggle-password"></i>
                     </div>
 
@@ -499,11 +492,11 @@
                 <form id="signinForm" class="tab-form active"  action="/signin" method="POST" >
 
                     <label for="signinEmail">Email:</label>
-                    <input type="email" id="signinEmail" name="email" autocomplete="new-password" required>
+                    <input type="email" id="signinEmail" name="email" autocomplete="new-password" required placeholder="Enter a vaild email address">
 
                     <label for="password">Password:</label>
                     <div class="password-wrapper">
-                        <input type="password" id="signinPassword" name="password" class="password-field" autocomplete="new-password" required>
+                        <input type="password" id="signinPassword" name="password" class="password-field" autocomplete="new-password" required placeholder="8 characters, including 1 uppercase and 1 number.">
                         <i class="fa-solid fa-eye-slash toggle-password"></i>
                     </div>
 
@@ -519,12 +512,12 @@
                     <span id="referralError" class="error-message"></span> 
 
                     <label for="email">Email:</label>
-                    <input type="email" id="signupEmail" name="email" autocomplete="new-password" required>
+                    <input type="email" id="signupEmail" name="email" autocomplete="new-password" required placeholder="Enter a vaild email address">
                     <span id="emailError" class="error-message"></span>
 
                     <label for="signupPassword">Password:</label>
                     <div class="password-wrapper">
-                        <input type="password" id="signupPassword" name="password" class="password-field" autocomplete="new-password" required>
+                        <input type="password" id="signupPassword" name="password" class="password-field" autocomplete="new-password" required placeholder="8 characters, including 1 uppercase and 1 number.">
                         <i class="fa-solid fa-eye-slash toggle-password"></i>
                     </div>
                     <span id="passwordError" class="error-message"></span>
@@ -547,7 +540,7 @@
 
                 <form id="sendOtpForm" class="tab-form active">
                 <label>Email</label>
-                <input type="email" name="email" required autocomplete="new-password">
+                <input type="email" name="email" required autocomplete="new-password" placeholder="Enter a vaild email address">
                 <button id="sendOtpBtn" type="submit" class="admin-btn">Send OTP</button>
                 </form>
             </div>
@@ -601,12 +594,15 @@
 
 
     </div>
+    <script src="{{ url_for('static', filename='path.js') }}"></script>
     <script src="{{ url_for('static', filename='routing.js') }}"></script>
     <script src="{{ url_for('static', filename='gps.js') }}"></script>
     <script src="{{ url_for('static', filename='script.js') }}"></script>
     <script src="{{ url_for('static', filename='indoor.js') }}"></script>
     <script src="{{ url_for('static', filename='chatbot.js') }}"></script>
 
+
+    
 
 
 </body>

@@ -16,7 +16,10 @@ function makeGPS() {
                         window.userLocationMarker.setLatLng([lat, long]);
                     }
 
-                    window.userLocation = {latitude: lat, longitude: long};
+                    window.userLocation = { latitude: lat, longitude: long };
+                    if (window.currentDestination) {
+                    router.createRoute(window.currentDestination.lat, window.currentDestination.lng);
+                    }
                 },
                 function (gpsError) {
                     if (gpsError.code === gpsError.PERMISSION_DENIED) {
