@@ -20,7 +20,11 @@ const FCIfloors = {
 };
 
 const FCMfloors = {
-
+    0: { image: '/static/images/fci_floor1.png', },
+    1: { image: '/static/images/fci_floor1.png', },
+    2: { image: '/static/images/fci_floor1.png', },
+    3: { image: '/static/images/fci_floor1.png', },
+    4: { image: '/static/images/fci_floor1.png', }
 }
 
 /* =========================
@@ -36,7 +40,7 @@ const buildings = {
     
     fcm: {
         name: "FCM Building",
-        center: [2.9279, 101.6424],
+        center: [2.929251, 101.6413242],
         floors: FCMfloors,
     }
     
@@ -180,6 +184,7 @@ function createBuildingMarker(buildingId) {
 function initBuildings() {
     buildingMarkers.clearLayers();
     createBuildingMarker("fci");
+    createBuildingMarker("fcm");
 }
 
 
