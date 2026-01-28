@@ -209,29 +209,29 @@ if (closeLocationFormBtn) {
 
 const ICONS = {
     "Lecture Hall": L.icon({
-        iconUrl: "/static/icons/lecture-hall.svg",
-        iconSize: [28, 28],
+        iconUrl: "/static/icons/default.png",
+        iconSize: [28, 34],
         iconAnchor: [14, 28],
         popupAnchor: [0, -28]
     }),
     "Food & Drinks": L.icon({
-        iconUrl: "/static/icons/food.svg",
-        iconSize: [28, 28],
+        iconUrl: "/static/icons/food&drinks.png",
+        iconSize: [28, 34],
         iconAnchor: [14, 28]
     }),
     "Facilities": L.icon({
-        iconUrl: "/static/icons/facilities.svg",
-        iconSize: [28, 28],
+        iconUrl: "/static/icons/default.png",
+        iconSize: [28, 34],
         iconAnchor: [14, 28]
     }),
     "Recreation": L.icon({
-        iconUrl: "/static/icons/recreation.svg",
-        iconSize: [28, 28],
+        iconUrl: "/static/icons/recreation.png",
+        iconSize: [28, 34],
         iconAnchor: [14, 28]
     }),
     "default": L.icon({
-        iconUrl: "/static/icons/default.svg",
-        iconSize: [26, 26],
+        iconUrl: "/static/icons/default.png",
+        iconSize: [28, 34],
         iconAnchor: [13, 26]
     })
 };
