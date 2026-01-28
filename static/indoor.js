@@ -19,6 +19,20 @@ const FCIfloors = {
     4: { image: '/static/images/fci_floor1.png', }
 };
 
+const FOMfloors = {
+    0: { image: '/static/images/fci_floor1.png', },
+    1: { image: '/static/images/fci_floor1.png', },
+    2: { image: '/static/images/fci_floor1.png', },
+    3: { image: '/static/images/fci_floor1.png', },
+    4: { image: '/static/images/fci_floor1.png', }
+}
+const FAIEfloors = {
+    0: { image: '/static/images/fci_floor1.png', },
+    1: { image: '/static/images/fci_floor1.png', },
+    2: { image: '/static/images/fci_floor1.png', },
+    3: { image: '/static/images/fci_floor1.png', },
+    4: { image: '/static/images/fci_floor1.png', }
+}
 const FCMfloors = {
     0: { image: '/static/images/fci_floor1.png', },
     1: { image: '/static/images/fci_floor1.png', },
@@ -26,6 +40,7 @@ const FCMfloors = {
     3: { image: '/static/images/fci_floor1.png', },
     4: { image: '/static/images/fci_floor1.png', }
 }
+
 
 /* =========================
     FCI LOCATION (OUTDOOR)
@@ -38,12 +53,23 @@ const buildings = {
     },
 
     
+    fom: {
+        name: "FOM Building",
+        center: [2.929487, 101.641294],
+        floors: FOMfloors,
+    },
+
+    faie: {
+        name: "FAIE Building",
+        center: [2.926401, 101.641255],
+        floors: FOMfloors,
+    },
+
     fcm: {
         name: "FCM Building",
-        center: [2.929251, 101.6413242],
-        floors: FCMfloors,
+        center: [2.926155, 101.642649],
+        floors: FOMfloors,
     }
-    
 };
 
 /* =========================
@@ -184,6 +210,8 @@ function createBuildingMarker(buildingId) {
 function initBuildings() {
     buildingMarkers.clearLayers();
     createBuildingMarker("fci");
+    createBuildingMarker("fom");
+    createBuildingMarker("faie");
     createBuildingMarker("fcm");
 }
 
