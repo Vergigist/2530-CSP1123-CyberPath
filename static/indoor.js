@@ -136,9 +136,11 @@ async function loadFloor(floorNumber) {
     );
 
     filtered.forEach(m => {
-        L.marker([m.latitude, m.longitude])
-            .bindPopup(`<b>${m.name}</b><br>${m.description || ""}`)
-            .addTo(indoorMarkers);
+        L.marker([m.latitude, m.longitude], {
+            icon: getCategoryIcon(m.category)
+        })
+        .bindPopup(`<b>${m.name}</b><br>${m.description || ""}`)
+        .addTo(indoorMarkers);
     });
 
     indoorMarkers.bringToFront();
@@ -198,7 +200,9 @@ function exitIndoor() {
 function createBuildingMarker(buildingId) {
     const b = buildings[buildingId];
 
-    L.marker(b.center)
+    L.marker(b.center, {
+        icon: getCategoryIcon("building")
+    })
         .addTo(buildingMarkers)
         .bindPopup(`
             <b>${b.name}</b><br>

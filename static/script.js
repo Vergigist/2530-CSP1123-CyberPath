@@ -205,6 +205,41 @@ if (closeLocationFormBtn) {
     });
 }
 
+//marker icon change
+
+const ICONS = {
+    "Lecture Hall": L.icon({
+        iconUrl: "/static/icons/lecture-hall.svg",
+        iconSize: [28, 28],
+        iconAnchor: [14, 28],
+        popupAnchor: [0, -28]
+    }),
+    "Food & Drinks": L.icon({
+        iconUrl: "/static/icons/food.svg",
+        iconSize: [28, 28],
+        iconAnchor: [14, 28]
+    }),
+    "Facilities": L.icon({
+        iconUrl: "/static/icons/facilities.svg",
+        iconSize: [28, 28],
+        iconAnchor: [14, 28]
+    }),
+    "Recreation": L.icon({
+        iconUrl: "/static/icons/recreation.svg",
+        iconSize: [28, 28],
+        iconAnchor: [14, 28]
+    }),
+    "default": L.icon({
+        iconUrl: "/static/icons/default.svg",
+        iconSize: [26, 26],
+        iconAnchor: [13, 26]
+    })
+};
+
+function getCategoryIcon(category) {
+    return ICONS[category] || ICONS.default;
+}
+
 // Map picking for both add + edit
 map.on("click", function (e) {
     if (!pickMode || !activePopup || !activeCoordsInput) return;
@@ -959,13 +994,17 @@ async function loadMarkers() {
 // ---------- ADD MARKERS ----------
 function addMarkersToMap(data) {
     outdoorMarkers.clearLayers();
+    markers.length = 0;
+
     data.forEach(m => {
-        const marker = L.marker([m.latitude, m.longitude])
-            .bindPopup(`
-                <strong>${m.name}</strong><br>
-                ${m.description || ""}
-            `)
-            .addTo(outdoorMarkers);
+        const marker = L.marker([m.latitude, m.longitude], {
+            icon: getCategoryIcon(m.category)
+        })
+        .bindPopup(`
+            <strong>${m.name}</strong><br>
+            ${m.description || ""}
+        `)
+        .addTo(outdoorMarkers);
 
         markers.push(marker);
     });

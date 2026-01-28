@@ -1130,3 +1130,8 @@ body.dark-mode #sendChatBtn {
     color: #fff;
     border: none;
 }
+
+.svg-marker {
+    background: none;
+    border: none;
+}
