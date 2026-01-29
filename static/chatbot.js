@@ -145,7 +145,7 @@ function setupChatbot() {
                 const locationName = this.dataset.name; // ensure you have a name attribute
 
                 if (!window.userLocation) {
-                    addMessageToChat("📍 Please click 'Find My Location' first.", false);
+                    addMessageToChat(" Please click 'Find My Location' first.", false);
                     return;
                 }
 

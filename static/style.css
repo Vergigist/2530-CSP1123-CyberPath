@@ -882,18 +882,18 @@ body.dark-mode #chatMessages div[style*="background: #dcf8c6"] {
 
 /* Buttons */
 body.dark-mode button {
-    background-color: #333 !important;
+    background-color: #21355c !important;
     color: #fff !important;
     border-color: #555 !important;
 }
 
 /* Map & other panels */
 body.dark-mode .leaflet-container {
-    filter: brightness(0.8) contrast(1.1); /* optional darken map */
+    filter: brightness(0.5) contrast(1.6); /* optional darken map */
 }
 
 body.dark-mode button:hover {
-    background-color: #666 !important;
+    background-color: #425884 !important;
 }
 
 body.dark-mode ::-webkit-scrollbar {
@@ -961,11 +961,7 @@ button {
     border-color: #444; /* optional, if there are borders */
 }
 
-/* Buttons inside sidebar */
-.dark-mode #sidebar button {
-    background-color: #555;
-    color: #ddd;
-}
+
 
 /* Chatbot popup */
 .dark-mode #chatbotPopup {
@@ -975,7 +971,7 @@ button {
 
 /* Map controls (optional for leaflet controls) */
 .dark-mode .leaflet-control {
-    background-color: #333;
+    background-color: #ffffff;
     color: #ddd;
 }
 
@@ -988,7 +984,7 @@ button {
 
 /* Buttons inside sidebar */
 .dark-mode #admin-controls {
-    background-color: #555;
+    background-color: #2b4574;
     color: #ddd;
 }
 
@@ -1103,19 +1099,26 @@ body.dark-mode .admin-popup textarea {
 }
 
 /* Dark Mode */
+
+body.dark-mode .chatbot-icon {
+    background: #333;   /* dark circle */
+    color: #fff;        /* light text/icon inside */
+    box-shadow: 0 3px 10px rgba(0,0,0,0.5); /* slightly stronger shadow for contrast */
+}
+
 body.dark-mode #chatbotPopup .popup-content {
     background: #1e1e1e;  /* dark popup background */
     color: #fff;
 }
 
 body.dark-mode #chatMessages {
-    background: #2b2b2b;  /* dark background behind all chat messages */
+    background: #2b2b2b;  
     color: #fff;
 }
 
 body.dark-mode #chatMessages .bot-message {
-    background: #3a3a3a;  /* slightly lighter than chat background */
-    border-left-color: #2196f3; /* keeps the blue accent */
+    background: #3a3a3a;  
+    border-left-color: #2196f3; 
     color: #fff;
 }
 
@@ -1134,4 +1137,49 @@ body.dark-mode #sendChatBtn {
 .svg-marker {
     background: none;
     border: none;
+}
+
+/* Shared style for pop-up buttons */
+.chatbot-icon,
+#darkModeFab {
+    position: fixed;
+    right: 20px;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px; /* slightly bigger for emojis to match visually */
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
+    cursor: pointer;
+    transition: background-color 0.2s, transform 0.15s;
+    z-index: 1100;
+}
+
+/* Chatbot position */
+.chatbot-icon {
+    bottom: 20px;
+    background: #fff;
+}
+
+/* Dark Mode position */
+#darkModeFab {
+    bottom: 90px; /* above the chatbot */
+    background: #fff;
+    color: #333;
+}
+
+/* Hover effect */
+.chatbot-icon:hover,
+#darkModeFab:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    background-color: #0056b3;
+}
+
+/* Dark mode active styling */
+body.dark-mode #darkModeFab {
+    background: #2b2b2b;
+    color: #fff;
 }
