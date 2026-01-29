@@ -8,7 +8,7 @@ var map = L.map('map', {
     maxZoom: 20   // allow zooming in super close
 });
 
-const darkModeToggle = document.getElementById('darkModeToggle');
+
 let campusGeoJSON = null;
 
 fetch("static/newcampus.geojson")
@@ -321,6 +321,7 @@ function handlePathButtonClick(e) {
         const routeHere = router.createRoute(targetLat, targetLng);
         if (routeHere) {
             alert(`✅ Route created to ${locationName}!`);
+            showRouteInfoPopup(routeHere, locationName);
         } else {
             alert(`⚠️ Failed to create route to ${locationName}.`);
         }
@@ -329,6 +330,7 @@ function handlePathButtonClick(e) {
     }
     
     viewLocationPopup.classList.add("hidden");
+
 }
 
 locationList.addEventListener("click", handlePathButtonClick);
@@ -1015,6 +1017,7 @@ function addMarkersToMap(data) {
                 Get directions
             </button>
         `)
+
         .on('popupopen', function() {
             const popup = this.getPopup();
             const btn = popup.getElement().querySelector('.path-btn');
@@ -1028,24 +1031,30 @@ function addMarkersToMap(data) {
     });
 }
 
+const darkModeToggle = document.getElementById('darkModeFab');
+
+// Toggle on click
 darkModeToggle.addEventListener('click', () => {
     document.body.classList.toggle('dark-mode');
 
-    if (document.body.classList.contains('dark-mode')) {
-        darkModeToggle.textContent = "Light Mode";
-    } else {
-        darkModeToggle.textContent = "Dark Mode";
-    }
+    const isDark = document.body.classList.contains('dark-mode');
 
-    // Optional: store preference in localStorage
-    localStorage.setItem('darkMode', document.body.classList.contains('dark-mode'));
+    darkModeToggle.textContent = isDark ? '☀️' : '🌙';
+
+    // Save preference
+    localStorage.setItem('darkMode', isDark);
 });
 
 // Restore mode on page load
-if (localStorage.getItem('darkMode') === 'true') {
+const savedDarkMode = localStorage.getItem('darkMode') === 'true';
+
+if (savedDarkMode) {
     document.body.classList.add('dark-mode');
-    darkModeToggle.textContent = "Light Mode";
+    darkModeToggle.textContent = '☀️';
+} else {
+    darkModeToggle.textContent = '🌙';
 }
+
 
 
 // ---------- INIT ----------

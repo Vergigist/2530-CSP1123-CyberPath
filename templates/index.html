@@ -117,7 +117,7 @@
                 <button class="user-btn" id="viewAllBtnUser">Search Locations</button>
                 <button class="user-btn" id="userRemoveRouteButton">Clear Route</button>
                 <button class="user-btn" id="centerBtn">Recentralize</button>
-                <button class="user-btn" id= "darkModeToggle">🌙 Dark Mode</button>
+                
             </div>
             <div id="sidebarBottom">
                 {% if not session.get("admin_logged_in") %}
@@ -141,6 +141,7 @@
         </div>
 
         <!-- Chatbot -->
+        <div id="darkModeFab" title="Toggle Dark Mode">🌙</div>
         <div class="chatbot-icon">💬</div>
         <!-- Chatbot Popup -->
         <div id="chatbotPopup" class="popup hidden">
