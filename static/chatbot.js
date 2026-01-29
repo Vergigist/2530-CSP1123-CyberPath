@@ -155,6 +155,7 @@ function setupChatbot() {
                 }
 
                 const routeLayer = window.router.createRoute(lat, lng);
+                window.showRouteInfoPopup(routeLayer, locationName);
                 if (routeLayer) {
                     addMessageToChat(`✅ Creating route to ${locationName}! Check the map for the blue path.`, false);
                     chatbotPopup.classList.add('hidden'); // close chatbot

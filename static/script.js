@@ -321,6 +321,7 @@ locationList.addEventListener("click", (e) => {
         const routeHere = router.createRoute(targetLat, targetLng);
         if (routeHere) {
             alert(`✅ Route created to ${locationName}!`);
+            showRouteInfoPopup(routeHere, locationName);
         } else {
             alert(`⚠️ Failed to create route to ${locationName}.`);
         }
