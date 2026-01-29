@@ -10,6 +10,7 @@ function setupChatbot() {
     const sendBtn = document.getElementById('sendChatBtn');
     const chatInput = document.getElementById('chatInput');
     const chatMessages = document.getElementById('chatMessages');
+    const suggestionsBar = document.getElementById("suggestionsBar");
 
     if (!chatbotIcon || !chatbotPopup) {
         console.log("Chatbot elements not found");
@@ -19,7 +20,13 @@ function setupChatbot() {
     chatbotIcon.addEventListener('click', function() {
         console.log("Opening chatbot");
         chatbotPopup.classList.remove('hidden');
-        chatInput.focus(); // Add focus to input
+        chatInput.focus();
+
+            showSuggestions([
+            "🗺️ Directions to the library",
+            "🚶 Walking route to DTC",
+            "📍 How do I get to Haji Tapah?",
+        ]);
     });
 
     closeBtn.addEventListener('click', function() {
@@ -39,14 +46,16 @@ function setupChatbot() {
 
     function showThinking() {
         const thinkingDiv = document.createElement('div');
+        const isDark = document.body.classList.contains('dark-mode')
         thinkingDiv.innerHTML = `<strong>Assistant:</strong> Thinking...`;
         thinkingDiv.style.cssText = `
-            background: #e3f2fd;
+            background: ${isDark? '#1565c0' : 'e3f2fd'};
             padding: 10px;
             border-radius: 10px;
             margin: 10px 0;
             max-width: 80%;
-            border-left: 4px solid #2196f3;
+            border-left: 4px solid ${isDark ? '#0d47a1' : '#2196f3'};
+            color: ${isDark ? '#fff' : '#000'};
         `;
         chatMessages.appendChild(thinkingDiv);
         chatMessages.scrollTop = chatMessages.scrollHeight;
@@ -56,24 +65,28 @@ function setupChatbot() {
     function addMessageToChat(message, isUser) {
         const messageDiv = document.createElement('div');
 
+        const isDark = document.body.classList.contains('dark-mode');
+
         if (isUser) {
             messageDiv.style.cssText = `
-                background: #dcf8c6;
+                background: ${isDark ? '#2e7d32' : '#dcf8c6'};
                 padding: 10px;
                 border-radius: 10px;
                 margin: 10px 0 10px auto;
                 max-width: 80%;
-                border-right: 4px solid #4caf50;
+                border-right: 4px solid ${isDark ? '#1b5e20' : '#4caf50'};
+                color: ${isDark ? '#fff' : '#000'};
             `;
             messageDiv.innerHTML = `<strong>You:</strong> ${escapeHtml(message)}`; // FIXED: message not text
         } else {
             messageDiv.style.cssText = `
-                background: #e3f2fd;
+                background: ${isDark? '#1565c0' : 'e3f2fd'};
                 padding: 10px;
                 border-radius: 10px;
                 margin: 10px 0;
                 max-width: 80%;
-                border-left: 4px solid #2196f3;
+                border-left: 4px solid ${isDark ? '#0d47a1' : '#2196f3'};
+                color: ${isDark ? '#fff' : '#000'};
             `;
             messageDiv.innerHTML = `<strong>Assistant:</strong> ${escapeHtml(message)}`; // FIXED: message not text
         }
@@ -84,13 +97,17 @@ function setupChatbot() {
 
     function addDirectionsButton(coordinates, locationName) {
         const buttonDiv = document.createElement('div');
+
+        const isDark = document.body.classList.contains('dark-mode');
+
         buttonDiv.style.cssText = `
-            background: #fff8e1;
+            background: ${isDark ? '#af9a46' : '#fff8e1'};
             padding: 12px;
             border-radius: 10px;
             margin: 10px 0;
-            border: 1px solid #ffd54f;
-            border-left: 4px solid #ffb300;
+            border: 1px solid ${isDark ? '#ad8912' : '#ffd54f'};
+            border-left: 4px solid ${isDark ? '#b58f00' : '#ffb300'};
+            color: ${isDark ? '#1a1a1a' : '#000'};
         `;
     
         //changed coords to coordinates
@@ -128,7 +145,7 @@ function setupChatbot() {
                 const locationName = this.dataset.name; // ensure you have a name attribute
 
                 if (!window.userLocation) {
-                    addMessageToChat("📍 Please click 'Find My Location' first.", false);
+                    addMessageToChat(" Please click 'Find My Location' first.", false);
                     return;
                 }
 
@@ -138,6 +155,7 @@ function setupChatbot() {
                 }
 
                 const routeLayer = window.router.createRoute(lat, lng);
+                window.showRouteInfoPopup(routeLayer, locationName);
                 if (routeLayer) {
                     addMessageToChat(`✅ Creating route to ${locationName}! Check the map for the blue path.`, false);
                     chatbotPopup.classList.add('hidden'); // close chatbot
@@ -190,6 +208,20 @@ function setupChatbot() {
 
             if (data.success) {
                 addMessageToChat(data.response, false);
+
+                if (data.coordinates && data.location_name) {
+                    showSuggestions([
+                        `🗺️ Get directions to ${data.location_name}`,
+                        `⏱️ How to get to ${data.location_name}?`,
+                        `📍 Show walking route to ${data.location_name}`
+                    ]);
+                    } else {
+                        showSuggestions([
+                            "🗺️ Directions to the library",
+                            "🚶 Walking route to DTC",
+                            "📍 How do I get to Haji Tapah?",
+                        ]);
+                    }
                 
                 // Wait 1 second, then show directions suggestion
                 if (data.coordinates && data.location_name) {
@@ -216,4 +248,28 @@ function setupChatbot() {
             addMessageToChat("Sorry, I couldn't reach the server. Please try again later.", false);
         }
     }
+
+    function showSuggestions(suggestions) {
+        suggestionsBar.innerHTML = "";
+        suggestionsBar.classList.remove("hidden");
+
+        suggestions.forEach(text => {
+            const chip = document.createElement("div");
+            chip.className = "suggestion-chip";
+            chip.textContent = text;
+
+            chip.addEventListener("click", () => {
+                chatInput.value = text;
+                hideSuggestions();
+            });
+
+            suggestionsBar.appendChild(chip);
+        });
+    }
+
+    function hideSuggestions() {
+        suggestionsBar.classList.add("hidden");
+        suggestionsBar.innerHTML = "";
+    }
+
 }

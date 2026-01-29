@@ -8,6 +8,7 @@ var map = L.map('map', {
     maxZoom: 20   // allow zooming in super close
 });
 
+
 let campusGeoJSON = null;
 
 fetch("static/newcampus.geojson")
@@ -54,18 +55,30 @@ const sidebar = document.getElementById('sidebar');
 const toggleBtn = document.getElementById('toggleBtn');
 const centerBtn = document.getElementById('centerBtn');
 
+// Function to update toggleBtn position
+function updateTogglePosition() {
+    toggleBtn.style.left = sidebar.classList.contains('active') ? '270px' : '10px';
+}
+
+// Initial load
+updateTogglePosition();
+
+// Toggle sidebar on button click
 toggleBtn.addEventListener('click', () => {
     content.classList.toggle('sidebar-open');
     sidebar.classList.toggle('active');
+    updateTogglePosition(); // update button dynamically
     setTimeout(() => {
         map.invalidateSize();
     }, 310);
 });
 
+// Center map
 centerBtn.addEventListener('click', () => {
     map.setView([2.928, 101.64192], 16);
 });
 
+// Update map size after sidebar transition
 sidebar.addEventListener('transitionend', () => {
     map.invalidateSize();
 });
@@ -73,7 +86,7 @@ sidebar.addEventListener('transitionend', () => {
 // Admin 
 const adminBtn = document.getElementById('adminBtn');
 const adminPopup = document.getElementById('adminPopup');
-const closePopupAdmin = document.getElementById('closePopup');
+const closeAdminPopup = document.getElementById('closePopup');
 
 const signupForm = document.getElementById("signupForm");
 if (signupForm) {
@@ -92,6 +105,9 @@ if (signupForm) {
             }
             return;
         }
+
+        alert(data.message);
+        adminPopup.style.display = 'none';
     });
 }
 
@@ -101,8 +117,14 @@ adminBtn.addEventListener('click', () => {
     signupForm.querySelectorAll(".error-message").forEach(span => span.textContent = "");
 });
 
-closePopupAdmin.addEventListener('click', () => adminPopup.style.display = 'none');
-window.addEventListener('click', (e) => { if(e.target === adminPopup) adminPopup.style.display = 'none'; });
+closeAdminPopup.addEventListener('click', () => {
+    adminPopup.style.display = 'none'
+});
+
+window.addEventListener('click', (e) => { 
+    if(e.target === adminPopup) 
+        adminPopup.style.display = 'none'; 
+});
 
 const tabs = document.querySelectorAll('.tab-btn');
 const forms = document.querySelectorAll('.tab-form');
@@ -181,6 +203,41 @@ if (closeLocationFormBtn) {
         addLocationForm.classList.add("hidden");
         pickMode = false;
     });
+}
+
+//marker icon change
+
+const ICONS = {
+    "Lecture Hall": L.icon({
+        iconUrl: "/static/icons/default.png",
+        iconSize: [28, 34],
+        iconAnchor: [14, 28],
+        popupAnchor: [0, -28]
+    }),
+    "Food & Drinks": L.icon({
+        iconUrl: "/static/icons/food&drinks.png",
+        iconSize: [28, 34],
+        iconAnchor: [14, 28]
+    }),
+    "Facilities": L.icon({
+        iconUrl: "/static/icons/default.png",
+        iconSize: [28, 34],
+        iconAnchor: [14, 28]
+    }),
+    "Recreation": L.icon({
+        iconUrl: "/static/icons/recreation.png",
+        iconSize: [28, 34],
+        iconAnchor: [14, 28]
+    }),
+    "default": L.icon({
+        iconUrl: "/static/icons/default.png",
+        iconSize: [28, 34],
+        iconAnchor: [13, 26]
+    })
+};
+
+function getCategoryIcon(category) {
+    return ICONS[category] || ICONS.default;
 }
 
 // Map picking for both add + edit
@@ -264,6 +321,7 @@ locationList.addEventListener("click", (e) => {
         const routeHere = router.createRoute(targetLat, targetLng);
         if (routeHere) {
             alert(`✅ Route created to ${locationName}!`);
+            showRouteInfoPopup(routeHere, locationName);
         } else {
             alert(`⚠️ Failed to create route to ${locationName}.`);
         }
@@ -272,6 +330,28 @@ locationList.addEventListener("click", (e) => {
     }
 });
 
+document.getElementById("markerForm").addEventListener("submit", () => {
+    const isIndoorInput = document.querySelector('[name="is_indoor"]');
+    const buildingInput = document.querySelector('[name="building_id"]');
+    const floorInput = document.querySelector('[name="floor"]');
+    const outdoorCategory = document.getElementById("outdoorCategory");
+    const indoorCategory = document.getElementById("indoorCategory");
+
+    if (isIndoor === true) {
+        isIndoorInput.value = "1";
+        buildingInput.value = activeBuildingId;
+        floorInput.value = activeFloor;
+        outdoorCategory.disabled = true;
+        indoorCategory.disabled = false;
+    } else {
+        isIndoorInput.value = "0";
+        buildingInput.value = "";
+        floorInput.value = "";
+        isIndoorInput.value = "0";
+        outdoorCategory.disabled = false;
+        indoorCategory.disabled = true;
+    }
+});
 
 // Edit Location
 const editLocationBtn = document.getElementById("editLocationBtn");
@@ -284,9 +364,15 @@ function openLocationPopup(mode) {
     viewLocationPopup.classList.remove("hidden");
     locationList.innerHTML = "";
 
-    fetchMarkersByCategory()
-        .then(markers => {
-            markers.forEach(loc => {
+    Promise.all([fetchMarkersByCategory(), fetchIndoorMarkers()])
+        .then(([outdoorMarkers, indoorMarkers]) => {
+
+            const allMarkers = [
+                ...outdoorMarkers,
+                ...indoorMarkers.map(m => ({ ...m, type: "indoor" }))
+            ];
+
+            allMarkers.forEach(loc => {
                 const row = document.createElement("div");
                 row.className = "popup-row";
                 row.innerHTML = `
@@ -298,13 +384,16 @@ function openLocationPopup(mode) {
                             data-name="${loc.name}">
                         Get directions
                     </button>
-                    ${mode === "edit" ? `<button class="edit-btn" data-id="${loc.id}">Edit</button>` : ""}
+                    ${mode === "edit" ? `<button class="edit-btn" data-id="${loc.id}" data-type="${loc.type || 'outdoor'}">Edit</button>` : ""}
                 `;
+
                 locationList.appendChild(row);
             });
+
             attachEditButtons();
         });
 }
+
 
 // Edit location form
 const editFormPopup = document.getElementById("editLocationFormPopup");
@@ -312,35 +401,56 @@ const editFormClose = document.getElementById("closeEditFormPopup");
 const editCoordsInput = document.getElementById("editLocCoords");
 
 function attachEditButtons() {
-    const buttons = document.querySelectorAll(".edit-btn");
-    buttons.forEach(btn => {
+    document.querySelectorAll(".edit-btn").forEach(btn => {
         btn.addEventListener("click", () => {
-            const locId = btn.dataset.id;
-            openEditForm(locId);
+            const id = btn.dataset.id;
+            const type = btn.dataset.type;
+            openEditForm(id, type);
         });
     });
 }
 
-function openEditForm(id) {
+function openEditForm(id, type) {
     viewLocationPopup.classList.add("hidden");
     editFormPopup.classList.remove("hidden");
 
-    fetchMarkersByCategory()
-        .then(markers => {
+    if (type === "indoor") {
+        fetchIndoorMarkers().then(markers => {
             const marker = markers.find(m => m.id == id);
             if (!marker) return;
+
+            document.getElementById("editMarkerId").value = marker.id;
             document.getElementById("editLocName").value = marker.name;
             document.getElementById("editLocDesc").value = marker.description;
             document.getElementById("editLocCoords").value = `${marker.latitude}, ${marker.longitude}`;
+
+            document.getElementById("editIsIndoor").value = "1";
+            document.getElementById("editBuildingId").value = marker.building;
+            document.getElementById("editFloor").value = marker.floor;
         });
+    } else {
+        fetchMarkersByCategory().then(markers => {
+            const marker = markers.find(m => m.id == id);
+            if (!marker) return;
 
-        document.getElementById("editLocationForm").action = `/edit-marker/${id}`;
+            document.getElementById("editMarkerId").value = marker.id;
+            document.getElementById("editLocName").value = marker.name;
+            document.getElementById("editLocDesc").value = marker.description;
+            document.getElementById("editLocCoords").value = `${marker.latitude}, ${marker.longitude}`;
 
+            document.getElementById("editIsIndoor").value = "0";
+            document.getElementById("editBuildingId").value = "";
+            document.getElementById("editFloor").value = "";
+        });
+    }
+
+    document.getElementById("editLocationForm").action = `/edit-marker/${id}`;
     pickMode = false;
 }
 
 editFormClose.addEventListener("click", () => {
     editFormPopup.classList.add("hidden");
+    openLocationPopup("edit");
 });
 
 editPickFromMapBtn.addEventListener("click", () => {
@@ -351,6 +461,7 @@ editPickFromMapBtn.addEventListener("click", () => {
     pickMode = true;
 
 })
+
 
 // Delete location
 const deleteLocationBtn = document.getElementById("deleteLocationBtn");
@@ -381,11 +492,19 @@ searchDeleteLocation.addEventListener("input", () => {
 
 async function populateDeleteList() {
     try {
-       const markers = await fetchMarkersByCategory();
+        const [outdoorMarkers, indoorMarkers] = await Promise.all([
+            fetchMarkersByCategory(),
+            fetchIndoorMarkers()
+        ]);
+
+        const allMarkers = [
+            ...outdoorMarkers,
+            ...indoorMarkers.map(m => ({ ...m, type: "indoor" }))
+        ];
 
         deleteLocationList.innerHTML = "";
 
-        markers.forEach(marker => {
+        allMarkers.forEach(marker => {
             const row = document.createElement("div");
             row.className = "popup-item";
             row.style.padding = "6px 0";
@@ -400,7 +519,7 @@ async function populateDeleteList() {
             delBtn.addEventListener("click", async () => {
                 if (confirm(`Delete "${marker.name}"?`)) {
                     await fetch(`/delete-marker/${marker.id}`, { method: "POST" });
-                    populateDeleteList(); 
+                    populateDeleteList();
                 }
             });
 
@@ -412,174 +531,6 @@ async function populateDeleteList() {
         console.error("Failed to fetch markers:", err);
     }
 }
-
-//Admin View Feedback
-document.addEventListener("DOMContentLoaded", () => {
-    let currentFeedbackId = null;
-    let currentView = "feedback";
-
-    const viewFeedbackBtn = document.getElementById("viewFeedbackBtn");
-    const viewFeedbackPopup = document.getElementById("viewFeedbackPopup");
-    const closeViewFeedbackPopup = document.getElementById("closeViewFeedbackPopup");
-
-    const feedbackDetailsPopup = document.getElementById("feedbackDetailsPopup");
-    const closeFeedbackDetails = document.getElementById("closeFeedbackDetailsPopup");
-    const feedbackSubject = document.getElementById("feedbackSubject");
-    const feedbackDescription = document.getElementById("feedbackDescription");
-    const feedbackTimeSubmitted = document.getElementById("feedbackTimeSubmitted");
-
-    const approveFeedbackBtn = document.getElementById("approveFeedbackBtn");
-    const ignoreFeedbackBtn = document.getElementById("ignoreFeedbackBtn");
-
-    const viewFeedbackTabBtn = document.getElementById("viewFeedbackTabBtn");
-    const viewHistoryTabBtn = document.getElementById("viewHistoryTabBtn");
-    const popupTitle = document.getElementById("popupTitle");
-
-    viewFeedbackTabBtn.addEventListener("click", () => {
-        currentView = "feedback";
-        viewFeedbackTabBtn.classList.add("active");
-        viewHistoryTabBtn.classList.remove("active");
-        popupTitle.textContent = "View Reports";
-
-        feedbackDetailsPopup
-        .querySelector(".tab-form")
-        .classList.add("active"); // ← FIX
-
-        loadFeedbacks();
-    });
-
-    viewHistoryTabBtn.addEventListener("click", () => {
-        currentView = "history";
-        viewHistoryTabBtn.classList.add("active");
-        viewFeedbackTabBtn.classList.remove("active");
-        popupTitle.textContent = "View History";
-        loadHistory();
-    });
-
-    async function loadFeedbacks() {
-        const feedbackList = document.getElementById("feedbackList");
-        feedbackList.innerHTML = "";
-
-        try {
-            const res = await fetch("/api/feedbacks");
-            const data = await res.json();
-
-            if (!data.success) {
-                alert("Failed to load feedback.");
-                return;
-            }
-
-            data.feedbacks.forEach(fb => {
-                const div = document.createElement("div");
-                div.classList.add("reports-item");
-
-                div.innerHTML = `
-                    <span>${fb.subject}</span>
-                    <button class="view-feedback-btn">View</button>
-                `;
-
-                div.querySelector(".view-feedback-btn").addEventListener("click", () => {
-                    feedbackSubject.value = fb.subject;
-                    feedbackTimeSubmitted.value = fb.time;
-                    feedbackDescription.value = fb.description;
-
-                    currentFeedbackId = fb.id;
-                    viewFeedbackPopup.classList.add("hidden");
-                    feedbackDetailsPopup.classList.remove("hidden");
-                });
-
-                feedbackList.appendChild(div);
-            });
-        } catch (err) {
-            console.error("Error loading feedbacks:", err);
-            alert("Error loading feedbacks.");
-        }
-    }
-
-    async function loadHistory() {
-        const feedbackList = document.getElementById("feedbackList");
-        feedbackList.innerHTML = "";
-
-        try {
-            const res = await fetch("/api/feedbacks/history");
-            const data = await res.json();
-
-            if (!data.success) {
-                alert("Failed to load history.");
-                return;
-            }
-
-            data.history.forEach(item => {
-                const div = document.createElement("div");
-                div.classList.add("reports-item");
-
-                div.innerHTML = `
-                    <span>${item.subject}</span>
-                    <button class="view-feedback-btn">View</button>
-                `;
-
-                div.querySelector(".view-feedback-btn").addEventListener("click", () => {
-                    feedbackSubject.value = item.subject;
-                    feedbackTimeSubmitted.value = item.time;
-                    feedbackDescription.value = item.description;
-
-                    currentFeedbackId = item.id;
-                    viewFeedbackPopup.classList.add("hidden");
-                    feedbackDetailsPopup.classList.remove("hidden");
-                });
-
-                feedbackList.appendChild(div);
-            });
-        } catch (err) {
-            console.error("Error loading history:", err);
-            alert("Error loading history.");
-        }
-    }
-    
-    approveFeedbackBtn.addEventListener("click", async () => {
-        
-    });
-
-    ignoreFeedbackBtn.addEventListener("click", async () => {
-        
-    });
-
-    viewFeedbackBtn.addEventListener("click", async () => {
-        viewFeedbackPopup.classList.remove("hidden");
-        await loadFeedbacks();
-    });
-
-    closeViewFeedbackPopup.addEventListener("click", () => {
-        viewFeedbackPopup.classList.add("hidden");
-    });
-
-    closeFeedbackDetails.addEventListener("click", () => {
-        feedbackDetailsPopup.classList.add("hidden");
-        viewFeedbackPopup.classList.remove("hidden");
-    });
-});
-
-//User feedback
-document.addEventListener("DOMContentLoaded", () => {
-    const submitFeedback = document.getElementById("submitFeedback");
-    const feedbackPopup = document.getElementById("feedbackPopup");
-    const closeFeedbackPopup = document.getElementById("closeFeedbackPopup");
-    const feedbackForm = document.getElementById("feedbackForm");
-
-    submitFeedback.addEventListener("click", () => {
-        feedbackPopup.classList.remove("hidden");
-
-        feedbackForm.classList.add("active");
-    });
-
-    closeFeedbackPopup.addEventListener("click", () => {
-        feedbackPopup.classList.add("hidden");
-
-        feedbackForm.classList.remove("active");
-        feedbackForm.reset();
-    });
-})
-
 
 // Profile 
 const profilePopup = document.getElementById("profilePopup");
@@ -712,6 +663,10 @@ function fetchMarkersByCategory() {
         : "/api/markers";
 
     return fetch(url).then(res => res.json());
+}
+
+function fetchIndoorMarkers() {
+    return fetch("/api/indoor-markers").then(res => res.json());
 }
 
 const pendingApprovalsBtn = document.getElementById("pendingApprovalsBtn");
@@ -1025,7 +980,10 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 // Array to store marker instances (optional, useful if you want later)
+
 let markers = [];
+const outdoorMarkers = L.layerGroup().addTo(map);
+const buildingMarkers = L.layerGroup().addTo(map);
 
 // ---------- LOAD MARKERS ----------
 async function loadMarkers() {
@@ -1036,19 +994,51 @@ async function loadMarkers() {
 
 // ---------- ADD MARKERS ----------
 function addMarkersToMap(data) {
+    outdoorMarkers.clearLayers();
+    markers.length = 0;
+
     data.forEach(m => {
-        const marker = L.marker([m.latitude, m.longitude])
-            .addTo(map)
-            .bindPopup(`
-                <strong>${m.name}</strong><br>
-                ${m.description || ""}
-            `);
+        const marker = L.marker([m.latitude, m.longitude], {
+            icon: getCategoryIcon(m.category)
+        })
+        .bindPopup(`
+            <strong>${m.name}</strong><br>
+            ${m.description || ""}
+        `)
+        .addTo(outdoorMarkers);
 
         markers.push(marker);
     });
 }
 
+const darkModeToggle = document.getElementById('darkModeFab');
+
+// Toggle on click
+darkModeToggle.addEventListener('click', () => {
+    document.body.classList.toggle('dark-mode');
+
+    const isDark = document.body.classList.contains('dark-mode');
+
+    darkModeToggle.textContent = isDark ? '☀️' : '🌙';
+
+    // Save preference
+    localStorage.setItem('darkMode', isDark);
+});
+
+// Restore mode on page load
+const savedDarkMode = localStorage.getItem('darkMode') === 'true';
+
+if (savedDarkMode) {
+    document.body.classList.add('dark-mode');
+    darkModeToggle.textContent = '☀️';
+} else {
+    darkModeToggle.textContent = '🌙';
+}
+
+
+
 // ---------- INIT ----------
 document.addEventListener("DOMContentLoaded", () => {
     loadMarkers();
+    initBuildings();
 });

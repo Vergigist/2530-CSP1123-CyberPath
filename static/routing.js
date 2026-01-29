@@ -141,45 +141,65 @@ function startRouting() {
     }
   }
 
-// ---------- Show route info popup ----------
 window.showRouteInfoPopup = function(routeLayer, locationName) {
-    if (!routeLayer) return;
+  const existing = document.getElementById("routeInfoPopup"); 
+  if (existing) existing.remove();
+  if (!routeLayer) return;  
+    const popupDiv = document.createElement('div');
+    popupDiv.id = "routeInfoPopup"; 
+    popupDiv.className = "route-info-card";
 
-    // Calculate total distance and estimated duration
-    let totalDistance = 0; // in meters
-    for (let i = 0; i < routeLayer.length - 1; i++) {
-        const p1 = routeLayer[i];
-        const p2 = routeLayer[i + 1];
-        totalDistance += distanceMeters(p1.lat, p1.lng, p2.lat, p2.lng);
+    // Get all LatLngs from polylines in the layer group
+    let routeCoords = [];
+    routeLayer.eachLayer(layer => {
+        if (layer instanceof L.Polyline) {
+            routeCoords = layer.getLatLngs();
+        }
+    });
+
+    if (routeCoords.length < 2) return;
+
+    // Calculate total distance
+    let totalDistance = 0;
+    for (let i = 0; i < routeCoords.length - 1; i++) {
+        totalDistance += distanceMeters(
+            routeCoords[i].lat,
+            routeCoords[i].lng,
+            routeCoords[i + 1].lat,
+            routeCoords[i + 1].lng
+        );
     }
 
-    const distanceKm = (totalDistance / 1000).toFixed(2);
+    let distanceText;
+
+    if (totalDistance < 1000) {
+        distanceText = `${Math.round(totalDistance)} m`;
+    } else {
+        distanceText = `${(totalDistance / 1000).toFixed(2)} km`;
+    }
     const walkingSpeed = 1.4; // m/s ~ 5 km/h
     const durationMin = Math.ceil(totalDistance / walkingSpeed / 60);
 
-    // Create popup div
-    const popupDiv = document.createElement('div');
-    popupDiv.style.cssText = `
-        position: fixed;
-        bottom: 80px;
-        left: 50%;
-        transform: translateX(-50%);
-        background: #fff8e1;
-        padding: 12px 20px;
-        border-radius: 10px;
-        border: 1px solid #ffd54f;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.2);
-        z-index: 9999;
-        font-family: sans-serif;
-        font-size: 14px;
-        text-align: center;
-    `;
+  
+  
     popupDiv.innerHTML = `
-        🗺️ Route to <strong>${locationName}</strong><br>
-        Distance: <strong>${distanceKm} km</strong><br>
-        ETA: <strong>${durationMin} min</strong>
-        <button style="margin-top:6px; padding:4px 8px; background:#2196f3; color:white; border:none; border-radius:4px; cursor:pointer;">Close</button>
-    `;
+  <div class="route-info-header">
+    <span class="route-icon">🗺️</span>
+    <span class="route-title">${locationName}</span>
+    <button class="route-close">✕</button>
+  </div>
+
+  <div class="route-info-body">
+    <div class="route-metric">
+      <span>🚶</span>
+      <strong>${durationMin} min</strong>
+    </div>
+    <div class="route-metric">
+      <span>📏</span>
+      <strong>${distanceText} km</strong>
+    </div>
+  </div>
+`;
 
     document.body.appendChild(popupDiv);
 
@@ -187,11 +207,8 @@ window.showRouteInfoPopup = function(routeLayer, locationName) {
     const closeBtn = popupDiv.querySelector('button');
     closeBtn.addEventListener('click', () => popupDiv.remove());
 
-    // Auto remove after 12s
-    setTimeout(() => {
-        if (popupDiv.parentNode) popupDiv.remove();
-    }, 12000);
 };
+
 
 
   return {
