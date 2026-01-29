@@ -637,25 +637,7 @@ def delete_marker(marker_id):
     return redirect(url_for("index"))
 
 
-@app.route("/api/feedbacks")
-def get_feedbacks():
-    if not session.get("admin_logged_in"):
-        return jsonify({"success": False}), 403
 
-    feedbacks = Feedback.query.order_by(Feedback.time_submitted.desc()).all()
-
-    return jsonify({
-        "success": True,
-        "feedbacks": [
-            {
-                "id": fb.id,
-                "subject": fb.subject,
-                "description": fb.description,
-                "time": fb.time_submitted.strftime("%Y-%m-%d %H:%M")
-            }
-            for fb in feedbacks
-        ]
-    })
    
 
 # @app.route("/delete-feedback/<int:feedback_id>", methods=["POST"])
