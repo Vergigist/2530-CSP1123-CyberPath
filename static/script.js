@@ -984,6 +984,8 @@ document.addEventListener("DOMContentLoaded", () => {
     if (confirmPasswordInput) confirmPasswordInput.value = "";
 });
 
+
+
 // Array to store marker instances (optional, useful if you want later)
 
 let markers = [];
@@ -1055,7 +1057,22 @@ if (savedDarkMode) {
     darkModeToggle.textContent = '🌙';
 }
 
+// Info popup
+const infoFab = document.getElementById('infoFab');
+const infoPopup = document.getElementById('info-popup');
+const closeInfoPopup = document.getElementById('closeInfoPopup');
 
+if (infoFab && infoPopup) {
+    infoFab.addEventListener('click', () => {
+        infoPopup.classList.toggle('hidden');
+    });
+}
+
+if (closeInfoPopup && infoPopup) {
+    closeInfoPopup.addEventListener('click', () => {
+        infoPopup.classList.add('hidden');
+    });
+}
 
 // ---------- INIT ----------
 document.addEventListener("DOMContentLoaded", () => {
