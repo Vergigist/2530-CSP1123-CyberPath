@@ -296,8 +296,8 @@ searchInput.addEventListener("input", () => {
 // Use a flag to prevent double clicks
 let routingInProgress = false;
 
-locationList.addEventListener("click", (e) => {
-    const btn = e.target.closest(".path-btn");
+function handlePathButtonClick(e) {
+    const btn = e.target.closest(".path-btn") || e.target;
     if (!btn) return;
 
     if (routingInProgress) return; // ignore if already routing
@@ -328,7 +328,12 @@ locationList.addEventListener("click", (e) => {
     } finally {
         routingInProgress = false; // reset flag
     }
-});
+    
+    viewLocationPopup.classList.add("hidden");
+
+}
+
+locationList.addEventListener("click", handlePathButtonClick);
 
 document.getElementById("markerForm").addEventListener("submit", () => {
     const isIndoorInput = document.querySelector('[name="is_indoor"]');
@@ -979,6 +984,8 @@ document.addEventListener("DOMContentLoaded", () => {
     if (confirmPasswordInput) confirmPasswordInput.value = "";
 });
 
+
+
 // Array to store marker instances (optional, useful if you want later)
 
 let markers = [];
@@ -1004,7 +1011,22 @@ function addMarkersToMap(data) {
         .bindPopup(`
             <strong>${m.name}</strong><br>
             ${m.description || ""}
+            <br>
+            <button class="path-btn" 
+                    data-lat="${m.latitude}" 
+                    data-lng="${m.longitude}"
+                    data-name="${m.name}">
+                Get directions
+            </button>
         `)
+
+        .on('popupopen', function() {
+            const popup = this.getPopup();
+            const btn = popup.getElement().querySelector('.path-btn');
+            if (btn) {
+                btn.addEventListener('click', handlePathButtonClick);
+            }
+        })
         .addTo(outdoorMarkers);
 
         markers.push(marker);
@@ -1035,7 +1057,22 @@ if (savedDarkMode) {
     darkModeToggle.textContent = '🌙';
 }
 
+// Info popup
+const infoFab = document.getElementById('infoFab');
+const infoPopup = document.getElementById('info-popup');
+const closeInfoPopup = document.getElementById('closeInfoPopup');
 
+if (infoFab && infoPopup) {
+    infoFab.addEventListener('click', () => {
+        infoPopup.classList.toggle('hidden');
+    });
+}
+
+if (closeInfoPopup && infoPopup) {
+    closeInfoPopup.addEventListener('click', () => {
+        infoPopup.classList.add('hidden');
+    });
+}
 
 // ---------- INIT ----------
 document.addEventListener("DOMContentLoaded", () => {

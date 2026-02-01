@@ -19,7 +19,7 @@ function setupChatbot() {
 
     chatbotIcon.addEventListener('click', function() {
         console.log("Opening chatbot");
-        chatbotPopup.classList.remove('hidden');
+        chatbotPopup.classList.toggle('hidden');
         chatInput.focus();
 
             showSuggestions([
