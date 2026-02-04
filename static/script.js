@@ -1014,9 +1014,9 @@ darkModeToggle.addEventListener('click', () => {
     document.body.classList.toggle('dark-mode');
 
     if (document.body.classList.contains('dark-mode')) {
-        darkModeToggle.textContent = "☀️ Light Mode";
+        darkModeToggle.textContent = "Light Mode";
     } else {
-        darkModeToggle.textContent = "🌙 Dark Mode";
+        darkModeToggle.textContent = "Dark Mode";
     }
 
     // Optional: store preference in localStorage
@@ -1026,7 +1026,7 @@ darkModeToggle.addEventListener('click', () => {
 // Restore mode on page load
 if (localStorage.getItem('darkMode') === 'true') {
     document.body.classList.add('dark-mode');
-    darkModeToggle.textContent = "☀️ Light Mode";
+    darkModeToggle.textContent = "Light Mode";
 }
 
 
