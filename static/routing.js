@@ -196,7 +196,7 @@ window.showRouteInfoPopup = function(routeLayer, locationName) {
     </div>
     <div class="route-metric">
       <span>📏</span>
-      <strong>${distanceText} km</strong>
+      <strong>${distanceText} </strong>
     </div>
   </div>
 `;

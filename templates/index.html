@@ -113,8 +113,8 @@
                 <img src="https://www.mmu.edu.my/wp-content/themes/mmu2018/assets/images/logo-mmu2x.png">
                 </div>
                 <h2>Cyberpath : Smart <br/>Campus Navigator</h2>
-                <button class="user-btn" id="gpsButton"> Find My Location</button>
-                <button class="user-btn" id="viewAllBtnUser">Locations</button>
+                <button class="user-btn" id="gpsButton">Find My Location</button>
+                <button class="user-btn" id="viewAllBtnUser">Search Locations</button>
                 <button class="user-btn" id="userRemoveRouteButton">Clear Route</button>
                 <button class="user-btn" id="centerBtn">Recentralize</button>
                 
@@ -142,7 +142,8 @@
 
         <!-- Chatbot -->
         <div id="darkModeFab" title="Toggle Dark Mode">🌙</div>
-        <div class="chatbot-icon">💬</div>
+        <div class="chatbot-icon" title="Open Chatbot">💬</div>
+        <div id="infoFab" title="About CyberPath">🛈</div>
         <!-- Chatbot Popup -->
         <div id="chatbotPopup" class="popup hidden">
             <div class="popup-content" style="width: 400px; height: 500px; display: flex; flex-direction: column;">
@@ -166,6 +167,57 @@
                     <button id="sendChatBtn" class="admin-btn" style="padding: 10px 20px;">Send</button>
                 </div>
                 <div id="suggestionsBar" class="suggestions-bar hidden"></div>
+            </div>
+        </div>
+
+        <div id="info-popup" class="popup hidden">
+            <div class="info-card">
+                <button id="closeInfoPopup" class="close-btn" aria-label="Close">&times;</button>
+
+                <div class="info-header">
+                    <h2>CyberPath</h2>
+                    <p class="info-subtitle">Smart Campus Navigator</p>
+                </div>
+
+                <div class="info-body">
+                    <section class="info-section">
+                        <h4>📍 What is CyberPath?</h4>
+                        <p>
+                            CyberPath is an innovative campus navigation system designed to help students, staff, and visitors easily find their way around the campus.
+                        </p>
+                    </section>
+
+                    <section class="info-section">
+                        <h4>💡 How to use:</h4>
+                        <ol>
+                            <li>Press Find My Location.</li>
+                            <li>Press Search Location.</li>
+                            <li>Search for the destination.</li>
+                            <li>Press get directions</li>
+                            <li>Navigate to your destination!</li>
+                        </ol>
+                    </section>
+
+                    <section class="info-section">
+                        <h4>🔎 Inquiries</h4>
+                        <p>
+                            We are continuously working to improve CyberPath.
+                        <p>
+                            You can contact us at cyberpathotp@gmail.com for suggestions or support!
+                        </p>
+                    </section>
+
+                    <section class="info-section">
+                        <h4>©️Credits</h4>
+                        <p>
+                            Made in a collaborative effort by Jack, Joshua and Danish from FCI.<br>         
+                            Under the supervision of Madam Norwahida.
+                        </p>
+                </div>
+
+                <div class="info-footer">
+                    <span>Built for MMU • CyberPath © 2025</span>
+                </div>
             </div>
         </div>
 
@@ -481,7 +533,6 @@
         {% if not session.get("admin_logged_in") %}
         <div id="adminPopup" class="popup-overlay">
             <div class="popup-content">
-                <span id="closePopup" class="close-btn">&times;</span>
 
                 <!-- Tabs -->
                 <div class="tab-header">
@@ -497,7 +548,7 @@
 
                     <label for="password">Password:</label>
                     <div class="password-wrapper">
-                        <input type="password" id="signinPassword" name="password" class="password-field" autocomplete="new-password" required placeholder="8 characters, including 1 uppercase and 1 number.">
+                        <input type="password" id="signinPassword" name="password" class="password-field" autocomplete="new-password" required placeholder="8 characters, including 1 uppercase and 1 number">
                         <i class="fa-solid fa-eye-slash toggle-password"></i>
                     </div>
 
@@ -509,7 +560,7 @@
                 <form id="signupForm" class="tab-form"  action="/signup" method="POST">
                     
                     <label>Referral Code:</label>
-                    <input type="text" id="referral" name="referral" autocomplete="new-password" required>
+                    <input type="text" id="referral" name="referral" autocomplete="new-password" placeholder="You would get this from us" required>
                     <span id="referralError" class="error-message"></span> 
 
                     <label for="email">Email:</label>
@@ -518,7 +569,7 @@
 
                     <label for="signupPassword">Password:</label>
                     <div class="password-wrapper">
-                        <input type="password" id="signupPassword" name="password" class="password-field" autocomplete="new-password" required placeholder="8 characters, including 1 uppercase and 1 number.">
+                        <input type="password" id="signupPassword" name="password" class="password-field" autocomplete="new-password" required placeholder="8 characters, including 1 uppercase and 1 number">
                         <i class="fa-solid fa-eye-slash toggle-password"></i>
                     </div>
                     <span id="passwordError" class="error-message"></span>
