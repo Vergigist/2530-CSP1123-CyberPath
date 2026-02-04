@@ -19,7 +19,7 @@ function setupChatbot() {
 
     chatbotIcon.addEventListener('click', function() {
         console.log("Opening chatbot");
-        chatbotPopup.classList.remove('hidden');
+        chatbotPopup.classList.toggle('hidden');
         chatInput.focus();
 
             showSuggestions([
@@ -145,7 +145,7 @@ function setupChatbot() {
                 const locationName = this.dataset.name; // ensure you have a name attribute
 
                 if (!window.userLocation) {
-                    addMessageToChat("📍 Please click 'Find My Location' first.", false);
+                    addMessageToChat(" Please click 'Find My Location' first.", false);
                     return;
                 }
 
@@ -155,6 +155,7 @@ function setupChatbot() {
                 }
 
                 const routeLayer = window.router.createRoute(lat, lng);
+                window.showRouteInfoPopup(routeLayer, locationName);
                 if (routeLayer) {
                     addMessageToChat(`✅ Creating route to ${locationName}! Check the map for the blue path.`, false);
                     chatbotPopup.classList.add('hidden'); // close chatbot

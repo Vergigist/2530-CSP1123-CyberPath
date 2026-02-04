@@ -8,7 +8,7 @@ var map = L.map('map', {
     maxZoom: 20   // allow zooming in super close
 });
 
-const darkModeToggle = document.getElementById('darkModeToggle');
+
 let campusGeoJSON = null;
 
 fetch("static/newcampus.geojson")
@@ -296,8 +296,8 @@ searchInput.addEventListener("input", () => {
 // Use a flag to prevent double clicks
 let routingInProgress = false;
 
-locationList.addEventListener("click", (e) => {
-    const btn = e.target.closest(".path-btn");
+function handlePathButtonClick(e) {
+    const btn = e.target.closest(".path-btn") || e.target;
     if (!btn) return;
 
     if (routingInProgress) return; // ignore if already routing
@@ -321,13 +321,19 @@ locationList.addEventListener("click", (e) => {
         const routeHere = router.createRoute(targetLat, targetLng);
         if (routeHere) {
             alert(`✅ Route created to ${locationName}!`);
+            showRouteInfoPopup(routeHere, locationName);
         } else {
             alert(`⚠️ Failed to create route to ${locationName}.`);
         }
     } finally {
         routingInProgress = false; // reset flag
     }
-});
+    
+    viewLocationPopup.classList.add("hidden");
+
+}
+
+locationList.addEventListener("click", handlePathButtonClick);
 
 document.getElementById("markerForm").addEventListener("submit", () => {
     const isIndoorInput = document.querySelector('[name="is_indoor"]');
@@ -978,6 +984,8 @@ document.addEventListener("DOMContentLoaded", () => {
     if (confirmPasswordInput) confirmPasswordInput.value = "";
 });
 
+
+
 // Array to store marker instances (optional, useful if you want later)
 
 let markers = [];
@@ -1003,32 +1011,68 @@ function addMarkersToMap(data) {
         .bindPopup(`
             <strong>${m.name}</strong><br>
             ${m.description || ""}
+            <br>
+            <button class="path-btn" 
+                    data-lat="${m.latitude}" 
+                    data-lng="${m.longitude}"
+                    data-name="${m.name}">
+                Get directions
+            </button>
         `)
+
+        .on('popupopen', function() {
+            const popup = this.getPopup();
+            const btn = popup.getElement().querySelector('.path-btn');
+            if (btn) {
+                btn.addEventListener('click', handlePathButtonClick);
+            }
+        })
         .addTo(outdoorMarkers);
 
         markers.push(marker);
     });
 }
 
+const darkModeToggle = document.getElementById('darkModeFab');
+
+// Toggle on click
 darkModeToggle.addEventListener('click', () => {
     document.body.classList.toggle('dark-mode');
 
-    if (document.body.classList.contains('dark-mode')) {
-        darkModeToggle.textContent = "Light Mode";
-    } else {
-        darkModeToggle.textContent = "Dark Mode";
-    }
+    const isDark = document.body.classList.contains('dark-mode');
 
-    // Optional: store preference in localStorage
-    localStorage.setItem('darkMode', document.body.classList.contains('dark-mode'));
+    darkModeToggle.textContent = isDark ? '☀️' : '🌙';
+
+    // Save preference
+    localStorage.setItem('darkMode', isDark);
 });
 
 // Restore mode on page load
-if (localStorage.getItem('darkMode') === 'true') {
+const savedDarkMode = localStorage.getItem('darkMode') === 'true';
+
+if (savedDarkMode) {
     document.body.classList.add('dark-mode');
-    darkModeToggle.textContent = "Light Mode";
+    darkModeToggle.textContent = '☀️';
+} else {
+    darkModeToggle.textContent = '🌙';
 }
 
+// Info popup
+const infoFab = document.getElementById('infoFab');
+const infoPopup = document.getElementById('info-popup');
+const closeInfoPopup = document.getElementById('closeInfoPopup');
+
+if (infoFab && infoPopup) {
+    infoFab.addEventListener('click', () => {
+        infoPopup.classList.toggle('hidden');
+    });
+}
+
+if (closeInfoPopup && infoPopup) {
+    closeInfoPopup.addEventListener('click', () => {
+        infoPopup.classList.add('hidden');
+    });
+}
 
 // ---------- INIT ----------
 document.addEventListener("DOMContentLoaded", () => {
