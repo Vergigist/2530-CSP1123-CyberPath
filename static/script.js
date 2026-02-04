@@ -333,7 +333,20 @@ function handlePathButtonClick(e) {
 
 }
 
-locationList.addEventListener("click", handlePathButtonClick);
+locationList.addEventListener("click", function(e) {
+    // Only handle clicks on .path-btn elements
+    const pathBtn = e.target.closest(".path-btn");
+    if (pathBtn) {
+        handlePathButtonClick(e);
+    }
+    
+    // Don't prevent edit button clicks
+    const editBtn = e.target.closest(".edit-btn");
+    if (editBtn) {
+        // Let the edit button's own event handler run
+        return;
+    }
+});
 
 document.getElementById("markerForm").addEventListener("submit", () => {
     const isIndoorInput = document.querySelector('[name="is_indoor"]');
@@ -365,38 +378,88 @@ editLocationBtn.addEventListener("click", () => {
     openLocationPopup("edit");
 });
 
-function openLocationPopup(mode) {
+async function openLocationPopup(mode) {
     viewLocationPopup.classList.remove("hidden");
     locationList.innerHTML = "";
 
-    Promise.all([fetchMarkersByCategory(), fetchIndoorMarkers()])
-        .then(([outdoorMarkers, indoorMarkers]) => {
+    // Define your buildings here (same as in indoor.js)
+    const buildings = {
+        fci: {
+            name: "FCI Building",
+            latitude: 2.928633,
+            longitude: 101.64111,
+            description: "Faculty of Computing and Informatics",
+            type: "building"
+        },
+        fom: {
+            name: "FOM Building",
+            latitude: 2.929079,
+            longitude: 101.641324,
+            description: "Faculty of Management",
+            type: "building"
+        },
+        faie: {
+            name: "FAIE Building",
+            latitude: 2.926401,
+            longitude: 101.641255,
+            description: "Faculty of Applied and International Economics",
+            type: "building"
+        },
+        fcm: {
+            name: "FCM Building",
+            latitude: 2.926155,
+            longitude: 101.642649,
+            description: "Faculty of Cinematic Arts",
+            type: "building"
+        }
+    };
 
-            const allMarkers = [
-                ...outdoorMarkers,
-                ...indoorMarkers.map(m => ({ ...m, type: "indoor" }))
-            ];
+    try {
+        const [outdoorMarkers, indoorMarkers] = await Promise.all([
+            fetchMarkersByCategory(),
+            fetchIndoorMarkers()
+        ]);
 
-            allMarkers.forEach(loc => {
-                const row = document.createElement("div");
-                row.className = "popup-row";
-                row.innerHTML = `
-                    <span>${loc.name}</span>
-                    <span class="col-category">${loc.category ?? "-"}</span>
-                    <button class="path-btn" 
-                            data-lat="${loc.latitude}" 
-                            data-lng="${loc.longitude}"
-                            data-name="${loc.name}">
-                        Get directions
-                    </button>
-                    ${mode === "edit" ? `<button class="edit-btn" data-id="${loc.id}" data-type="${loc.type || 'outdoor'}">Edit</button>` : ""}
-                `;
+        // Convert buildings object to array
+        const buildingArray = Object.keys(buildings).map(code => ({
+            ...buildings[code],
+            id: `building_${code}`, // Unique ID
+            code: code // Building code for reference
+        }));
 
-                locationList.appendChild(row);
-            });
+        const allMarkers = [
+            ...buildingArray,
+            ...outdoorMarkers,
+            ...indoorMarkers.map(m => ({ ...m, type: "indoor" }))
+        ];
 
-            attachEditButtons();
+        allMarkers.forEach(loc => {
+            const row = document.createElement("div");
+            row.className = "popup-row";
+            
+            // Same "Get directions" button for ALL locations (including buildings)
+            row.innerHTML = `
+                <span>${loc.name}</span>
+                <span class="col-category">${loc.type === "building" ? "Building" : (loc.category || "-")}</span>
+                <button class="path-btn" 
+                        data-lat="${loc.latitude}" 
+                        data-lng="${loc.longitude}"
+                        data-name="${loc.name}">
+                    Get directions
+                </button>
+                ${mode === "edit" && !loc.code ? 
+                    `<button class="edit-btn" data-id="${loc.id}" data-type="${loc.type || 'outdoor'}">Edit</button>` : ""}
+            `;
+
+            locationList.appendChild(row);
         });
+
+        attachEditButtons();
+        
+        
+    } catch (error) {
+        console.error("Error loading locations:", error);
+    }
 }
 
 
