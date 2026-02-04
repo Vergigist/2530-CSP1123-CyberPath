@@ -12,11 +12,11 @@ let isIndoor = false;
     INDOOR DATA (DEMO ONLY)
 ========================= */
 const FCIfloors = {
-    0: { image: '/static/images/fci_floor1.png', },
+    0: { image: '/static/images/fci_ground.png', },
     1: { image: '/static/images/fci_floor1.png', },
-    2: { image: '/static/images/fci_floor1.png', },
-    3: { image: '/static/images/fci_floor1.png', },
-    4: { image: '/static/images/fci_floor1.png', }
+    2: { image: '/static/images/fci_floor23.png', },
+    3: { image: '/static/images/fci_floor23.png', },
+    4: { image: '/static/images/fci_floor4.png', }
 };
 
 const FOMfloors = {
@@ -48,7 +48,7 @@ const FCMfloors = {
 const buildings = {
     fci: {
         name: "FCI Building",
-        center: [2.928633, 101.64111],
+        center: [2.928656, 101.64111],
         floors: FCIfloors, 
     },
 
@@ -95,7 +95,7 @@ function enterIndoor(buildingId) {
     map.doubleClickZoom.disable();
     map.touchZoom.disable();
 
-    map.flyTo(activeBuilding.center, 20);
+    map.flyTo(activeBuilding.center, 19.5);
 
     document.getElementById('indoorPanel').style.display = 'block';
     document.getElementById('indoorContainer').hidden = false;
