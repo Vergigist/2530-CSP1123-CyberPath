@@ -739,6 +739,13 @@ def chatbot_ask():
         
         locationNames = [marker.name for marker in markers]
 
+        building_names = [
+            "FCI Building",
+            "FOM Building", 
+            "FAIE Building",
+            "FCM Building"
+        ]
+
         campus_info = f"""
             You are CyberPath, a friendly, smart and slightly fun campus assistant for Multimedia University (MMU) Cyberjaya.
 
@@ -796,9 +803,22 @@ def chatbot_ask():
     
 
 def check_for_location(user_message):
+    # Get regular markers from database
     markers = Marker.query.all()
     locationNames = [marker.name for marker in markers]
-    result = process.extractOne(user_message, locationNames, scorer=fuzz.token_sort_ratio)
+    
+    # Add building names to the location list
+    building_names = [
+        "FCI Building",
+        "FOM Building", 
+        "FAIE Building",
+        "FCM Building"
+    ]
+    
+    # Combine both lists
+    all_location_names = locationNames + building_names
+    
+    result = process.extractOne(user_message, all_location_names, scorer=fuzz.token_sort_ratio)
     userLower = user_message.lower()
 
     location_keywords = [
@@ -822,41 +842,71 @@ def check_for_location(user_message):
         "hall": "Lecture Hall",
         "food": "Cafeteria",
         "restaurant": "Cafeteria",
+        "fci": "FCI Building",
+        "fom": "FOM Building",
+        "faie": "FAIE Building",
+        "fcm": "FCM Building",
     }
 
     for short, long in shortform.items():
         if f" {short} " in f" {userLower} " or userLower == short:
-            for marker in markers:
-                if long.lower() in marker.name.lower():
-                     return {
-                        "coordinates": {
-                            "latitude": marker.latitude, 
-                            "longitude": marker.longitude,
-                        },
-                        "location_name": marker.name,
-                        "location_description": marker.description, 
-                    }
+            # First check if it's a building
+            if long in building_names:
+                # Return building coordinates
+                return get_building_coordinates(long)
+            else:
+                # Check regular markers
+                for marker in markers:
+                    if long.lower() in marker.name.lower():
+                        return {
+                            "coordinates": {
+                                "latitude": marker.latitude, 
+                                "longitude": marker.longitude,
+                            },
+                            "location_name": marker.name,
+                            "location_description": marker.description, 
+                        }
     
     if locationQuestion:
         if result:  
             best_match, score = result
             print(f"🔍 Fuzzy match: '{user_message}' → '{best_match}' (score: {score})")
             
-            if score > 40:  # 60% similarity threshold
+            if score > 40:  # Similarity threshold
+                # Check if it's a building first
+                if best_match in building_names:
+                    return get_building_coordinates(best_match)
+                
+                # Check regular markers
                 for marker in markers:
                     if marker.name == best_match:   
-            
-                        # Found a matching location!
                         return {
-                                "coordinates": {
-                                "latitude": marker.latitude, 
-                                "longitude": marker.longitude,
-                                },
-                                "location_name": marker.name,
-                                "location_description": marker.description, 
-                                }
+                            "coordinates": {
+                            "latitude": marker.latitude, 
+                            "longitude": marker.longitude,
+                            },
+                            "location_name": marker.name,
+                            "location_description": marker.description, 
+                        }
     return {}
 
+def get_building_coordinates(building_name):
+    """Return coordinates for hardcoded buildings"""
+    building_coords = {
+        "FCI Building": {"latitude": 2.928633, "longitude": 101.64111},
+        "FOM Building": {"latitude": 2.929079, "longitude": 101.641324},
+        "FAIE Building": {"latitude": 2.926401, "longitude": 101.641255},
+        "FCM Building": {"latitude": 2.926155, "longitude": 101.642649}
+    }
+    
+    coords = building_coords.get(building_name)
+    if coords:
+        return {
+            "coordinates": coords,
+            "location_name": building_name,
+            "location_description": "Building on MMU campus"
+        }
+    return {}
 
 #---------------------------------------------------------------------------------------------------------------------------------
 # Run Program
