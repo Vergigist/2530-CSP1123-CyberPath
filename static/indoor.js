@@ -95,7 +95,7 @@ function enterIndoor(buildingId) {
     map.doubleClickZoom.disable();
     map.touchZoom.disable();
 
-    map.flyTo(activeBuilding.center, 19.5);
+    map.flyTo(activeBuilding.center, 19.8);
 
     document.getElementById('indoorPanel').style.display = 'block';
     document.getElementById('indoorContainer').hidden = false;
