@@ -774,8 +774,8 @@ html, body, #content, #map-container, #map {
 /* Indoor control panel (UI) */
 #indoorPanel {
     position: absolute;
-    top: 40%;
-    left: 20%;
+    top: 48%;
+    left: 17%;
     width: 260px;
     background: #fff;
     box-shadow: 0 4px 12px rgba(0,0,0,0.25);
