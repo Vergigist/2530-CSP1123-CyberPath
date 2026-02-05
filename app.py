@@ -59,6 +59,10 @@ with app.app_context():
         db.session.add_all([
             Category(name="Classroom", indoor_only=True),
             Category(name="Office", indoor_only=True),
+            Category(name="Stairs", indoor_only=True),
+            Category(name="Lift", indoor_only=True),
+            Category(name="Restroom", indoor_only=True),
+            Category(name="Other", indoor_only=True),
 
             Category(name="Lecture Hall", indoor_only=False),
             Category(name="Food & Drinks", indoor_only=False),
