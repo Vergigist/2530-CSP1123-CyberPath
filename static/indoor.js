@@ -90,11 +90,6 @@ function enterIndoor(buildingId) {
     // Show indoor markers
     indoorMarkers.addTo(map);
 
-    map.dragging.disable();
-    map.scrollWheelZoom.disable();
-    map.doubleClickZoom.disable();
-    map.touchZoom.disable();
-
     map.flyTo(activeBuilding.center, 19.8);
 
     document.getElementById('indoorPanel').style.display = 'block';
@@ -188,11 +183,6 @@ function exitIndoor() {
 
     document.getElementById('indoorContainer').hidden = true;
     document.getElementById('indoorPanel').style.display = 'none';
-
-    map.dragging.enable();
-    map.scrollWheelZoom.enable();
-    map.doubleClickZoom.enable();
-    map.touchZoom.enable();
 
     initBuildings();
 }
