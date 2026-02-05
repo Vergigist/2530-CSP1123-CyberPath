@@ -1,4 +1,4 @@
-const indoorMarkers = L.layerGroup();
+const indoorMarkers = L.layerGroup([], { pane: "indoorPane" });
 let indoorImageOverlay = null;
 
 let activeBuildingId = null;
@@ -19,26 +19,28 @@ const FCIfloors = {
     4: { image: '/static/images/fci_floor4.png', }
 };
 
-const FOMfloors = {
+const FAIEfloors = {
     0: { image: '/static/images/faie_lowerGround.png', },
     1: { image: '/static/images/faie_ground.png', },
     2: { image: '/static/images/faie_floor1.png', },
     3: { image: '/static/images/faie_floor2.png', },
     4: { image: '/static/images/faie_floor3.png', }
 }
-const FAIEfloors = {
-    0: { image: '', },
-    1: { image: '', },
-    2: { image: '', },
-    3: { image: '', },
-    4: { image: '', }
+
+const FOMfloors = {
+    0: { image: '/static/images/wip.png', },
+    1: { image: '/static/images/wip.png', },
+    2: { image: '/static/images/wip.png', },
+    3: { image: '/static/images/wip.png', },
+    4: { image: '/static/images/wip.png', }
 }
+
 const FCMfloors = {
-    0: { image: '', },
-    1: { image: '', },
-    2: { image: '', },
-    3: { image: '', },
-    4: { image: '', }
+    0: { image: '/static/images/wip.png', },
+    1: { image: '/static/images/wip.png', },
+    2: { image: '/static/images/wip.png', },
+    3: { image: '/static/images/wip.png', },
+    4: { image: '/static/images/wip.png', }
 }
 
 
@@ -52,6 +54,11 @@ const buildings = {
         floors: FCIfloors, 
     },
 
+    faie: {
+        name: "FAIE Building",
+        center: [2.926317, 101.641355],
+        floors: FAIEfloors,
+    },
     
     fom: {
         name: "FOM Building",
@@ -59,16 +66,10 @@ const buildings = {
         floors: FOMfloors,
     },
 
-    faie: {
-        name: "FAIE Building",
-        center: [2.926317, 101.641355],
-        floors: FOMfloors,
-    },
-
     fcm: {
         name: "FCM Building",
         center: [2.926155, 101.642649],
-        floors: FOMfloors,
+        floors: FCMfloors,
     }
 };
 
@@ -116,7 +117,7 @@ async function loadFloor(floorNumber) {
     indoorImageOverlay = L.imageOverlay(
         floor.image,
         bounds,
-        { opacity: 1, interactive: false }
+        { opacity: 1, interactive: false, zIndex: 300 }
     ).addTo(map);
 
     indoorMarkers.clearLayers();
@@ -138,7 +139,7 @@ async function loadFloor(floorNumber) {
         .addTo(indoorMarkers);
     });
 
-    indoorMarkers.bringToFront();
+
 }
 
 function boundsFromCenter(center, sizeMeters) {
@@ -204,8 +205,8 @@ function createBuildingMarker(buildingId) {
 function initBuildings() {
     buildingMarkers.clearLayers();
     createBuildingMarker("fci");
-    createBuildingMarker("fom");
     createBuildingMarker("faie");
+    createBuildingMarker("fom");
     createBuildingMarker("fcm");
 }
 

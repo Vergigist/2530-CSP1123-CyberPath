@@ -207,6 +207,9 @@ if (closeLocationFormBtn) {
 
 //marker icon change
 
+map.createPane("indoorPane");
+map.getPane("indoorPane").style.zIndex = 650;
+
 const ICONS = {
     "Lecture Hall": L.icon({
         iconUrl: "/static/icons/buildings.png",
@@ -229,6 +232,21 @@ const ICONS = {
         iconSize: [28, 34],
         iconAnchor: [14, 28]
     }),
+    "Stairs" : L.icon({
+        iconUrl: "/static/icons/stair.png",
+        iconSize: [28, 34],
+        iconAnchor: [14, 28]
+    }),
+    "Lift" : L.icon({
+        iconUrl: "/static/icons/lift.png",
+        iconSize: [28, 34],
+        iconAnchor: [14, 28]
+    }),
+    "Restroom" : L.icon({
+        iconUrl: "/static/icons/toilet.png",
+        iconSize: [28, 34],
+        iconAnchor: [14, 28]
+    }),
     "default": L.icon({
         iconUrl: "/static/icons/default.png",
         iconSize: [28, 34],
@@ -236,8 +254,29 @@ const ICONS = {
     })
 };
 
+function normalizeCategory(cat) {
+    if (!cat) return "default";
+
+    return cat
+        .trim()
+        .toLowerCase()
+        .replace(/&/g, "and");
+}
+
 function getCategoryIcon(category) {
-    return ICONS[category] || ICONS.default;
+    if (!category) return ICONS.default;
+
+    const c = category.toLowerCase();
+
+    if (c.includes("lecture")) return ICONS["Lecture Hall"];
+    if (c.includes("food")) return ICONS["Food & Drinks"];
+    if (c.includes("facility")) return ICONS["Facilities"];
+    if (c.includes("recreation")) return ICONS["Recreation"];
+    if (c.includes("stair")) return ICONS["Stairs"];
+    if (c.includes("lift")) return ICONS["Lift"];
+    if (c.includes("toilet") || c.includes("restroom")) return ICONS["Restroom"];
+
+    return ICONS.default;
 }
 
 // Add these helper functions at the top of script.js or in a utilities section
