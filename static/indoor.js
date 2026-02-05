@@ -55,7 +55,7 @@ const buildings = {
     
     fom: {
         name: "FOM Building",
-        center: [2.929079, 101.641324],
+        center: [2.929348, 101.641260],
         floors: FOMfloors,
     },
 

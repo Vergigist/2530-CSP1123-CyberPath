@@ -498,7 +498,8 @@ def api_indoor_markers():
             "name": im.name,
             "latitude": im.latitude,
             "longitude": im.longitude,
-            "description": im.description
+            "description": im.description,
+            "is_indoor": True  # Add this flag
         }
         for im in IndoorMarkers
     ]
@@ -600,8 +601,8 @@ def delete_marker(marker_id):
 # AI chatbot
 #---------------------------------------------------------------------------------------------------------------------------------
 
-gemini_api_key = "pretend-this-is-a-real-gemini-api-key"
-openrouter_api_key = "pretend-this-is-a-real-openrouter-api-key"
+gemini_api_key = "pretend-this-is-real-api-key"
+openrouter_api_key = "pretend-this-is-real-api-key"
 
 # Initialize client as None
 gemini_client = None
@@ -655,7 +656,7 @@ def get_ai_response(user_message, campus_info):
         try:
             print("🔄 Trying OpenRouter...")
             response = openrouter_client.chat.completions.create(
-                model="google/gemma-3-27b-it:free",  # Free model
+                model="arcee-ai/trinity-large-preview:free",  # Free model
                 messages=[
                     {"role": "system", "content": campus_info},
                     {"role": "user", "content": user_message}
@@ -679,17 +680,18 @@ def chatbot_ask():
         return jsonify({"success": False, "message": "Please type a question"})
 
     try:
+        print(f"\n=== CHATBOT REQUEST ===")
+        print(f"User message: '{user_message}'")
         
+        # FIRST: Try to find location in database
+        location_data = check_for_location(user_message)
+        
+        # SECOND: Generate AI response - ALWAYS generate AI response!
         markers = Marker.query.all()
+        indoor_markers = IndoorMarker.query.all()
         
-        locationNames = [marker.name for marker in markers]
-
-        building_names = [
-            "FCI Building",
-            "FOM Building", 
-            "FAIE Building",
-            "FCM Building"
-        ]
+        # Get all location names for the AI context
+        location_names = [m.name for m in markers if m.name] + [im.name for im in indoor_markers if im.name]
 
         campus_info = f"""
             You are CyberPath, a friendly, smart and slightly fun campus assistant for Multimedia University (MMU) Cyberjaya.
@@ -700,7 +702,7 @@ def chatbot_ask():
             You are connected to a live campus location database.
 
             ALL AVAILABLE LOCATIONS:
-            {', '.join(locationNames)}
+            {', '.join(location_names[:20]) if location_names else 'Various campus locations'}
 
             VERY IMPORTANT RULES:
             • If a location is NOT in the list, say: "I don't have that location in my database."
@@ -728,118 +730,212 @@ def chatbot_ask():
 
         answer = get_ai_response(user_message, campus_info)
         print(f"✅ AI Response: {answer[:100]}...")  # Debug
-        
-        location_data = check_for_location(user_message)
 
-        return jsonify({
+        # Prepare response - ALWAYS include success: true
+        response_data = {
             "success": True,
-            "response": answer,
-            "coordinates": location_data.get("coordinates") or None,
-            "location_name": location_data.get("location_name") or None,
-            "location_description": location_data.get("location_description") or None
-        })
-    
+            "response": answer
+        }
+        
+        # Add location data if found (but we still respond even without location!)
+        if location_data and location_data.get("coordinates") and location_data.get("location_name"):
+            print(f"📍 Location data found: {location_data.get('location_name')}")
+            response_data.update({
+                "coordinates": location_data.get("coordinates"),
+                "location_name": location_data.get("location_name"),
+                "location_description": location_data.get("location_description", ""),
+                "building": location_data.get("building"),
+                "is_indoor": location_data.get("is_indoor", False),
+                "floor": location_data.get("floor")
+            })
+        else:
+            print("📍 No location data found (but still responding to user)")
+        
+        print("=== END REQUEST ===\n")
+        
+        return jsonify(response_data)
+        
     except Exception as e:
         print(f"Chatbot error: {e}")
+        import traceback
+        traceback.print_exc()
+        
+        # Always return a valid response even on error
         return jsonify({
             "success": True,
-            "response": "I'm here to help with campus navigation! Try asking about locations or directions."
+            "response": "I'm here to help with campus navigation! How can I assist you today?"
         })
-    
 
 def check_for_location(user_message):
-    # Get regular markers from database
+    """Find location in database and return coordinates"""
+    userLower = str(user_message).lower()
+    
+    print(f"🔍 Checking location for: '{user_message}'")
+    
+    # Get ALL markers from database
     markers = Marker.query.all()
-    locationNames = [marker.name for marker in markers]
+    indoor_markers = IndoorMarker.query.all()
     
-    # Add building names to the location list
+    # Combine all location names for fuzzy matching
+    all_location_names = []
+    all_locations = []  # Store the actual objects
+    
+    # Add outdoor markers
+    for marker in markers:
+        if marker.name:
+            all_location_names.append(str(marker.name))
+            all_locations.append({
+                "type": "outdoor",
+                "object": marker,
+                "name": marker.name,
+                "lat": marker.latitude,
+                "lng": marker.longitude,
+                "description": marker.description,
+                "category": marker.category.name if marker.category else None
+            })
+    
+    # Add indoor markers
+    for marker in indoor_markers:
+        if marker.name:
+            all_location_names.append(str(marker.name))
+            all_locations.append({
+                "type": "indoor",
+                "object": marker,
+                "name": marker.name,
+                "lat": marker.latitude,
+                "lng": marker.longitude,
+                "description": marker.description,
+                "building": marker.building,
+                "floor": marker.floor
+            })
+    
+    # Add building names
     building_names = [
-        "FCI Building",
-        "FOM Building", 
-        "FAIE Building",
-        "FCM Building"
+        "FCI Building", "FOM Building", "FAIE Building", "FCM Building",
+        "Dewan Tun Canselor", "DTC", "Library", "Cafeteria", 
+        "Haji Tapah", "Starbees"
     ]
     
-    # Combine both lists
-    all_location_names = locationNames + building_names
+    for building in building_names:
+        all_location_names.append(building)
+        all_locations.append({
+            "type": "building",
+            "name": building,
+            "lat": None,  # Will get from get_building_coordinates
+            "lng": None
+        })
     
-    result = process.extractOne(user_message, all_location_names, scorer=fuzz.token_sort_ratio)
-    userLower = user_message.lower()
-
-    location_keywords = [
-        "where", "location", "place", "find", "directions",
-        "navigate", "route", "path", "how to get", "way to",
-        "show me", "take me", "guide me", "locate", "find"
-    ]
-
-    locationQuestion = False
-    for keyword in location_keywords:
-        if keyword in userLower:
-            locationQuestion = True
-            break
-
+    print(f"   Searching through {len(all_location_names)} locations")
+    
+    # Check for short forms first
     shortform = {
         "dtc": "Dewan Tun Canselor",
-        "mmu": "Multimedia University",
         "lib": "Library",
-        "lab": "Computer Lab",
         "caf": "Cafeteria",
-        "hall": "Lecture Hall",
-        "food": "Cafeteria",
-        "restaurant": "Cafeteria",
+        "ht": "Haji Tapah",
+        "food": "Starbees",
         "fci": "FCI Building",
         "fom": "FOM Building",
         "faie": "FAIE Building",
         "fcm": "FCM Building",
     }
-
+    
     for short, long in shortform.items():
         if f" {short} " in f" {userLower} " or userLower == short:
-            # First check if it's a building
-            if long in building_names:
-                # Return building coordinates
-                return get_building_coordinates(long)
-            else:
-                # Check regular markers
-                for marker in markers:
-                    if long.lower() in marker.name.lower():
+            print(f"   Shortform matched: '{short}' -> '{long}'")
+            # Check if it's a building
+            for location in all_locations:
+                if location["name"].lower() == long.lower():
+                    if location["type"] == "building":
+                        return get_building_coordinates(long)
+                    else:
+                        building_name = extract_building_from_name(location["name"])
+                        is_indoor = location["type"] == "indoor" or (
+                            location.get("category") in ["Classroom", "Office"]
+                        )
                         return {
-                            "coordinates": {
-                                "latitude": marker.latitude, 
-                                "longitude": marker.longitude,
-                            },
-                            "location_name": marker.name,
-                            "location_description": marker.description, 
+                            "coordinates": {"latitude": location["lat"], "longitude": location["lng"]},
+                            "location_name": location["name"],
+                            "location_description": location.get("description", ""),
+                            "building": building_name,
+                            "is_indoor": is_indoor,
+                            "floor": location.get("floor")
                         }
     
-    if locationQuestion:
-        if result:  
+    # Check if this is a location question
+    location_keywords = ["where", "location", "place", "find", "directions", "navigate", 
+                        "route", "path", "how to get", "way to", "show me", "take me", 
+                        "guide me", "locate"]
+    
+    is_location_question = any(keyword in userLower for keyword in location_keywords)
+    
+    # Always try to find a location match, but prioritize if it's a location question
+    if all_location_names:  # Always try to match if we have locations
+        result = process.extractOne(user_message, all_location_names, scorer=fuzz.token_sort_ratio)
+        
+        if result:
             best_match, score = result
-            print(f"🔍 Fuzzy match: '{user_message}' → '{best_match}' (score: {score})")
+            print(f"   Fuzzy match: '{user_message}' → '{best_match}' (score: {score})")
             
-            if score > 40:  # Similarity threshold
-                # Check if it's a building first
-                if best_match in building_names:
-                    return get_building_coordinates(best_match)
-                
-                # Check regular markers
-                for marker in markers:
-                    if marker.name == best_match:   
+            # Lower threshold for location questions, higher for general chat
+            threshold = 40 if is_location_question else 60
+            
+            if score > threshold:
+                # Find the matching location object
+                for location in all_locations:
+                    if location["name"].lower() == best_match.lower():
+                        print(f"   Found matching location: {location['name']} (type: {location['type']})")
+                        
+                        # Handle buildings specially
+                        if location["type"] == "building":
+                            return get_building_coordinates(best_match)
+                        
+                        # Get coordinates
+                        if location["lat"] is None or location["lng"] is None:
+                            # This shouldn't happen for non-building locations
+                            continue
+                        
+                        building_name = extract_building_from_name(location["name"])
+                        is_indoor = location["type"] == "indoor" or (
+                            location.get("category") in ["Classroom", "Office"]
+                        )
+                        
                         return {
-                            "coordinates": {
-                            "latitude": marker.latitude, 
-                            "longitude": marker.longitude,
-                            },
-                            "location_name": marker.name,
-                            "location_description": marker.description, 
+                            "coordinates": {"latitude": location["lat"], "longitude": location["lng"]},
+                            "location_name": location["name"],
+                            "location_description": location.get("description", f"{location['name']} at MMU"),
+                            "building": building_name,
+                            "is_indoor": is_indoor,
+                            "floor": location.get("floor")
                         }
+    
+    print(f"   No location match found for: '{user_message}'")
     return {}
+
+def extract_building_from_name(location_name):
+    """Extract building name from location name"""
+    if not location_name:
+        return None
+        
+    location_name_lower = location_name.lower()
+    
+    if "fci" in location_name_lower or "cqar" in location_name_lower or "cqcr" in location_name_lower:
+        return "FCI Building"
+    elif "fom" in location_name_lower:
+        return "FOM Building"
+    elif "faie" in location_name_lower:
+        return "FAIE Building"
+    elif "fcm" in location_name_lower:
+        return "FCM Building"
+    elif "room" in location_name_lower or "classroom" in location_name_lower:
+        return "FCI Building"
+    return None
 
 def get_building_coordinates(building_name):
     """Return coordinates for hardcoded buildings"""
     building_coords = {
         "FCI Building": {"latitude": 2.928633, "longitude": 101.64111},
-        "FOM Building": {"latitude": 2.929079, "longitude": 101.641324},
+        "FOM Building": {"latitude": 2.929348, "longitude": 101.641260},
         "FAIE Building": {"latitude": 2.926401, "longitude": 101.641255},
         "FCM Building": {"latitude": 2.926155, "longitude": 101.642649}
     }

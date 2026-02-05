@@ -18,7 +18,8 @@ function makeGPS() {
 
                     window.userLocation = { latitude: lat, longitude: long };
                     if (window.currentDestination) {
-                    router.createRoute(window.currentDestination.lat, window.currentDestination.lng);
+                    router.createRoute(window.currentDestination.lat, window.currentDestination.lng, window.currentDestination.building || null,
+                    window.currentDestination.isIndoor || false);
                     }
                 },
                 function (gpsError) {
