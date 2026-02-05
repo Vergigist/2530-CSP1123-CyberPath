@@ -98,6 +98,10 @@ with app.app_context():
         db.session.add_all([
             Category(name="Classroom", indoor_only=True),
             Category(name="Office", indoor_only=True),
+            Category(name="Stairs", indoor_only=True),
+            Category(name="Lift", indoor_only=True),
+            Category(name="Restroom", indoor_only=True),
+            Category(name="Other", indoor_only=True),
 
             Category(name="Lecture Hall", indoor_only=False),
             Category(name="Food & Drinks", indoor_only=False),
@@ -906,7 +910,7 @@ def check_for_location(user_message):
                     else:
                         building_name = extract_building_from_name(location["name"])
                         is_indoor = location["type"] == "indoor" or (
-                            location.get("category") in ["Classroom", "Office"]
+                            location.get("category") in ["Classroom", "Office","Restroom","Lift","Stairs"]
                         )
                         return {
                             "coordinates": {"latitude": location["lat"], "longitude": location["lng"]},
@@ -952,7 +956,7 @@ def check_for_location(user_message):
                         
                         building_name = extract_building_from_name(location["name"])
                         is_indoor = location["type"] == "indoor" or (
-                            location.get("category") in ["Classroom", "Office"]
+                            location.get("category") in ["Classroom", "Office","Restroom","Lift","Stairs"]
                         )
                         
                         return {
@@ -982,7 +986,7 @@ def extract_building_from_name(location_name):
         return "FAIE Building"
     elif "fcm" in location_name_lower:
         return "FCM Building"
-    elif "room" in location_name_lower or "classroom" in location_name_lower:
+    elif "room" in location_name_lower or "stairs" in location_name_lower or "lift" in location_name_lower or "restroom" in location_name_lower or "classroom" in location_name_lower:
         return "FCI Building"
     return None
 

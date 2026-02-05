@@ -244,7 +244,7 @@ function getCategoryIcon(category) {
 function isIndoorLocation(locationName, description = "") {
     const indoorKeywords = [
         'room', 'classroom', 'office', 'lab', 'laboratory', 
-        'cqar', 'fci-', 'cqcr'
+        'cqar', 'fci-', 'cqcr', 'stairs', 'lift', 'restroom'
     ];
     
     const lowerName = locationName.toLowerCase();
@@ -276,7 +276,7 @@ function getBuildingFromIndoorLocation(locationName) {
 // Also add this function to check category for indoor routing
 function shouldRouteToBuilding(category, locationName, description = "") {
     // If category is "Classroom" or "Office", route to building
-    if (category === "Classroom" || category === "Office") {
+    if (category === "Classroom" || category === "Office" || category === "Lift" || category === "Restroom" || category === "Stairs") {
         return true;
     }
     
@@ -1200,8 +1200,16 @@ if (infoFab && infoPopup) {
 if (closeInfoPopup && infoPopup) {
     closeInfoPopup.addEventListener('click', () => {
         infoPopup.classList.add('hidden');
+        localStorage.setItem('infoPopupClosed', 'true');
     });
 }
+
+// Show info popup on first load
+document.addEventListener('DOMContentLoaded', () => {
+    if (infoPopup && !localStorage.getItem('infoPopupClosed')) {
+        infoPopup.classList.remove('hidden');
+    }
+});
 
 // ---------- INIT ----------
 document.addEventListener("DOMContentLoaded", () => {
