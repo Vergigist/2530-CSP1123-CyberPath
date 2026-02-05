@@ -95,7 +95,7 @@ function setupChatbot() {
         chatMessages.scrollTop = chatMessages.scrollHeight;
     }
 
-    function addDirectionsButton(coordinates, locationName) {
+    function addDirectionsButton(coordinates, locationName, isIndoor = false, building = null) {
         const buttonDiv = document.createElement('div');
 
         const isDark = document.body.classList.contains('dark-mode');
@@ -109,6 +109,11 @@ function setupChatbot() {
             border-left: 4px solid ${isDark ? '#b58f00' : '#ffb300'};
             color: ${isDark ? '#1a1a1a' : '#000'};
         `;
+
+        let displayText = `📍 Need directions to ${escapeHtml(locationName)}?`;
+        if (isIndoor && building) {
+            displayText = `🏢 Need directions to ${escapeHtml(locationName)} in ${escapeHtml(building)}?`;
+        }
     
         //changed coords to coordinates
         buttonDiv.innerHTML = `
@@ -119,6 +124,8 @@ function setupChatbot() {
                 data-lat="${coordinates.latitude}" 
                 data-lng="${coordinates.longitude}"
                 data-name="${escapeHtml(locationName)}"
+                data-building="${isIndoor ? escapeHtml(building) : ''}"
+                data-indoor="${isIndoor}"
                 style="padding: 8px 16px; background: #2196f3; color: white; border: none; border-radius: 4px; cursor: pointer;">
             🗺️ Get Walking Directions
         </button>
@@ -143,6 +150,8 @@ function setupChatbot() {
                 const lat = parseFloat(this.dataset.lat);
                 const lng = parseFloat(this.dataset.lng);
                 const locationName = this.dataset.name; // ensure you have a name attribute
+                const building = this.dataset.building;
+                const isIndoor = this.dataset.indoor === 'true';
 
                 if (!window.userLocation) {
                     addMessageToChat(" Please click 'Find My Location' first.", false);
@@ -154,12 +163,16 @@ function setupChatbot() {
                     return;
                 }
 
-                const routeLayer = window.router.createRoute(lat, lng);
+                const routeLayer = window.router.createRoute(lat, lng, building, isIndoor);
                 window.showRouteInfoPopup(routeLayer, locationName);
                 if (routeLayer) {
-                    addMessageToChat(`✅ Creating route to ${locationName}! Check the map for the blue path.`, false);
-                    chatbotPopup.classList.add('hidden'); // close chatbot
-                } else {
+                    let successMsg = `✅ Creating route to ${locationName}! Check the map for the blue path.`;
+                if (isIndoor && building) {
+                    successMsg = `✅ Creating route to ${building}! The path will lead you to the building entrance.`;
+                }
+                addMessageToChat(successMsg, false);
+                chatbotPopup.classList.add('hidden');
+            } else {
                     addMessageToChat(`⚠️ Failed to create route to ${locationName}.`, false);
                 }
             } finally {
@@ -177,65 +190,80 @@ function setupChatbot() {
     
     async function sendMessage() {  
         const userMessage = chatInput.value.trim();
-        if (!userMessage) {
-            return;
-        }
+        if (!userMessage) return;
         
         console.log("User message:", userMessage);
 
         // Add user message
         addMessageToChat(userMessage, true);
-        
-        // Clear input
         chatInput.value = '';
 
-        // Show thinking
+        // Show thinking indicator
         const thinkingDiv = showThinking();
 
         try {
             const response = await fetch('/chatbot/ask', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({
-                    message: userMessage
-                })
+                body: JSON.stringify({ message: userMessage })
             });
             
             const data = await response.json();
-            console.log("Bot response data:", data);
+            console.log("📦 Full bot response:", data);
             
             thinkingDiv.remove();
 
             if (data.success) {
+                // Always show bot response
                 addMessageToChat(data.response, false);
-
-                if (data.coordinates && data.location_name) {
-                    showSuggestions([
-                        `🗺️ Get directions to ${data.location_name}`,
-                        `⏱️ How to get to ${data.location_name}?`,
-                        `📍 Show walking route to ${data.location_name}`
-                    ]);
-                    } else {
-                        showSuggestions([
-                            "🗺️ Directions to the library",
-                            "🚶 Walking route to DTC",
-                            "📍 How do I get to Haji Tapah?",
-                        ]);
-                    }
                 
-                // Wait 1 second, then show directions suggestion
+                // ALWAYS show suggestions
+                showSuggestions([
+                    "🗺️ Get directions",
+                    "⏱️ How long will it take?",
+                    "📍 Show me the route"
+                ]);
+                
+                // Check if we have coordinates to show directions button
                 if (data.coordinates && data.location_name) {
-                    setTimeout(() => {
-                        // Bot explains about directions
-                        addMessageToChat(
-                            `💡 I can show you walking directions to ${data.location_name}! ` +
-                            `Click the button below when you're ready to go.`, 
-                            false
-                        );
+                    console.log("✅ Has coordinates, showing directions button");
+                    console.log("   Location:", data.location_name);
+                    console.log("   Coordinates:", data.coordinates);
+                    console.log("   Is indoor:", data.is_indoor);
+                    console.log("   Building:", data.building);
                     
+                    // Wait a moment, then show directions
+                    setTimeout(() => {
+                        const isIndoor = data.is_indoor === true;
+                        const building = data.building || null;
+                        
+                        let botMessage = `💡 I can show you walking directions to **${data.location_name}**! `;
+                        
+                        if (isIndoor && building) {
+                            botMessage += `The route will lead you to the **${building}** entrance. `;
+                        } else if (building) {
+                            botMessage += `The route will lead you to **${building}**. `;
+                        }
+                        
+                        botMessage += `Click the button below when you're ready to go.`;
+                        
+                        addMessageToChat(botMessage, false);
+                        
+                        // Show the directions button
                         setTimeout(() => {
-                            addDirectionsButton(data.coordinates, data.location_name);
-                        }, 500);
+                            addDirectionsButton(
+                                data.coordinates, 
+                                data.location_name, 
+                                isIndoor, 
+                                building
+                            );
+                        }, 300);
+                    }, 800);
+                } else {
+                    console.log("❌ No coordinates available");
+                    // Even without coordinates, suggest asking for a location
+                    setTimeout(() => {
+                        addMessageToChat("💡 You can ask me for directions to places like: 'Library', 'DTC', 'FCI Building', or 'Haji Tapah'.", false);
                     }, 1000);
                 }
             } else {
