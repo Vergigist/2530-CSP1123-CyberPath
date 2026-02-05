@@ -855,7 +855,7 @@ def check_for_location(user_message):
                     else:
                         building_name = extract_building_from_name(location["name"])
                         is_indoor = location["type"] == "indoor" or (
-                            location.get("category") in ["Classroom", "Office"]
+                            location.get("category") in ["Classroom", "Office","Restroom","Lift","Stairs"]
                         )
                         return {
                             "coordinates": {"latitude": location["lat"], "longitude": location["lng"]},
@@ -901,7 +901,7 @@ def check_for_location(user_message):
                         
                         building_name = extract_building_from_name(location["name"])
                         is_indoor = location["type"] == "indoor" or (
-                            location.get("category") in ["Classroom", "Office"]
+                            location.get("category") in ["Classroom", "Office","Restroom","Lift","Stairs"]
                         )
                         
                         return {
@@ -931,7 +931,7 @@ def extract_building_from_name(location_name):
         return "FAIE Building"
     elif "fcm" in location_name_lower:
         return "FCM Building"
-    elif "room" in location_name_lower or "classroom" in location_name_lower:
+    elif "room" in location_name_lower or "stairs" in location_name_lower or "lift" in location_name_lower or "restroom" in location_name_lower or "classroom" in location_name_lower:
         return "FCI Building"
     return None
 
