@@ -209,7 +209,7 @@ if (closeLocationFormBtn) {
 
 const ICONS = {
     "Lecture Hall": L.icon({
-        iconUrl: "/static/icons/default.png",
+        iconUrl: "/static/icons/buildings.png",
         iconSize: [28, 34],
         iconAnchor: [14, 28],
         popupAnchor: [0, -28]
@@ -220,7 +220,7 @@ const ICONS = {
         iconAnchor: [14, 28]
     }),
     "Facilities": L.icon({
-        iconUrl: "/static/icons/default.png",
+        iconUrl: "/static/icons/buildings.png",
         iconSize: [28, 34],
         iconAnchor: [14, 28]
     }),
@@ -238,6 +238,50 @@ const ICONS = {
 
 function getCategoryIcon(category) {
     return ICONS[category] || ICONS.default;
+}
+
+// Add these helper functions at the top of script.js or in a utilities section
+function isIndoorLocation(locationName, description = "") {
+    const indoorKeywords = [
+        'room', 'classroom', 'office', 'lab', 'laboratory', 
+        'cqar', 'fci-', 'cqcr'
+    ];
+    
+    const lowerName = locationName.toLowerCase();
+    const lowerDesc = description.toLowerCase();
+    
+    return indoorKeywords.some(keyword => 
+        lowerName.includes(keyword) || lowerDesc.includes(keyword)
+    );
+}
+
+function getBuildingFromIndoorLocation(locationName) {
+    const lowerName = locationName.toLowerCase();
+    
+    if (lowerName.includes("fci") || lowerName.includes("cqar") || lowerName.includes("cqcr")) {
+        return "FCI Building";
+    } else if (lowerName.includes("fom")) {
+        return "FOM Building";
+    } else if (lowerName.includes("faie")) {
+        return "FAIE Building";
+    } else if (lowerName.includes("fcm")) {
+        return "FCM Building";
+    } else if (isIndoorLocation(locationName)) {
+        // If it's an indoor location but building not specified, default to FCI
+        return "FCI Building";
+    }
+    return null;
+}
+
+// Also add this function to check category for indoor routing
+function shouldRouteToBuilding(category, locationName, description = "") {
+    // If category is "Classroom" or "Office", route to building
+    if (category === "Classroom" || category === "Office") {
+        return true;
+    }
+    
+    // Otherwise check if it's an indoor location
+    return isIndoorLocation(locationName, description);
 }
 
 // Map picking for both add + edit
@@ -300,13 +344,32 @@ function handlePathButtonClick(e) {
     const btn = e.target.closest(".path-btn") || e.target;
     if (!btn) return;
 
-    if (routingInProgress) return; // ignore if already routing
+    if (routingInProgress) return;
     routingInProgress = true;
 
     try {
         const targetLat = parseFloat(btn.dataset.lat);
         const targetLng = parseFloat(btn.dataset.lng);
         const locationName = btn.dataset.name;
+        const category = btn.dataset.category || "";
+        const description = btn.dataset.description || "";
+        
+        // Use helper functions to detect indoor locations
+        let isIndoor = false;
+        let targetBuilding = btn.dataset.building || null;
+        
+        // Check if button has explicit indoor data
+        if (btn.dataset.indoor === 'true') {
+            isIndoor = true;
+        } else {
+            // Use helper functions to detect
+            isIndoor = shouldRouteToBuilding(category, locationName, description);
+        }
+        
+        // Get building if not already set
+        if (isIndoor && !targetBuilding) {
+            targetBuilding = getBuildingFromIndoorLocation(locationName);
+        }
 
         if (!window.userLocation) {
             alert("📍 Please enable GPS first!");
@@ -318,22 +381,38 @@ function handlePathButtonClick(e) {
             return;
         }
 
-        const routeHere = router.createRoute(targetLat, targetLng);
+        const routeHere = router.createRoute(targetLat, targetLng, targetBuilding, isIndoor);
         if (routeHere) {
-            alert(`✅ Route created to ${locationName}!`);
+            let successMessage = `✅ Route created to ${locationName}!`;
+            if (isIndoor && targetBuilding) {
+                successMessage = `✅ Route created to ${targetBuilding}! The path will lead you to the building entrance.`;
+            }
+            alert(successMessage);
             showRouteInfoPopup(routeHere, locationName);
         } else {
             alert(`⚠️ Failed to create route to ${locationName}.`);
         }
     } finally {
-        routingInProgress = false; // reset flag
+        routingInProgress = false;
     }
     
     viewLocationPopup.classList.add("hidden");
-
 }
 
-locationList.addEventListener("click", handlePathButtonClick);
+locationList.addEventListener("click", function(e) {
+    // Only handle clicks on .path-btn elements
+    const pathBtn = e.target.closest(".path-btn");
+    if (pathBtn) {
+        handlePathButtonClick(e);
+    }
+    
+    // Don't prevent edit button clicks
+    const editBtn = e.target.closest(".edit-btn");
+    if (editBtn) {
+        // Let the edit button's own event handler run
+        return;
+    }
+});
 
 document.getElementById("markerForm").addEventListener("submit", () => {
     const isIndoorInput = document.querySelector('[name="is_indoor"]');
@@ -365,38 +444,88 @@ editLocationBtn.addEventListener("click", () => {
     openLocationPopup("edit");
 });
 
-function openLocationPopup(mode) {
+async function openLocationPopup(mode) {
     viewLocationPopup.classList.remove("hidden");
     locationList.innerHTML = "";
 
-    Promise.all([fetchMarkersByCategory(), fetchIndoorMarkers()])
-        .then(([outdoorMarkers, indoorMarkers]) => {
+    // Define your buildings here (same as in indoor.js)
+    const buildings = {
+        fci: {
+            name: "FCI Building",
+            latitude: 2.928633,
+            longitude: 101.64111,
+            description: "Faculty of Computing and Informatics",
+            type: "building"
+        },
+        fom: {
+            name: "FOM Building",
+            latitude: 2.929348,
+            longitude: 101.641260,
+            description: "Faculty of Management",
+            type: "building"
+        },
+        faie: {
+            name: "FAIE Building",
+            latitude: 2.926401,
+            longitude: 101.641255,
+            description: "Faculty of Artificial Intelligence Engineering",
+            type: "building"
+        },
+        fcm: {
+            name: "FCM Building",
+            latitude: 2.926155,
+            longitude: 101.642649,
+            description: "Faculty of Creative Multimedia",
+            type: "building"
+        }
+    };
 
-            const allMarkers = [
-                ...outdoorMarkers,
-                ...indoorMarkers.map(m => ({ ...m, type: "indoor" }))
-            ];
+    try {
+        const [outdoorMarkers, indoorMarkers] = await Promise.all([
+            fetchMarkersByCategory(),
+            fetchIndoorMarkers()
+        ]);
 
-            allMarkers.forEach(loc => {
-                const row = document.createElement("div");
-                row.className = "popup-row";
-                row.innerHTML = `
-                    <span>${loc.name}</span>
-                    <span class="col-category">${loc.category ?? "-"}</span>
-                    <button class="path-btn" 
-                            data-lat="${loc.latitude}" 
-                            data-lng="${loc.longitude}"
-                            data-name="${loc.name}">
-                        Get directions
-                    </button>
-                    ${mode === "edit" ? `<button class="edit-btn" data-id="${loc.id}" data-type="${loc.type || 'outdoor'}">Edit</button>` : ""}
-                `;
+        // Convert buildings object to array
+        const buildingArray = Object.keys(buildings).map(code => ({
+            ...buildings[code],
+            id: `building_${code}`, // Unique ID
+            code: code // Building code for reference
+        }));
 
-                locationList.appendChild(row);
-            });
+        const allMarkers = [
+            ...buildingArray,
+            ...outdoorMarkers,
+            ...indoorMarkers.map(m => ({ ...m, type: "indoor" }))
+        ];
 
-            attachEditButtons();
+        allMarkers.forEach(loc => {
+            const row = document.createElement("div");
+            row.className = "popup-row";
+            
+            // Same "Get directions" button for ALL locations (including buildings)
+            row.innerHTML = `
+                <span>${loc.name}</span>
+                <span class="col-category">${loc.type === "building" ? "Building" : (loc.category || "-")}</span>
+                <button class="path-btn" 
+                        data-lat="${loc.latitude}" 
+                        data-lng="${loc.longitude}"
+                        data-name="${loc.name}">
+                    Get directions
+                </button>
+                ${mode === "edit" && !loc.code ? 
+                    `<button class="edit-btn" data-id="${loc.id}" data-type="${loc.type || 'outdoor'}">Edit</button>` : ""}
+            `;
+
+            locationList.appendChild(row);
         });
+
+        attachEditButtons();
+        
+        
+    } catch (error) {
+        console.error("Error loading locations:", error);
+    }
 }
 
 

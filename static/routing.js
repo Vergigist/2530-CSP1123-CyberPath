@@ -3,20 +3,61 @@ function startRouting() {
   let currentRouteLayer = null;
 
   // Find nearest node to a lat/lng
-  function snapToNearestNode(lat, lng) {
+  function snapToNearestNode(lat, lng, targetBuilding = null) {
+    console.log(`🔍 Snapping coordinates (${lat}, ${lng}) to nearest node`);
+    console.log(`   Target building: ${targetBuilding}`);
+    
+    let candidateNodes = Object.entries(nodes);
+    
+    // If we have a target building, filter nodes to those near that building
+    if (targetBuilding) {
+        const buildingCenter = getBuildingCenter(targetBuilding);
+        if (buildingCenter) {
+            candidateNodes = candidateNodes.filter(([id, node]) => {
+                const distToBuilding = distanceMeters(node.lat, node.lng, buildingCenter.lat, buildingCenter.lng);
+                return distToBuilding < 80; // Only consider nodes within 80m of building
+            });
+            
+            console.log(`   Filtered to ${candidateNodes.length} nodes near ${targetBuilding}`);
+            
+            // If no nodes found near building, fall back to all nodes
+            if (candidateNodes.length === 0) {
+                console.log(`   No nodes near ${targetBuilding}, using all nodes`);
+                candidateNodes = Object.entries(nodes);
+            }
+        }
+    }
+    
     let nearestId = null;
     let minDist = Infinity;
-
-    Object.entries(nodes).forEach(([id, node]) => {
-      const d = distanceMeters(lat, lng, node.lat, node.lng);
-      if (d < minDist) {
-        minDist = d;
-        nearestId = id;
-      }
+    
+    candidateNodes.forEach(([id, node]) => {
+        const d = distanceMeters(lat, lng, node.lat, node.lng);
+        if (d < minDist) {
+            minDist = d;
+            nearestId = id;
+        }
     });
-
+    
+    console.log(`✅ Selected node: ${nearestId} at distance ${minDist.toFixed(2)}m`);
+    
+    if (!nearestId) {
+        console.warn("⚠️ Could not find any nearby nodes!");
+    }
+    
     return nearestId;
-  }
+}
+
+// Helper function to get building centers
+function getBuildingCenter(buildingName) {
+    const buildingCenters = {
+        "FCI Building": { lat: 2.928633, lng: 101.64111 },
+        "FOM Building": { lat: 2.929487, lng: 101.641294 },
+        "FAIE Building": { lat: 2.926401, lng: 101.641255 },
+        "FCM Building": { lat: 2.926155, lng: 101.642649 }
+    };
+    return buildingCenters[buildingName] || null;
+}
 
   // A* algorithm
   function aStar(startId, goalId) {
@@ -106,32 +147,60 @@ function startRouting() {
     map.fitBounds(main.getBounds());
   }
 
-  function createRoute(toLat, toLng) {
+  function createRoute(toLat, toLng, targetBuilding = null, isIndoor = false, indoorCategory = null) {
+    console.log("=== CREATE ROUTE ===");
+    console.log("Destination:", toLat, toLng);
+    console.log("Target building:", targetBuilding);
+    console.log("Is indoor:", isIndoor);
+    console.log("Indoor category:", indoorCategory);
+    
     if (!window.userLocation) {
-      alert("📍User location not available. Please enable GPS.");
-      return;
+        alert("📍User location not available. Please enable GPS.");
+        return;
+    }
+
+    // If it's an indoor location, route to building center first
+    let finalDestination = { lat: toLat, lng: toLng };
+    let displayName = targetBuilding || "Destination";
+    
+    if (isIndoor && targetBuilding) {
+        // Get building center coordinates
+        const buildingCenter = getBuildingCenter(targetBuilding);
+        if (buildingCenter) {
+            console.log(`🏢 Indoor location detected, routing to ${targetBuilding} center first`);
+            finalDestination = buildingCenter;
+            displayName = `${targetBuilding} (Building Entrance)`;
+        }
     }
 
     const startNode = snapToNearestNode(window.userLocation.latitude, window.userLocation.longitude);
-    const endNode = snapToNearestNode(toLat, toLng);
+    const endNode = snapToNearestNode(finalDestination.lat, finalDestination.lng, targetBuilding);
+    
     console.log("Snapped start/end nodes:", startNode, endNode);
-    console.log("Start node data:", nodes[startNode]);
-    console.log("End node data:", nodes[endNode]);      
 
     if (!startNode || !endNode) {
-      alert("No route found: could not snap to nodes.");
-      return;
+        alert("No route found: could not snap to nodes.");
+        return;
     }
 
     const nodePath = aStar(startNode, endNode);
     if (!nodePath) {
-      alert("No path found between selected points.");
-      return;
+        alert("No path found between selected points.");
+        return;
     }
 
     drawRoute(nodePath);
+    
+    // Store original destination for info display
+    window.currentDestination = {
+        lat: toLat,
+        lng: toLng,
+        name: targetBuilding || "Destination",
+        isIndoor: isIndoor,
+        building: targetBuilding
+    };
+    
     return currentRouteLayer;
-
   }
 
   function userRemoveRoute() {

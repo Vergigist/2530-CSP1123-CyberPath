@@ -774,8 +774,8 @@ html, body, #content, #map-container, #map {
 /* Indoor control panel (UI) */
 #indoorPanel {
     position: absolute;
-    top: 40%;
-    left: 20%;
+    top: 48%;
+    left: 17%;
     width: 260px;
     background: #fff;
     box-shadow: 0 4px 12px rgba(0,0,0,0.25);
@@ -858,12 +858,7 @@ body.dark-mode .suggestion-chip:hover {
   background: #3a3a3a; /* slightly lighter on hover */
 }
 
-/*Dark-Mode*/
-/* Dark mode for entire page */
-body.dark-mode {
-    background-color: #121212;
-    color: #e0e0e0;
-}
+
 
 /* Chat bubble adjustments */
 body.dark-mode #chatMessages div {
@@ -954,8 +949,7 @@ button {
 }
 
 /* Sidebar panel */
-.dark-mode #sidebar,
-.dark-mode #content {
+.dark-mode #sidebar {
     background-color: #2c2c2c;
     color: #ddd;
     border-color: #444; /* optional, if there are borders */
@@ -994,15 +988,16 @@ button {
     border-color: #444; /* optional, if there are borders */
 }
 
-/* Dark mode for all popups / modals */
-body.dark-mode .modal,
 body.dark-mode .popup,
-body.dark-mode .admin-popup {
-    background-color: #2c2c2c; /* dark background */
-    color: #ddd;               /* light text */
-    border: 1px solid #444;    /* subtle border */
-    border-radius: 8px;        /* optional rounded corners */
-    box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+body.dark-mode .popup-overlay {
+    background-color: rgba(0, 0, 0, 0.7) !important;
+}
+
+/* Fix popup content cards */
+body.dark-mode .popup-content {
+    background-color: #2c2c2c !important;
+    color: #ddd !important;
+    border: 1px solid #444 !important;
 }
 
 /* Popup headers */
@@ -1403,3 +1398,5 @@ body.dark-mode .info-footer {
         opacity: 1;
     }
 }
+
+
