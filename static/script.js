@@ -1200,8 +1200,16 @@ if (infoFab && infoPopup) {
 if (closeInfoPopup && infoPopup) {
     closeInfoPopup.addEventListener('click', () => {
         infoPopup.classList.add('hidden');
+        localStorage.setItem('infoPopupClosed', 'true');
     });
 }
+
+// Show info popup on first load
+document.addEventListener('DOMContentLoaded', () => {
+    if (infoPopup && !localStorage.getItem('infoPopupClosed')) {
+        infoPopup.classList.remove('hidden');
+    }
+});
 
 // ---------- INIT ----------
 document.addEventListener("DOMContentLoaded", () => {
