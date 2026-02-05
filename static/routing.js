@@ -144,7 +144,7 @@ function getBuildingCenter(buildingName) {
     currentRouteLayer = L.layerGroup([shadow, main]);
     map.addLayer(currentRouteLayer);
 
-    map.fitBounds(main.getBounds());
+    
   }
 
   function createRoute(toLat, toLng, targetBuilding = null, isIndoor = false, indoorCategory = null) {
