@@ -209,7 +209,7 @@ if (closeLocationFormBtn) {
 
 const ICONS = {
     "Lecture Hall": L.icon({
-        iconUrl: "/static/icons/default.png",
+        iconUrl: "/static/icons/buildings.png",
         iconSize: [28, 34],
         iconAnchor: [14, 28],
         popupAnchor: [0, -28]
@@ -220,7 +220,7 @@ const ICONS = {
         iconAnchor: [14, 28]
     }),
     "Facilities": L.icon({
-        iconUrl: "/static/icons/default.png",
+        iconUrl: "/static/icons/buildings.png",
         iconSize: [28, 34],
         iconAnchor: [14, 28]
     }),
