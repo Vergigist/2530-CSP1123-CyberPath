@@ -19,10 +19,16 @@ function setupChatbot() {
 
     chatbotIcon.addEventListener('click', function() {
         console.log("Opening chatbot");
-        chatbotPopup.classList.toggle('hidden');
-        chatInput.focus();
+        if (chatbotPopup.classList.contains('hidden')) {
+            if (typeof showPopup === 'function') showPopup('chatbotPopup');
+            else chatbotPopup.classList.remove('hidden');
+            chatInput.focus();
+        } else {
+            if (typeof hidePopup === 'function') hidePopup('chatbotPopup');
+            else chatbotPopup.classList.add('hidden');
+        }
 
-            showSuggestions([
+        showSuggestions([
             "🗺️ Directions to the library",
             "🚶 Walking route to DTC",
             "📍 How do I get to Haji Tapah?",

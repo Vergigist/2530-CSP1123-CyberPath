@@ -112,19 +112,85 @@ if (signupForm) {
 }
 
 adminBtn.addEventListener('click', () => {
-    adminPopup.style.display = 'flex';
+    showPopup('adminPopup');
     signupForm.querySelectorAll("input").forEach(input => input.value = "");
     signupForm.querySelectorAll(".error-message").forEach(span => span.textContent = "");
 });
 
 closeAdminPopup.addEventListener('click', () => {
-    adminPopup.style.display = 'none'
+    if (adminPopup) adminPopup.style.display = 'none'
 });
 
 window.addEventListener('click', (e) => { 
-    if(e.target === adminPopup) 
-        adminPopup.style.display = 'none'; 
+    if (adminPopup && e.target === adminPopup) {
+        adminPopup.style.display = 'none';
+    }
 });
+
+function closeAllPopups() {
+    if (adminPopup) adminPopup.style.display = 'none';
+    const chatbotPopup = document.getElementById('chatbotPopup');
+    if (chatbotPopup) chatbotPopup.classList.add('hidden');
+    const infoPopup = document.getElementById('info-popup');
+    if (infoPopup) infoPopup.classList.add('hidden');
+    
+    // Using classList.add('hidden')
+    const popupIds = [
+        'addLocationForm',
+        'editLocationListPopup',
+        'editLocationFormPopup',
+        'deleteLocationPopup',
+        'viewLocationPopup',
+        'profilePopup',
+        'changeEmailPopup',
+        'changePasswordPopup',
+        'forgotOtpPopup',
+        'verifyOtpPopup',
+        'pendingApprovalsPopup',
+        'manageAdminsPopup',
+    ];
+    
+    popupIds.forEach(id => {
+        const popup = document.getElementById(id);
+        if (popup) popup.classList.add('hidden');
+    });
+}
+
+// Show a popup by id while ensuring others are closed
+function showPopup(id) {
+    // Close everything first
+    closeAllPopups();
+
+    if (!id) return;
+    const el = document.getElementById(id);
+    if (!el) return;
+
+    // adminPopup uses style.display
+    if (id === 'adminPopup') {
+        el.style.display = 'flex';
+        return;
+    }
+
+    // info-popup should be shown via class removal
+    if (id === 'info-popup') {
+        el.classList.remove('hidden');
+        return;
+    }
+
+    // default: use classList
+    el.classList.remove('hidden');
+}
+
+function hidePopup(id) {
+    if (!id) return;
+    const el = document.getElementById(id);
+    if (!el) return;
+    if (id === 'adminPopup') {
+        el.style.display = 'none';
+        return;
+    }
+    el.classList.add('hidden');
+}
 
 const tabs = document.querySelectorAll('.tab-btn');
 const forms = document.querySelectorAll('.tab-form');
@@ -187,7 +253,7 @@ let activePopup = null;
 let activeCoordsInput = null;
 
 addLocationBtn.addEventListener("click", () => {
-    addLocationForm.classList.remove("hidden");
+    showPopup('addLocationForm');
 });
 
 pickFromMapBtn.addEventListener("click", () => {
@@ -342,6 +408,8 @@ map.on("click", function (e) {
     activeCoordsInput = null;
 });
 
+
+
 // View all location
 const viewAllBtn = document.getElementById("viewAllBtn");
 const viewAllBtnUser = document.getElementById("viewAllBtnUser");
@@ -488,7 +556,7 @@ editLocationBtn.addEventListener("click", () => {
 });
 
 async function openLocationPopup(mode) {
-    viewLocationPopup.classList.remove("hidden");
+    showPopup('viewLocationPopup');
     locationList.innerHTML = "";
 
     // Define your buildings here (same as in indoor.js)
@@ -588,8 +656,8 @@ function attachEditButtons() {
 }
 
 function openEditForm(id, type) {
-    viewLocationPopup.classList.add("hidden");
-    editFormPopup.classList.remove("hidden");
+    // switch from view list to edit form ensuring exclusivity
+    showPopup('editLocationFormPopup');
 
     if (type === "indoor") {
         fetchIndoorMarkers().then(markers => {
@@ -648,7 +716,7 @@ const searchDeleteLocation = document.getElementById("searchDeleteLocation");
 const deleteLocationList = document.getElementById("deleteLocationList");
 
 deleteLocationBtn.addEventListener("click", () => {
-    deleteLocationPopup.classList.remove("hidden");
+    showPopup('deleteLocationPopup');
     populateDeleteList();
 });
 
@@ -735,7 +803,7 @@ async function openProfile(userId = null, editable = true) {
         aboutMeInput.value = data.about_me || "";
         aboutMeInput.readOnly = !editable;
 
-        profilePopup.classList.remove("hidden");
+        showPopup('profilePopup');
         return true;
     } catch (err) {
         console.error("Error fetching profile data:", err);
@@ -751,10 +819,10 @@ document.getElementById("profileBtn")?.addEventListener("click", () => {
 });
 
 closePopupProfile.addEventListener("click", () => {
-    profilePopup.classList.add("hidden");
+    hidePopup('profilePopup');
 
     if (openedFromManageAdmins) {
-        document.getElementById("manageAdminsPopup").classList.remove("hidden");
+        showPopup('manageAdminsPopup');
         openedFromManageAdmins = false;
     }
 });
@@ -765,13 +833,12 @@ const changeEmailPopup = document.getElementById("changeEmailPopup");
 const closeChangeEmailPopup = document.getElementById("closeChangeEmailPopup");
 
 changeEmailBtn.addEventListener("click", () => {
-    profilePopup.classList.add("hidden");
-    changeEmailPopup.classList.remove("hidden");
+    showPopup('changeEmailPopup');
 });
 
 closeChangeEmailPopup.addEventListener("click", () => {
-    changeEmailPopup.classList.add("hidden");
-    profilePopup.classList.remove("hidden");
+    hidePopup('changeEmailPopup');
+    showPopup('profilePopup');
 });
 
 //Change Password popup
@@ -780,13 +847,12 @@ const changePasswordPopup = document.getElementById("changePasswordPopup");
 const closeChangePasswordPopup = document.getElementById("closeChangePasswordPopup");
 
 changePasswordBtn.addEventListener("click", () => {
-    profilePopup.classList.add("hidden");
-    changePasswordPopup.classList.remove("hidden");
+    showPopup('changePasswordPopup');
 });
 
 closeChangePasswordPopup.addEventListener("click", () => {
-    changePasswordPopup.classList.add("hidden");
-    profilePopup.classList.remove("hidden");
+    hidePopup('changePasswordPopup');
+    showPopup('profilePopup');
 });
 
 document.addEventListener("DOMContentLoaded", function () {
@@ -852,7 +918,7 @@ const closePendingApprovals = document.getElementById("closePendingApprovals");
 const pendingApprovalsList = document.getElementById("pendingApprovalsList");
 
 pendingApprovalsBtn.addEventListener("click", async () => {
-    pendingApprovalsPopup.classList.remove("hidden");
+    showPopup('pendingApprovalsPopup');
     await loadPendingApprovals();
 });
 
@@ -915,7 +981,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const adminsListDiv = document.getElementById("adminsList");
 
     manageAdminsBtn.addEventListener("click", async () => {
-        manageAdminsPopup.classList.remove("hidden");
+        showPopup('manageAdminsPopup');
 
         try {
             const res = await fetch("/api/admins");
@@ -1042,7 +1108,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
         forgotOtpPopup.classList.add("hidden");
         verifyOtpPopup.classList.add("hidden");
-        adminPopup.style.display = 'flex';
 
         resetSendOtpForm();
 
@@ -1085,8 +1150,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // Open Forgot OTP popup
     forgotPasswordBtn?.addEventListener("click", () => {
         resetOtpState();
-        adminPopup.style.display = 'none';
-        forgotOtpPopup.classList.remove("hidden");
+        showPopup('forgotOtpPopup');
         activateOtpForm(sendOtpForm);
     });
 
@@ -1105,9 +1169,9 @@ document.addEventListener("DOMContentLoaded", () => {
         const data = await res.json();
 
         if (data.success) {
-            forgotOtpPopup.classList.add("hidden");
+            // move to verify step (close others then open verify)
             resetSendOtpForm();
-            verifyOtpPopup.classList.remove("hidden");
+            showPopup('verifyOtpPopup');
             activateOtpForm(verifyOtpForm);
             startOtpCooldown(); 
             sendOtpBtn.textContent = "Send OTP";
@@ -1238,7 +1302,8 @@ const closeInfoPopup = document.getElementById('closeInfoPopup');
 
 if (infoFab && infoPopup) {
     infoFab.addEventListener('click', () => {
-        infoPopup.classList.toggle('hidden');
+        if (infoPopup.classList.contains('hidden')) showPopup('info-popup');
+        else hidePopup('info-popup');
     });
 }
 
