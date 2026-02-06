@@ -91,7 +91,7 @@ def create_initial_admin():
 
 
 with app.app_context():
-    #db.drop_all()
+    db.drop_all()
     db.create_all()
 
     if not Category.query.first():
