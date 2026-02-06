@@ -1,7 +1,6 @@
 from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
-from datetime import datetime
 from openai import OpenAI
 from fuzzywuzzy import fuzz, process
 import random, google.genai as genai, os, re, resend
@@ -32,7 +31,6 @@ class Marker(db.Model):
     latitude = db.Column(db.Float, nullable=False)
     longitude = db.Column(db.Float, nullable=False)
     description = db.Column(db.Text)
-    timeadded = db.Column(db.DateTime, default=datetime.now)
     category_id = db.Column(db.Integer, db.ForeignKey("category.id"), nullable=True)
     
 class Category(db.Model):
@@ -50,7 +48,6 @@ class IndoorMarker(db.Model):
     longitude = db.Column(db.Float, nullable=False)
     latitude = db.Column(db.Float, nullable=False)
     description = db.Column(db.Text)
-    timeadded = db.Column(db.DateTime, default=datetime.now)
     category_id = db.Column(db.Integer, db.ForeignKey("category.id"), nullable=False)
 
 with app.app_context():
@@ -584,7 +581,6 @@ def edit_marker(marker_id):
         flash("Invalid coordinates", "error")
         return redirect(url_for("index"))
 
-    marker.timeadded = datetime.now()
     db.session.commit()
 
     flash("Marker updated successfully!", "success")
