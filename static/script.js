@@ -282,8 +282,8 @@ function getCategoryIcon(category) {
 
 function isIndoorLocation(locationName, description = "") {
     const indoorKeywords = [
-        'room', 'classroom', 'fci lab', 'fci laboratory', 
-        'cqar', 'fci-', 'cqcr', 'fci stairs', 'fci lift', 'fci restroom',
+        'classroom', 'fci lab', 'fci laboratory', 
+        'cqar', 'fci-', 'cqcr', 'fci stairs', 'fci lift', 'fci restroom'
     ];
     
     const lowerName = locationName.toLowerCase();
@@ -299,8 +299,6 @@ function getBuildingFromIndoorLocation(locationName) {
     
     if (lowerName.includes("fci") || lowerName.includes("cqar") || lowerName.includes("cqcr") || lowerName.startsWith("fci-")) {
         return "FCI Building";
-    } else if (lowerName.includes("fom")) {
-        return "FOM Building";
     } else if (lowerName.includes("faie") || lowerName.includes("clcr") || lowerName.includes("clbr") || lowerName.includes("clar") || lowerName.startsWith("faie-")) {
         return "FAIE Building";
     } else if (lowerName.includes("fcm")) {
