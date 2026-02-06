@@ -207,6 +207,9 @@ if (closeLocationFormBtn) {
 
 //marker icon change
 
+map.createPane("indoorPane");
+map.getPane("indoorPane").style.zIndex = 650;
+
 const ICONS = {
     "Lecture Hall": L.icon({
         iconUrl: "/static/icons/buildings.png",
@@ -229,6 +232,21 @@ const ICONS = {
         iconSize: [28, 34],
         iconAnchor: [14, 28]
     }),
+    "Stairs" : L.icon({
+        iconUrl: "/static/icons/stair.png",
+        iconSize: [28, 34],
+        iconAnchor: [14, 28]
+    }),
+    "Lift" : L.icon({
+        iconUrl: "/static/icons/lift.png",
+        iconSize: [28, 34],
+        iconAnchor: [14, 28]
+    }),
+    "Restroom" : L.icon({
+        iconUrl: "/static/icons/toilet.png",
+        iconSize: [28, 34],
+        iconAnchor: [14, 28]
+    }),
     "default": L.icon({
         iconUrl: "/static/icons/default.png",
         iconSize: [28, 34],
@@ -236,15 +254,36 @@ const ICONS = {
     })
 };
 
-function getCategoryIcon(category) {
-    return ICONS[category] || ICONS.default;
+function normalizeCategory(cat) {
+    if (!cat) return "default";
+
+    return cat
+        .trim()
+        .toLowerCase()
+        .replace(/&/g, "and");
 }
 
-// Add these helper functions at the top of script.js or in a utilities section
+function getCategoryIcon(category) {
+    if (!category) return ICONS.default;
+
+    const c = category.toLowerCase();
+
+    if (c.includes("lecture")) return ICONS["Lecture Hall"];
+    if (c.includes("food")) return ICONS["Food & Drinks"];
+    if (c.includes("facility")) return ICONS["Facilities"];
+    if (c.includes("recreation")) return ICONS["Recreation"];
+    if (c.includes("stair")) return ICONS["Stairs"];
+    if (c.includes("lift")) return ICONS["Lift"];
+    if (c.includes("toilet") || c.includes("restroom")) return ICONS["Restroom"];
+
+    return ICONS.default;
+}
+
+
 function isIndoorLocation(locationName, description = "") {
     const indoorKeywords = [
-        'room', 'classroom', 'office', 'lab', 'laboratory', 
-        'cqar', 'fci-', 'cqcr', 'stairs', 'lift', 'restroom'
+        'classroom', 'fci lab', 'fci laboratory', 
+        'cqar', 'fci-', 'cqcr', 'fci stairs', 'fci lift', 'fci restroom'
     ];
     
     const lowerName = locationName.toLowerCase();
@@ -258,11 +297,9 @@ function isIndoorLocation(locationName, description = "") {
 function getBuildingFromIndoorLocation(locationName) {
     const lowerName = locationName.toLowerCase();
     
-    if (lowerName.includes("fci") || lowerName.includes("cqar") || lowerName.includes("cqcr")) {
+    if (lowerName.includes("fci") || lowerName.includes("cqar") || lowerName.includes("cqcr") || lowerName.startsWith("fci-")) {
         return "FCI Building";
-    } else if (lowerName.includes("fom")) {
-        return "FOM Building";
-    } else if (lowerName.includes("faie")) {
+    } else if (lowerName.includes("faie") || lowerName.includes("clcr") || lowerName.includes("clbr") || lowerName.includes("clar") || lowerName.startsWith("faie-")) {
         return "FAIE Building";
     } else if (lowerName.includes("fcm")) {
         return "FCM Building";
@@ -277,6 +314,12 @@ function getBuildingFromIndoorLocation(locationName) {
 function shouldRouteToBuilding(category, locationName, description = "") {
     // If category is "Classroom" or "Office", route to building
     if (category === "Classroom" || category === "Office" || category === "Lift" || category === "Restroom" || category === "Stairs") {
+        return true;
+    }
+
+    const lowerName = locationName.toLowerCase();
+    if (lowerName.includes("fci") || lowerName.includes("faie") || lowerName.includes("fom") || lowerName.includes("fcm") ||
+        lowerName.includes("cqar") || lowerName.includes("cqcr") || lowerName.includes("clar") || lowerName.includes("clcr") || lowerName.includes("clbr")) {
         return true;
     }
     
