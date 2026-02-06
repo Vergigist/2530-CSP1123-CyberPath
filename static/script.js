@@ -279,11 +279,11 @@ function getCategoryIcon(category) {
     return ICONS.default;
 }
 
-// Add these helper functions at the top of script.js or in a utilities section
+
 function isIndoorLocation(locationName, description = "") {
     const indoorKeywords = [
-        'room', 'classroom', 'office', 'lab', 'laboratory', 
-        'cqar', 'fci-', 'cqcr', 'stairs', 'lift', 'restroom'
+        'room', 'classroom', 'fci lab', 'fci laboratory', 
+        'cqar', 'fci-', 'cqcr', 'fci stairs', 'fci lift', 'fci restroom',
     ];
     
     const lowerName = locationName.toLowerCase();
@@ -297,11 +297,11 @@ function isIndoorLocation(locationName, description = "") {
 function getBuildingFromIndoorLocation(locationName) {
     const lowerName = locationName.toLowerCase();
     
-    if (lowerName.includes("fci") || lowerName.includes("cqar") || lowerName.includes("cqcr")) {
+    if (lowerName.includes("fci") || lowerName.includes("cqar") || lowerName.includes("cqcr") || lowerName.startsWith("fci-")) {
         return "FCI Building";
     } else if (lowerName.includes("fom")) {
         return "FOM Building";
-    } else if (lowerName.includes("faie")) {
+    } else if (lowerName.includes("faie") || lowerName.includes("clcr") || lowerName.includes("clbr") || lowerName.includes("clar") || lowerName.startsWith("faie-")) {
         return "FAIE Building";
     } else if (lowerName.includes("fcm")) {
         return "FCM Building";
@@ -316,6 +316,12 @@ function getBuildingFromIndoorLocation(locationName) {
 function shouldRouteToBuilding(category, locationName, description = "") {
     // If category is "Classroom" or "Office", route to building
     if (category === "Classroom" || category === "Office" || category === "Lift" || category === "Restroom" || category === "Stairs") {
+        return true;
+    }
+
+    const lowerName = locationName.toLowerCase();
+    if (lowerName.includes("fci") || lowerName.includes("faie") || lowerName.includes("fom") || lowerName.includes("fcm") ||
+        lowerName.includes("cqar") || lowerName.includes("cqcr") || lowerName.includes("clar") || lowerName.includes("clcr") || lowerName.includes("clbr")) {
         return true;
     }
     
