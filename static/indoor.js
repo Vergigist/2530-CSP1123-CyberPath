@@ -20,25 +20,25 @@ const FCIfloors = {
 };
 
 const FOMfloors = {
-    0: { image: '/static/images/fci_floor1.png', },
-    1: { image: '/static/images/fci_floor1.png', },
-    2: { image: '/static/images/fci_floor1.png', },
-    3: { image: '/static/images/fci_floor1.png', },
-    4: { image: '/static/images/fci_floor1.png', }
+    0: { image: '/static/images/faie_lowerGround.png', },
+    1: { image: '/static/images/faie_ground.png', },
+    2: { image: '/static/images/faie_floor1.png', },
+    3: { image: '/static/images/faie_floor2.png', },
+    4: { image: '/static/images/faie_floor3.png', }
 }
 const FAIEfloors = {
-    0: { image: '/static/images/fci_floor1.png', },
-    1: { image: '/static/images/fci_floor1.png', },
-    2: { image: '/static/images/fci_floor1.png', },
-    3: { image: '/static/images/fci_floor1.png', },
-    4: { image: '/static/images/fci_floor1.png', }
+    0: { image: '', },
+    1: { image: '', },
+    2: { image: '', },
+    3: { image: '', },
+    4: { image: '', }
 }
 const FCMfloors = {
-    0: { image: '/static/images/fci_floor1.png', },
-    1: { image: '/static/images/fci_floor1.png', },
-    2: { image: '/static/images/fci_floor1.png', },
-    3: { image: '/static/images/fci_floor1.png', },
-    4: { image: '/static/images/fci_floor1.png', }
+    0: { image: '', },
+    1: { image: '', },
+    2: { image: '', },
+    3: { image: '', },
+    4: { image: '', }
 }
 
 
@@ -61,7 +61,7 @@ const buildings = {
 
     faie: {
         name: "FAIE Building",
-        center: [2.926401, 101.641255],
+        center: [2.926317, 101.641355],
         floors: FOMfloors,
     },
 
@@ -90,11 +90,6 @@ function enterIndoor(buildingId) {
     // Show indoor markers
     indoorMarkers.addTo(map);
 
-    map.dragging.disable();
-    map.scrollWheelZoom.disable();
-    map.doubleClickZoom.disable();
-    map.touchZoom.disable();
-
     map.flyTo(activeBuilding.center, 19.8);
 
     document.getElementById('indoorPanel').style.display = 'block';
@@ -107,6 +102,8 @@ function enterIndoor(buildingId) {
     LOAD FLOOR
 ========================= */
 async function loadFloor(floorNumber) {
+    if (!isIndoor || !activeBuilding) return;
+    
     activeFloor = floorNumber;
 
     const floor = activeBuilding.floors[floorNumber];
@@ -188,11 +185,6 @@ function exitIndoor() {
 
     document.getElementById('indoorContainer').hidden = true;
     document.getElementById('indoorPanel').style.display = 'none';
-
-    map.dragging.enable();
-    map.scrollWheelZoom.enable();
-    map.doubleClickZoom.enable();
-    map.touchZoom.enable();
 
     initBuildings();
 }

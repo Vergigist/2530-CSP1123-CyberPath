@@ -40,6 +40,7 @@ class Category(db.Model):
     name = db.Column(db.String(100), unique=True, nullable=False)
     indoor_only = db.Column(db.Boolean, default=False)
     markers = db.relationship("Marker", backref="category", lazy=True)
+    indoor_markers = db.relationship("IndoorMarker", backref="category", lazy=True)
 
 class IndoorMarker(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -50,6 +51,7 @@ class IndoorMarker(db.Model):
     latitude = db.Column(db.Float, nullable=False)
     description = db.Column(db.Text)
     timeadded = db.Column(db.DateTime, default=datetime.now)
+    category_id = db.Column(db.Integer, db.ForeignKey("category.id"), nullable=False)
 
 with app.app_context():
     #db.drop_all()
@@ -484,10 +486,13 @@ def api_markers():
             "latitude": m.latitude,
             "longitude": m.longitude,
             "description": m.description,
-            "category": m.category.name if m.category else None
+            "category": m.category.name if m.category else None,
+            "category_id": m.category_id,
+            "is_indoor": False
         }
         for m in markers
     ]
+
     return jsonify(markers_list)
 
 
@@ -503,7 +508,9 @@ def api_indoor_markers():
             "latitude": im.latitude,
             "longitude": im.longitude,
             "description": im.description,
-            "is_indoor": True  # Add this flag
+            "category": im.category.name if im.category else None,
+            "category_id": im.category_id,
+            "is_indoor": True
         }
         for im in IndoorMarkers
     ]
@@ -535,7 +542,7 @@ def add_marker():
             flash("Indoor locations must have a building and floor", "error")
             return redirect(url_for("index"))
         
-        new_indoor_marker = IndoorMarker(building=building_id, floor=floor, name=name, latitude=latitude, longitude=longitude, description=description)
+        new_indoor_marker = IndoorMarker(building=building_id, floor=floor, name=name, latitude=latitude, longitude=longitude, description=description, category_id=category_id)
         db.session.add(new_indoor_marker)
         db.session.commit()
 
@@ -567,6 +574,7 @@ def edit_marker(marker_id):
 
     marker.name = request.form["name"]
     marker.description = request.form["description"]
+    marker.category_id = request.form.get("category_id")
 
     try:
         marker.latitude, marker.longitude = map(
@@ -855,7 +863,7 @@ def check_for_location(user_message):
                     else:
                         building_name = extract_building_from_name(location["name"])
                         is_indoor = location["type"] == "indoor" or (
-                            location.get("category") in ["Classroom", "Office"]
+                            location.get("category") in ["Classroom", "Office","Restroom","Lift","Stairs"]
                         )
                         return {
                             "coordinates": {"latitude": location["lat"], "longitude": location["lng"]},
@@ -901,7 +909,7 @@ def check_for_location(user_message):
                         
                         building_name = extract_building_from_name(location["name"])
                         is_indoor = location["type"] == "indoor" or (
-                            location.get("category") in ["Classroom", "Office"]
+                            location.get("category") in ["Classroom", "Office","Restroom","Lift","Stairs"]
                         )
                         
                         return {
@@ -931,7 +939,7 @@ def extract_building_from_name(location_name):
         return "FAIE Building"
     elif "fcm" in location_name_lower:
         return "FCM Building"
-    elif "room" in location_name_lower or "classroom" in location_name_lower:
+    elif "room" in location_name_lower or "stairs" in location_name_lower or "lift" in location_name_lower or "restroom" in location_name_lower or "classroom" in location_name_lower:
         return "FCI Building"
     return None
 

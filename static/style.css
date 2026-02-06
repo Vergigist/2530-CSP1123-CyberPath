@@ -1399,4 +1399,284 @@ body.dark-mode .info-footer {
     }
 }
 
+/* ================================
+   MOBILE RESPONSIVE FIXES ONLY
+   Add to END of style.css
+================================ */
 
+/* Mobile devices (phones) */
+@media screen and (max-width: 768px) {
+    /* Slightly smaller sidebars */
+    .sidebar {
+        width: 220px !important;
+        padding: 12px !important;
+    }
+    
+    /* FIX: Main sidebar toggle button - TOP LEFT */
+    #toggleBtn {
+        top: 20px !important; /* Fixed height */
+        left: 15px !important;
+        padding: 10px 12px !important;
+        font-size: 20px !important;
+        background: white;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        height: 44px; /* Fixed height */
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    #content.sidebar-open #toggleBtn {
+        left: 235px !important;
+        top: 20px !important; /* EXACT SAME HEIGHT */
+    }
+    
+    .admin-sidebar {
+        width: 220px !important;
+        padding: 15px !important;
+    }
+    
+    /* FIX: Admin toggle button - TOP RIGHT, SAME HEIGHT */
+    .admin-toggle-btn {
+        top: 20px !important; /* EXACT SAME HEIGHT as #toggleBtn */
+        right: 15px !important;
+        padding: 10px 14px !important;
+        font-size: 14px !important;
+        background: #444;
+        color: white;
+        height: 44px; /* SAME FIXED HEIGHT */
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        line-height: 1; /* Fix text alignment */
+    }
+    
+    .admin-toggle-btn.shifted {
+        right: 240px !important;
+        top: 20px !important; /* KEEP SAME HEIGHT */
+    }
+    
+    /* Make sure buttons don't overlap and are perfectly aligned */
+    #toggleBtn, .admin-toggle-btn {
+        z-index: 1101 !important;
+        border-radius: 6px; /* Same border radius */
+    }
+    
+    /* ALIGNMENT CHECK - Visual guide (remove in production) */
+    /*
+    #toggleBtn::after {
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: 0;
+        right: 0;
+        height: 1px;
+        background: red;
+        z-index: 9999;
+    }
+    .admin-toggle-btn::after {
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: 0;
+        right: 0;
+        height: 1px;
+        background: blue;
+        z-index: 9999;
+    }
+    */
+    
+    /* Move sidebar content DOWN to avoid button overlap */
+    .sidebarTop {
+        gap: 10px !important;
+        margin-top: 70px !important; /* Enough space for buttons */
+    }
+    
+    .logoWrapper {
+        margin-top: 10px !important;
+    }
+    
+    .admin-controls {
+        gap: 10px !important;
+        margin-top: 70px !important; /* SAME as .sidebarTop */
+    }
+    
+    /* Slightly larger buttons for touch */
+    .user-btn, .admin-btn, .sign-inup, .sign-out {
+        padding: 10px !important;
+        margin-bottom: 8px !important;
+    }
+    
+    /* Make popups properly positioned */
+    .popup {
+        z-index: 9999 !important;
+    }
+    
+    .popup-content {
+        width: 90% !important;
+        max-width: 90% !important;
+        margin: 20px auto !important;
+        max-height: 80vh !important;
+    }
+    
+    /* Fix chatbot popup */
+    #chatbotPopup .popup-content {
+        width: 90% !important;
+        height: 60vh !important;
+    }
+    
+    /* Slightly larger form inputs */
+    input, select, textarea {
+        padding: 8px !important;
+        margin-bottom: 10px !important;
+    }
+    
+    .tab-form input {
+        padding: 8px !important;
+        margin: 6px 0 12px !important;
+    }
+    
+    /* Adjust floating buttons position */
+    .chatbot-icon {
+        bottom: 90px !important;
+        right: 20px !important;
+    }
+    
+    #darkModeFab {
+        bottom: 160px !important;
+        right: 20px !important;
+    }
+    
+    #infoFab {
+        bottom: 230px !important;
+        right: 20px !important;
+    }
+    
+    .chatbot-icon,
+    #darkModeFab,
+    #infoFab {
+        width: 50px !important;
+        height: 50px !important;
+        font-size: 22px !important;
+    }
+    
+    /* Route info card */
+    .route-info-card {
+        width: 85% !important;
+        bottom: 90px !important;
+    }
+    
+    /* Make text a bit larger for readability */
+    body {
+        font-size: 15px !important;
+    }
+    
+    /* Increase spacing in lists */
+    .popup-list div {
+        padding: 8px 0 !important;
+    }
+    
+    .popup-row {
+        padding: 10px 0 !important;
+    }
+    
+    /* Indoor panel adjustments */
+    #indoorPanel {
+        width: 70% !important;
+        left: 15% !important;
+        padding: 15px !important;
+        top: 50% !important;
+        transform: translateY(-50%);
+    }
+    
+    /* Hide coordinates display on small screens */
+    #coords-display {
+        font-size: 12px !important;
+        padding: 6px 10px !important;
+        bottom: 5px !important;
+    }
+}
+
+
+
+/* Extra small phones */
+@media screen and (max-width: 480px) {
+    .sidebar {
+        width: 200px !important;
+    }
+    
+    #toggleBtn {
+        top: 18px !important; /* Slightly adjusted */
+        left: 12px !important;
+        padding: 10px !important;
+    }
+    
+    #content.sidebar-open #toggleBtn {
+        left: 212px !important;
+        top: 18px !important; /* SAME HEIGHT */
+    }
+    
+    .admin-sidebar {
+        width: 200px !important;
+    }
+    
+    .admin-toggle-btn {
+        top: 18px !important; /* SAME HEIGHT as #toggleBtn */
+        right: 12px !important;
+        font-size: 13px !important;
+        padding: 10px 12px !important;
+    }
+    
+    .admin-toggle-btn.shifted {
+        right: 220px !important;
+        top: 18px !important; /* SAME HEIGHT */
+    }
+    
+    /* Move sidebar content DOWN */
+    .sidebarTop {
+        margin-top: 65px !important;
+    }
+    
+    .admin-controls {
+        margin-top: 65px !important; /* SAME as .sidebarTop */
+    }
+    
+    /* Space floating buttons */
+    .chatbot-icon {
+        bottom: 100px !important;
+        right: 15px !important;
+    }
+    
+    #darkModeFab {
+        bottom: 170px !important;
+        right: 15px !important;
+    }
+    
+    #infoFab {
+        bottom: 240px !important;
+        right: 15px !important;
+    }
+    
+    .popup-content {
+        width: 95% !important;
+        max-width: 95% !important;
+        padding: 15px !important;
+    }
+    
+    #coords-display {
+        display: none;
+    }
+    
+    /* Reduce logo size */
+    .logoWrapper img {
+        max-width: 120px !important;
+    }
+}
+
+/* Tablet adjustments */
+@media screen and (min-width: 769px) and (max-width: 1024px) {
+    .popup-content {
+        width: 70% !important;
+        max-width: 500px !important;
+    }
+}
