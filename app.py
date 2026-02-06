@@ -927,11 +927,11 @@ def extract_building_from_name(location_name):
         return "FCI Building"
     elif "fom" in location_name_lower:
         return "FOM Building"
-    elif "faie" in location_name_lower:
+    elif "faie" in location_name_lower or "clar" in location_name_lower or "clbr" in location_name_lower or "clcr" in location_name_lower or "faie stairs" in location_name_lower or "faie lift" in location_name_lower or "faie restroom" in location_name_lower or "faie classroom" in location_name_lower:
         return "FAIE Building"
     elif "fcm" in location_name_lower:
         return "FCM Building"
-    elif "room" in location_name_lower or "stairs" in location_name_lower or "lift" in location_name_lower or "restroom" in location_name_lower or "classroom" in location_name_lower:
+    elif "room" in location_name_lower or "fci stairs" in location_name_lower or "fci lift" in location_name_lower or "fci restroom" in location_name_lower or "fci classroom" in location_name_lower:
         return "FCI Building"
     return None
 
