@@ -1084,6 +1084,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // Open Forgot OTP popup
     forgotPasswordBtn?.addEventListener("click", () => {
         resetOtpState();
+        adminPopup.style.display = "none";
         forgotOtpPopup.classList.remove("hidden");
         activateOtpForm(sendOtpForm);
     });
