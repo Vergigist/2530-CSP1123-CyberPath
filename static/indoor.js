@@ -103,6 +103,8 @@ function enterIndoor(buildingId) {
     LOAD FLOOR
 ========================= */
 async function loadFloor(floorNumber) {
+    if (!isIndoor || !activeBuilding) return;
+    
     activeFloor = floorNumber;
 
     const floor = activeBuilding.floors[floorNumber];
