@@ -3,7 +3,9 @@ from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 from openai import OpenAI
 from fuzzywuzzy import fuzz, process
-import random, google.genai as genai, os, re, resend
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+import random, google.genai as genai, os, re, resend, smtplib
 
 os.environ["GRPC_VERBOSITY"] = "ERROR"
 os.environ["GLOG_minloglevel"] = "2"
@@ -89,20 +91,67 @@ def index():
 #---------------------------------------------------------------------------------------------------------------------------------
 
 referral_code = 961523
+MAIL_SERVER = "smtp.gmail.com"
+MAIL_PORT = 587
+MAIL_USE_TLS = True
+MAIL_USERNAME = "cyberpathotp@gmail.com"
+MAIL_PASSWORD = "hanz idhc htiv hcat"
 
 resend.api_key = "pretend-this-is-a-real-resend-api-key"
 
-def send_email(to, subject, body):
-    try:
-        resend.Emails.send({
-            "from": "CyberPath <no-reply@cyberpath.app>",
-            "to": to,
-            "subject": subject,
-            "text": body
-        })
-    except Exception as e:
-        print("Resend email failed:", e)
+def send_email(to_email, subject, body):
+    sender_email = "cyberpathotp@gmail.com"
+    app_password = "hanz idhc htiv hcat"
 
+    msg = MIMEMultipart()
+    msg["From"] = sender_email
+    msg["To"] = to_email
+    msg["Subject"] = subject
+
+    msg.attach(MIMEText(body, "html"))
+
+    try:
+        server = smtplib.SMTP("smtp.gmail.com", 587)
+        server.starttls()
+        server.login(sender_email, app_password)
+        server.send_message(msg)
+        server.quit()
+    except Exception as e:
+        print("Failed to send email:", e)
+        return False
+    
+def render_email(title, content):
+    return f"""
+    <div style="
+        font-family: Arial, Helvetica, sans-serif;
+        background-color: #f4f6f8;
+        padding: 30px;
+    ">
+        <div style="
+            max-width: 600px;
+            margin: auto;
+            background: #ffffff;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+        ">
+            <h2 style="color: #1f2937; margin-top: 0;">
+                {title}
+            </h2>
+
+            <div style="color: #374151; font-size: 15px; line-height: 1.6;">
+                {content}
+            </div>
+
+            <hr style="margin: 30px 0; border: none; border-top: 1px solid #e5e7eb;">
+
+            <p style="font-size: 13px; color: #6b7280;">
+                CyberPath • Smart Campus Navigator
+            </p>
+        </div>
+    </div>
+    """
+        
 
 def is_valid_password(password):
     if len(password) < 8:
@@ -199,17 +248,28 @@ def approve_user(user_id):
     db.session.commit()
 
     send_email(
-        to=user.email,
-        subject="Your account has been approved 🎉",
-        body=f"""Hello,
+    to_email=user.email,
+    subject="Your account has been approved 🎉",
+    body=render_email(
+        "Account Approved 🎉",
+        """
+        <p>Hello,</p>
 
-Good news! Your account has been approved by our admin team.
+        <p>
+            Good news! Your account has been
+            <strong>approved by our admin team</strong>.
+        </p>
 
-You can now log in and access admin features.
+        <p>
+            You can now log in and access admin features.
+        </p>
 
-Welcome aboard,
-CyberPath Team
-"""
+        <p>
+            Welcome aboard,<br>
+            <strong>CyberPath Team</strong>
+        </p>
+        """
+        )
     )
 
     return jsonify({"success": True, "message": f"{user.email} approved!"})
@@ -226,19 +286,32 @@ def reject_user(user_id):
     db.session.commit()
 
     send_email(
-        to=email,
-        subject="Account request update",
-        body=f"""Hello,
+    to_email=email,
+    subject="Account request update",
+    body=render_email(
+        "Account Request Update",
+        """
+        <p>Hello,</p>
 
-Thank you for your interest in CyberPath.
+        <p>
+            Thank you for your interest in <strong>CyberPath</strong>.
+        </p>
 
-After review, your account request was not approved.
+        <p>
+            After review, your account request was
+            <strong>not approved</strong>.
+        </p>
 
-If you believe this was a mistake, feel free to contact the team.
+        <p>
+            If you believe this was a mistake, feel free to contact the team.
+        </p>
 
-Regards,
-CyberPath Team
-"""
+        <p>
+            Regards,<br>
+            <strong>CyberPath Team</strong>
+        </p>
+        """
+        )
     )
     
     return jsonify({"success": True, "message": f"{user.email} rejected!"})
@@ -294,9 +367,41 @@ def send_forgot_otp():
     session["otp_verified"] = False
 
     send_email(
-        to=email,
-        subject="CyberPath Password Reset OTP",
-        body=f"Your OTP for password reset is: {otp}"
+    to_email=email,
+    subject="CyberPath Password Reset OTP",
+    body=render_email(
+        "Password Reset Request",
+        f"""
+        <p>Hello,</p>
+
+        <p>
+            We received a request to reset your CyberPath password.
+        </p>
+
+        <p style="
+            font-size: 22px;
+            font-weight: bold;
+            letter-spacing: 2px;
+            margin: 20px 0;
+            color: #111827;
+        ">
+            {otp}
+        </p>
+
+        <p>
+            Enter this OTP to continue resetting your password.
+            This code will expire shortly.
+        </p>
+
+        <p>
+            If you did not request this, you can safely ignore this email.
+        </p>
+
+        <p>
+            — CyberPath Team
+        </p>
+        """
+        )
     )
 
     return jsonify({"success": True})
