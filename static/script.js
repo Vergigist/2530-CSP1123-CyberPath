@@ -289,7 +289,7 @@ const ICONS = {
         iconAnchor: [14, 28]
     }),
     "Facilities": L.icon({
-        iconUrl: "/static/icons/buildings.png",
+        iconUrl: "/static/icons/facilities.png",
         iconSize: [28, 34],
         iconAnchor: [14, 28]
     }),
@@ -310,6 +310,11 @@ const ICONS = {
     }),
     "Restroom" : L.icon({
         iconUrl: "/static/icons/toilet.png",
+        iconSize: [28, 34],
+        iconAnchor: [14, 28]
+    }),
+    "Classroom" : L.icon({
+        iconUrl: "/static/icons/classroom.png",
         iconSize: [28, 34],
         iconAnchor: [14, 28]
     }),
@@ -336,10 +341,11 @@ function getCategoryIcon(category) {
 
     if (c.includes("lecture")) return ICONS["Lecture Hall"];
     if (c.includes("food")) return ICONS["Food & Drinks"];
-    if (c.includes("facility")) return ICONS["Facilities"];
+    if (c.includes("facilities")) return ICONS["Facilities"];
     if (c.includes("recreation")) return ICONS["Recreation"];
     if (c.includes("stair")) return ICONS["Stairs"];
     if (c.includes("lift")) return ICONS["Lift"];
+    if (c.includes("classroom")) return ICONS["Classroom"];
     if (c.includes("toilet") || c.includes("restroom")) return ICONS["Restroom"];
 
     return ICONS.default;
@@ -765,6 +771,7 @@ async function populateDeleteList() {
                 if (confirm(`Delete "${marker.name}"?`)) {
                     await fetch(`/delete-marker/${marker.id}`, { method: "POST" });
                     populateDeleteList();
+                    loadMarkers();
                 }
             });
 
