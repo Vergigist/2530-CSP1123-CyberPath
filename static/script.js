@@ -313,6 +313,11 @@ const ICONS = {
         iconSize: [28, 34],
         iconAnchor: [14, 28]
     }),
+    "Classroom" : L.icon({
+        iconUrl: "/static/icons/classroom.png",
+        iconSize: [28, 34],
+        iconAnchor: [14, 28]
+    }),
     "default": L.icon({
         iconUrl: "/static/icons/default.png",
         iconSize: [28, 34],
@@ -340,6 +345,7 @@ function getCategoryIcon(category) {
     if (c.includes("recreation")) return ICONS["Recreation"];
     if (c.includes("stair")) return ICONS["Stairs"];
     if (c.includes("lift")) return ICONS["Lift"];
+    if (c.includes("classroom")) return ICONS["Classroom"];
     if (c.includes("toilet") || c.includes("restroom")) return ICONS["Restroom"];
 
     return ICONS.default;
@@ -765,6 +771,7 @@ async function populateDeleteList() {
                 if (confirm(`Delete "${marker.name}"?`)) {
                     await fetch(`/delete-marker/${marker.id}`, { method: "POST" });
                     populateDeleteList();
+                    loadMarkers();
                 }
             });
 
