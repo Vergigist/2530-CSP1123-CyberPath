@@ -765,6 +765,7 @@ async function populateDeleteList() {
                 if (confirm(`Delete "${marker.name}"?`)) {
                     await fetch(`/delete-marker/${marker.id}`, { method: "POST" });
                     populateDeleteList();
+                    loadMarkers();
                 }
             });
 
